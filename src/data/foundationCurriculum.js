@@ -70,7 +70,7 @@ const rawFoundationLessons = [
     objectiveVi: 'Nhận biết ranh giới từ bằng khoảng trắng và hiểu mỗi từ mang một công việc/ý nghĩa trong câu.',
     steps: [
       content('discover', 'Khoảng trắng chia câu thành từ', 'Trong “I like apples.” có ba từ: I | like | apples. Dấu chấm không phải là một từ.', { tokenRoles: [{ text: 'I', role: 'word 1' }, { text: 'like', role: 'word 2' }, { text: 'apples', role: 'word 3' }, { text: '.', role: 'punctuation' }] }),
-      content('understand', 'Một từ có “công việc”', 'I gọi người nói; like nói trạng thái/ý thích; apples gọi tên đồ vật. Sau này bạn sẽ học tên chính thức của các công việc này: pronoun, verb, noun.'),
+      content('understand', 'Mỗi từ có một “việc” trong câu', 'I nói về ai. like nói điều thích. apples nói tên đồ vật. Trước tiên chỉ cần hiểu ý — tên gọi chính thức mình học sau nhé.', { tokenRoles: [{ text: 'I', role: 'ai?' }, { text: 'like', role: 'thích gì?' }, { text: 'apples', role: 'cái gì?' }] }),
       identify('Chọn tất cả các TỪ trong câu.', ['She', 'reads', 'books', '.'], [0, 1, 2], 'Dấu chấm là punctuation, không phải từ.', { multi: true }),
       choice('“I like apples.” có bao nhiêu từ?', ['2', '3', '4', '5'], '3', 'I, like, apples = 3 từ.'),
       produce('Viết 3 từ tiếng Anh bạn đã biết. Ngăn cách chúng bằng dấu phẩy.', 'apple, school, happy', ['Có ít nhất 3 mục'], { minWords: 3 }),
@@ -108,7 +108,7 @@ const rawFoundationLessons = [
     focus: ['grammar', 'sentence structure'], standards: ['CCSS L.K.1f', 'CCSS L.1.1c'],
     objectiveVi: 'Tìm chủ ngữ của câu bằng câu hỏi “Who or what is this sentence about?”',
     steps: [
-      content('discover', 'Subject là “nhân vật chính” của câu', 'Trong “The cat sleeps.”, câu nói về “The cat”. Đó là subject (chủ ngữ).', { tokenRoles: [{ text: 'The cat', role: 'SUBJECT' }, { text: 'sleeps', role: 'what happens' }] }),
+      content('discover', 'Subject là “nhân vật chính” của câu', 'Trong “The cat sleeps.”, câu nói về “The cat”. Đó là subject (chủ ngữ).', { tokenRoles: [{ text: 'The cat', role: 'chủ ngữ' }, { text: 'sleeps', role: 'điều xảy ra' }] }),
       content('compare', 'Tiếng Anh thường cần chủ ngữ hiện rõ', 'Người Việt đôi khi bỏ chủ ngữ khi ngữ cảnh đã rõ. Tiếng Anh thường không cho phép điều đó: “Is raining.” ✗ → “It is raining.” ✓'),
       identify('Chọn subject.', ['My', 'sister', 'reads', 'books', '.'], [0, 1], 'Subject đầy đủ là “My sister”.', { multi: true }),
       choice('Subject trong “The children play outside.” là gì?', ['The children', 'play', 'outside', 'play outside'], 'The children', 'Hỏi: Ai đang chơi? → The children.'),
@@ -134,8 +134,8 @@ const rawFoundationLessons = [
     focus: ['sentence construction', 'writing'], standards: ['CCSS L.K.1f', 'WIDA ELD-SI.K-3.Inform'],
     objectiveVi: 'Tự ghép subject + verb thành câu hoàn chỉnh ngắn.',
     steps: [
-      content('visualize', 'S + V', 'S = Subject. V = Verb. Mẫu này đủ cho nhiều câu: “Birds fly.” “Babies cry.”', { tokenRoles: [{ text: 'Birds', role: 'S' }, { text: 'fly', role: 'V' }] }),
-      content('understand', 'Ý nghĩa trước, công thức sau', 'Đừng đọc S + V như công thức toán. Hãy nghĩ: “Ai/cái gì?” + “Điều gì xảy ra?”'),
+      content('discover', 'Ghép hai phần lại', '“Birds fly.” “Babies cry.” Ai/cái gì đang được nói tới? Điều gì đang xảy ra? Ghép hai phần đó lại là bạn có một câu.', { examples: ['Birds fly.', 'Babies cry.', 'Babies sleep.'] }),
+      content('visualize', 'Viết tắt: S + V', 'Ai/cái gì? → gọi tắt là S. Điều gì xảy ra? → gọi tắt là V. Đây chỉ là cách viết ngắn cho điều bạn vừa hiểu.', { tokenRoles: [{ text: 'Birds', role: 'S' }, { text: 'fly', role: 'V' }] }),
       order('Ghép câu.', ['sleep', 'Babies', '.'], 'Babies sleep .', 'Babies = subject; sleep = verb.'),
       choice('Câu nào có đúng mẫu S + V?', ['The dog.', 'Runs fast.', 'Birds fly.', 'Very cold.'], 'Birds fly.', 'Birds = S, fly = V.'),
       produce('Viết 2 câu theo mẫu S + V. Mỗi câu trên một dòng.', 'Birds fly.\nChildren laugh.', ['Có 2 dòng câu', 'Mỗi câu có subject + verb'], { minLines: 2, minWords: 4 }),
@@ -173,8 +173,8 @@ const rawFoundationLessons = [
     focus: ['grammar', 'speaking'], standards: ['CCSS L.1.1d', 'WIDA ELD-LA.1.Inform'],
     objectiveVi: 'Chọn đại từ chủ ngữ phù hợp và hiểu đại từ giúp tham chiếu mà không lặp noun.',
     steps: [
-      content('discover', 'Pronoun thay cho noun hoặc noun group', '“Lan is my friend. Lan is kind.” tự nhiên hơn thành “Lan is my friend. She is kind.”'),
-      content('visualize', '7 subject pronouns', 'I = người nói; you = người nghe; he/she = một người; it = vật/sự việc; we = tôi + người khác; they = nhiều người/vật.', { chips: ['I', 'you', 'he', 'she', 'it', 'we', 'they'] }),
+      content('discover', 'Đừng lặp lại tên nhiều lần', '“Lan is my friend. Lan is kind.” nghe hơi lặp lại. Tiếng Anh thường đổi tên ở câu sau thành một từ ngắn hơn: “Lan is my friend. She is kind.” She = Lan.', { examples: ['Lan is my friend.', 'She is kind.'] }),
+      content('understand', 'Bảy từ thay tên thường dùng', 'I = người nói. you = người nghe. he/she = một người. it = vật/sự việc. we = tôi + người khác. they = nhiều người/vật. Những từ thay tên này gọi là pronoun — đại từ.', { chips: ['I', 'you', 'he', 'she', 'it', 'we', 'they'] }),
       choice('“Tom and Mai” có thể thay bằng gì?', ['he', 'she', 'it', 'they'], 'they', 'Hai người → they.'),
       choice('“my phone” có thể thay bằng gì?', ['he', 'she', 'it', 'we'], 'it', 'Một đồ vật số ít → it.'),
       produce('Viết 4 cặp noun → pronoun.', 'Lan → she\nmy parents → they\nmy car → it\nTom → he', ['Có 4 dòng'], { minLines: 4, minWords: 8 }),
@@ -201,7 +201,7 @@ const rawFoundationLessons = [
     objectiveVi: 'Biến câu với be thành phủ định và câu hỏi mà không dùng do/does.',
     steps: [
       content('visualize', 'Statement → Negative → Question', 'She is tired. → She is not tired. → Is she tired?', { examples: ['They are ready.', 'They are not ready.', 'Are they ready?'] }),
-      content('understand', 'be tự làm trợ động từ', 'Khi động từ chính là be, chỉ cần thêm not để phủ định hoặc đưa be lên trước subject để hỏi. Không dùng “do”.'),
+      content('understand', 'be tự lo hết, không cần thêm gì', 'Khi câu đã có be, chỉ cần thêm not để phủ định, hoặc đưa be lên trước chủ ngữ để hỏi. Không cần thêm “do”.'),
       choice('Phủ định đúng của “He is busy.”?', ['He does not busy.', 'He is not busy.', 'He not is busy.', 'He do not be busy.'], 'He is not busy.', 'be + not.'),
       order('Sắp xếp thành câu hỏi.', ['you', 'ready', 'Are', '?'], 'Are you ready?', 'Đưa are lên trước subject “you”. Dấu ? là một phần của câu hỏi.', { punctuationRequired: true }),
       fix('Sửa lỗi.', 'Do you are tired?', ['Are you tired?'], 'Với be, không thêm do.', { flexible: false }),
@@ -267,11 +267,11 @@ const rawFoundationLessons = [
   lesson({
     id: 'f18-adjectives', unit: 8, order: 18, titleEn: 'Adjectives Describe Nouns', titleVi: 'Tính từ mô tả danh từ', minutes: 12,
     focus: ['grammar', 'word order'], standards: ['CCSS L.1.1f', 'WIDA ELD-LA.1.Inform'],
-    objectiveVi: 'Đặt adjective trước noun hoặc sau linking verb be; tránh trật tự kiểu Việt “car red”.',
+    objectiveVi: 'Đặt tính từ trước danh từ, hoặc sau be; tránh trật tự kiểu Việt “xe đỏ” → “car red”.',
     steps: [
-      content('discover', 'a red apple', 'Adjective trả lời “What is it like?”: red, small, happy, difficult.'),
-      content('compare', 'Việt: quả táo đỏ · Anh: a red apple', 'Đây là một khác biệt trật tự quan trọng. Trong tiếng Anh, adjective thường đứng trước noun.', { tokenRoles: [{ text: 'a', role: 'article' }, { text: 'red', role: 'adjective' }, { text: 'apple', role: 'noun' }] }),
-      content('understand', 'Hai vị trí cơ bản', 'before noun: a happy child. Sau be: The child is happy.'),
+      content('discover', 'Táo như thế nào?', 'apple → red apple → big apple → sweet apple. Mỗi từ thêm vào cho biết quả táo trông hoặc nếm ra sao.', { chips: ['apple', 'red apple', 'big apple', 'sweet apple'] }),
+      content('compare', 'Việt: quả táo đỏ · Anh: red apple', 'Trong tiếng Việt, từ mô tả thường đứng sau: quả táo đỏ. Trong tiếng Anh, từ mô tả đứng trước: red apple.', { tokenRoles: [{ text: 'red', role: 'mô tả' }, { text: 'apple', role: 'tên gọi' }] }),
+      content('understand', 'Những từ mô tả này gọi là gì?', 'red, big, sweet cho biết vật đó như thế nào. Tên gọi của chúng là adjective — tính từ. Có thể đứng trước danh từ (a happy child) hoặc sau be (The child is happy).'),
       order('Sắp xếp đúng.', ['car', 'a', 'red'], 'a red car', 'article + adjective + noun.'),
       choice('Câu nào đúng?', ['The flower beautiful.', 'The beautiful flower.', 'The flower is beautiful.', 'Cả B và C'], 'Cả B và C', 'Adjective có thể trước noun hoặc sau be.'),
       fix('Sửa lỗi kiểu trật tự tiếng Việt.', 'It is a phone new.', ['It is a new phone.'], 'new phải đứng trước phone.'),
@@ -341,12 +341,12 @@ const rawFoundationLessons = [
     objectiveVi: 'Nhận ra ba hình dạng câu nền tảng bằng câu hỏi trực giác trước khi dùng ký hiệu S/V/O/C.',
     steps: [
       content('discover', 'Ba câu — ba cách hoàn thành ý', 'Birds fly. | I like coffee. | She is happy. Trước tiên chỉ hỏi: câu nói về ai/cái gì, điều gì xảy ra, và ý còn cần gì để hoàn chỉnh?', { examples: ['Birds fly.', 'I like coffee.', 'She is happy.'] }),
-      content('notice', 'Từ câu hỏi con người đến ký hiệu grammar', 'Who/what? → Subject (S). What happens/is? → Verb (V). What receives the action? → Object (O). What describes/names the subject? → Complement (C).', { examples: ['Birds | fly', 'I | like | coffee', 'She | is | happy'] }),
-      content('understand', 'Ký hiệu chỉ là bản đồ rút gọn', 'S + V, S + V + O và S + V + C không phải công thức để học thuộc trước. Chúng là tên ngắn cho những hình dạng câu bạn vừa hiểu bằng ý nghĩa.'),
+      content('notice', 'Đặt tên cho từng phần', 'Mỗi câu hỏi bên dưới trỏ tới một phần của câu bạn vừa đọc.', { tokenRoles: [{ text: 'Ai/cái gì?', role: 'Chủ ngữ' }, { text: 'Điều gì xảy ra?', role: 'Động từ' }, { text: 'Nhận hành động là gì?', role: 'Tân ngữ' }, { text: 'Mô tả lại chủ ngữ?', role: 'Bổ ngữ' }] }),
+      content('understand', 'Viết tắt bằng tiếng Anh', 'Chủ ngữ = Subject = S. Động từ = Verb = V. Tân ngữ = Object = O. Bổ ngữ = Complement = C. Đây chỉ là cách viết ngắn cho những gì bạn vừa hiểu — không cần học thuộc trước.', { chips: ['S = Subject', 'V = Verb', 'O = Object', 'C = Complement'] }),
       choice('Câu nào có hình dạng “Who + does what + what?”', ['Birds fly.', 'I like coffee.', 'She is happy.', 'Babies sleep.'], 'I like coffee.', 'I = người làm; like = hành động/trạng thái; coffee = điều được thích.'),
       order('Xây câu có người làm + hành động + vật nhận hành động.', ['books', 'reads', 'She', '.'], 'She reads books .', 'She = S; reads = V; books = O.'),
       produce('Viết 3 câu: một câu rất ngắn, một câu có object, và một câu mô tả subject sau be.', 'Birds fly.\nI like coffee.\nMy room is quiet.', ['Có 3 dòng', 'Có ba hình dạng câu khác nhau'], { minLines: 3, minWords: 8 }),
-      review([['Who/what? gọi là gì?', 'Subject (S)'], ['What receives the action?', 'Object (O)'], ['Complement làm gì?', 'Mô tả hoặc gọi tên subject sau linking verb.']]),
+      review([['Who/what? gọi là gì?', 'Subject (S)'], ['What receives the action?', 'Object (O)'], ['Complement làm gì?', 'Mô tả hoặc gọi tên lại chủ ngữ, sau be.']]),
     ],
   }),
   lesson({
@@ -366,14 +366,14 @@ const rawFoundationLessons = [
   lesson({
     id: 'f25-svc-pattern', unit: 15, order: 25, titleEn: 'Core Pattern: S + V + C', titleVi: 'Mẫu cốt lõi S + V + C', minutes: 13,
     focus: ['sentence pattern', 'be'], standards: ['CCSS L.1.1j'],
-    objectiveVi: 'Hiểu complement mô tả/gọi tên subject sau linking verb, khác với object nhận hành động.',
+    objectiveVi: 'Hiểu bổ ngữ mô tả/gọi tên lại chủ ngữ sau be, khác với tân ngữ (nhận hành động).',
     steps: [
-      content('discover', 'She is tired.', 'She = subject, is = linking verb, tired = complement. “tired” không nhận hành động; nó mô tả She.'),
-      content('visualize', 'S = C qua linking verb', 'Trong “Tom is a teacher”, Tom và a teacher chỉ cùng một người. Trong “The soup smells good”, good mô tả soup.', { tokenRoles: [{ text: 'Tom', role: 'S' }, { text: 'is', role: 'V' }, { text: 'a teacher', role: 'C' }] }),
+      content('discover', 'She is tired.', 'She = chủ ngữ. is = be. tired = bổ ngữ — mô tả lại She, không nhận hành động gì cả.'),
+      content('visualize', 'S và C nói về cùng một thứ', 'Trong “Tom is a teacher”, Tom và a teacher là cùng một người. Trong “The soup smells good”, good mô tả soup.', { tokenRoles: [{ text: 'Tom', role: 'S' }, { text: 'is', role: 'V' }, { text: 'a teacher', role: 'C' }] }),
       choice('Complement trong “The room is quiet.” là gì?', ['The room', 'is', 'quiet', 'room'], 'quiet', 'quiet mô tả subject “The room”.'),
       choice('Câu nào là S + V + C?', ['I read books.', 'Birds fly.', 'She is happy.', 'They play soccer.'], 'She is happy.', 'happy là complement sau linking verb is.'),
       produce('Viết 3 câu S + be + C: danh tính, tính chất, vị trí.', 'I am a student.\nMy room is quiet.\nMy keys are on the desk.', ['Có 3 dòng', 'Có be + complement'], { minLines: 3, minWords: 9 }),
-      review([['C khác O thế nào?', 'C mô tả/gọi tên subject; O nhận action.'], ['She is happy: C?', 'happy'], ['Tom is a teacher: Tom và teacher có cùng referent?', 'Có.']]),
+      review([['C khác O thế nào?', 'C mô tả/gọi tên lại chủ ngữ; O nhận hành động.'], ['She is happy: C là gì?', 'happy'], ['Tom is a teacher: Tom và teacher có phải cùng một người/vật?', 'Có.']]),
     ],
   }),
   lesson({
