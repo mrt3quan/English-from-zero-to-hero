@@ -41,3 +41,7 @@ export function validateWordOrder(answer, step) {
   if (step.punctuationRequired) return normalizeCase(answer) === normalizeCase(expected)
   return normalizeWithoutPunctuation(answer) === normalizeWithoutPunctuation(expected)
 }
+
+export function normalizeForComparison(value, { punctuationRequired = false } = {}) {
+  return punctuationRequired ? normalizeCase(value) : normalizeWithoutPunctuation(value)
+}
