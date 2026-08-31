@@ -54,7 +54,12 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
   }
 
   const handleExerciseResult = result => {
-    const skillIds = inferSkillIds(lesson.id, step.skillIds)
+    const baseSkills = inferSkillIds(lesson.id, step.skillIds)
+    const skillIds = step.type === 'speak'
+      ? ['speaking']
+      : step.exerciseType === 'dictation'
+        ? [...new Set([...baseSkills, 'listening', 'spelling'])]
+        : baseSkills
     const prev = stepStates[index] || {}
     const attemptNumber = (prev.attemptCount || 0) + 1
     const expected = Array.isArray(result.expected) ? result.expected.join(' OR ') : String(result.expected ?? '')
@@ -62,7 +67,7 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
     const record = AttemptRepository.add({
       lessonId: lesson.id,
       stepId: step.id || `${lesson.id}-step-${index + 1}`,
-      exerciseType: step.exerciseType,
+      exerciseType: step.exerciseType || step.type,
       skillIds,
       answer: String(result.answer ?? ''),
       expected,
@@ -250,6 +255,8 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
 function isStepComplete(step, state) {
   if (step.type === 'content') return true
   if (step.type === 'exercise') return !!state.attempted
+  if (step.type === 'listen') return !!state.completed
+  if (step.type === 'speak') return !!state.completed
   if (step.type === 'production') return !!state.completed
   if (step.type === 'review') return !!state.completed
   return true
@@ -257,14 +264,18 @@ function isStepComplete(step, state) {
 
 function getBlockMessage(step) {
   if (step.type === 'exercise') return 'Kiểm tra câu trả lời trước khi tiếp tục. Sai vẫn có thể đi tiếp — mục tiêu là thử và học từ phản hồi.'
+  if (step.type === 'listen') return 'Hãy nghe ít nhất một lần trước khi tiếp tục.'
+  if (step.type === 'speak') return 'Hãy thử nói câu thành tiếng. Nếu trình duyệt không hỗ trợ microphone, bạn có thể tự xác nhận đã luyện nói.'
   if (step.type === 'production') return 'Hãy hoàn thành phần tự viết và các tiêu chí trước khi tiếp tục.'
   if (step.type === 'review') return 'Hãy mở đáp án và đánh giá mức độ nhớ của từng thẻ.'
   return ''
 }
 
 function stepLabel(s) {
-  if (s.type === 'exercise') return 'Luyện thử'
+  if (s.type === 'exercise') return s.exerciseType === 'wordOrder' ? 'Xây câu' : s.exerciseType === 'dictation' ? 'Nghe & viết' : s.exerciseType === 'errorFix' ? 'Sửa lỗi' : 'Luyện thử'
+  if (s.type === 'listen') return 'Nghe'
+  if (s.type === 'speak') return 'Nói'
   if (s.type === 'production') return 'Tự viết'
   if (s.type === 'review') return 'Nhớ lại'
-  return ({ discover: 'Khám phá', understand: 'Hiểu ý chính', visualize: 'Nhìn cấu trúc', compare: 'So với tiếng Việt' })[s.kind] || 'Học'
+  return ({ discover: 'Khám phá', notice: 'Nhận ra mẫu', understand: 'Hiểu vì sao', visualize: 'Nhìn cấu trúc', compare: 'So với tiếng Việt' })[s.kind] || 'Học'
 }

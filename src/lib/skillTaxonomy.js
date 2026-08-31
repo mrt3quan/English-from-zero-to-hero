@@ -1,6 +1,9 @@
 export const SKILLS = {
   alphabet: { label: 'Alphabet & print', labelVi: 'Chữ cái & chữ viết' },
   phonics: { label: 'Sounds', labelVi: 'Âm tiếng Anh' },
+  listening: { label: 'Listening', labelVi: 'Nghe' },
+  speaking: { label: 'Speaking', labelVi: 'Nói' },
+  spelling: { label: 'Spelling & dictation', labelVi: 'Spelling & nghe viết' },
   words: { label: 'Words', labelVi: 'Từ' },
   sentence_subject: { label: 'Sentence subject', labelVi: 'Chủ ngữ' },
   sentence_verb: { label: 'Sentence verb', labelVi: 'Động từ' },
@@ -8,6 +11,7 @@ export const SKILLS = {
   sentence_complement: { label: 'Sentence complement', labelVi: 'Bổ ngữ' },
   be_present: { label: 'Present be', labelVi: 'am / is / are' },
   present_simple: { label: 'Present Simple', labelVi: 'Hiện tại đơn' },
+  have_has: { label: 'Have / has', labelVi: 'have / has' },
   third_person_s: { label: 'Third-person -s', labelVi: 'Ngôi thứ ba -s/-es' },
   articles: { label: 'Articles', labelVi: 'Mạo từ' },
   nouns: { label: 'Nouns', labelVi: 'Danh từ' },
@@ -53,7 +57,7 @@ const lessonSkillMap = {
   'f19': ['adverbs'], 'f20': ['prepositions'], 'f21': ['conjunctions'], 'f22': ['nouns','pronouns','sentence_verb','adjectives','adverbs','articles','prepositions','conjunctions'],
   'f23': ['sentence_subject','sentence_verb'], 'f24': ['sentence_subject','sentence_verb','sentence_object'], 'f25': ['sentence_subject','be_present','sentence_complement'],
   'f26': ['negatives','be_present','present_simple'], 'f27': ['yes_no_questions','be_present','present_simple'], 'f28': ['present_simple','third_person_s'],
-  'f29': ['sentence_expansion'], 'f30': ['be_present','present_simple','negatives','yes_no_questions','articles','adjectives','prepositions','conjunctions','punctuation','capitalization'],
+  'f29': ['sentence_expansion'], 'f31': ['have_has','present_simple','third_person_s'], 'f30': ['be_present','present_simple','negatives','yes_no_questions','articles','adjectives','prepositions','conjunctions','punctuation','capitalization'],
 }
 
 export function inferSkillIds(lessonId, explicit = []) {

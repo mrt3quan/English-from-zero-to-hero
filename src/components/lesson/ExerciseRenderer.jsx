@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Check, RotateCcw, X } from 'lucide-react'
+import { Check, RotateCcw, X, Volume2, Gauge } from 'lucide-react'
 import { normalizeCase, validateTextAnswer, validateWordOrder } from '../../lib/textValidation'
+import { AudioService } from '../../lib/audioService'
 
 function Feedback({ correct, text }) {
   if (correct == null) return null
@@ -16,6 +17,7 @@ export default function ExerciseRenderer({ step, onResult, initialState = {}, on
   if (step.exerciseType === 'fillBlank') return <TextExercise {...common} mode="fill"/>
   if (step.exerciseType === 'errorFix') return <TextExercise {...common} mode="fix"/>
   if (step.exerciseType === 'identify') return <IdentifyExercise {...common}/>
+  if (step.exerciseType === 'dictation') return <DictationExercise {...common}/>
   return <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-800">Exercise type not supported yet.</div>
 }
 
@@ -51,7 +53,7 @@ function OrderExercise({ step, onResult, initialState, onStateChange }) {
   const answer=built.map(x=>x.text).join(' ')
   const check=()=>{if(built.length!==step.tokens.length)return;const ok=validateWordOrder(answer,step);setChecked(true);setCorrect(ok);const state={attempted:true,checked:true,correct:ok,bestCorrect:initialState.bestCorrect||ok,answer,built};pushState(onStateChange,state);onResult?.({...state,expected:step.answer,responseTimeMs:elapsed()})}
   const reset=()=>{setBuilt([]);setPool(all);setChecked(false);setCorrect(null);pushState(onStateChange,{attempted:initialState.attempted||checked,checked:false,correct:null,built:[],answer:''})}
-  return <ExerciseFrame step={step}>
+  return <ExerciseFrame step={step} label="XÂY CÂU">
     <div className="min-h-20 rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/50 p-3" aria-label="Câu đang xây"><div className="flex flex-wrap gap-2">{built.length?built.map((item,i)=><button key={item.id} disabled={checked} onClick={()=>remove(item)} aria-label={`Bỏ ${item.text} khỏi vị trí ${i+1}`} className="pressable rounded-xl border border-blue-200 bg-white px-3 py-2 text-sm font-bold text-blue-800 shadow-sm">{item.text}</button>):<span className="p-2 text-sm font-semibold text-slate-400">Dùng Tab + Enter hoặc chạm các từ bên dưới để xây câu…</span>}</div></div>
     <div className="mt-4 flex flex-wrap gap-2" aria-label="Từ có thể chọn">{pool.map(item=><button key={item.id} disabled={checked} onClick={()=>add(item)} aria-label={`Thêm ${item.text}`} className="pressable rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 hover:border-blue-300">{item.text}</button>)}</div>
     <ActionRow checked={checked} canCheck={built.length===step.tokens.length} onCheck={check} onReset={reset}/><Feedback correct={correct} text={step.explainVi}/>
@@ -63,10 +65,19 @@ function TextExercise({ step,onResult,mode,initialState,onStateChange }){
   useEffect(()=>{setValue(initialState.answer||'');setChecked(!!initialState.checked);setCorrect(initialState.correct??null)},[step,initialState.stepKey])
   const check=()=>{if(!value.trim())return;const ok=validateTextAnswer(value,step);setChecked(true);setCorrect(ok);const state={attempted:true,checked:true,correct:ok,bestCorrect:initialState.bestCorrect||ok,answer:value};pushState(onStateChange,state);onResult?.({...state,expected:Array.isArray(step.accepted)?step.accepted:step.answer,responseTimeMs:elapsed()})}
   const reset=()=>{setValue('');setChecked(false);setCorrect(null);pushState(onStateChange,{attempted:initialState.attempted||checked,checked:false,correct:null,answer:''})}
-  return <ExerciseFrame step={step}>{mode==='fix'&&<div className="mb-4 rounded-2xl border border-red-100 bg-red-50 p-4"><p className="text-xs font-black uppercase tracking-wider text-red-600">Câu cần sửa</p><p className="mt-1 text-lg font-black text-slate-900">{step.incorrect}</p></div>}{mode==='fill'&&<div className="mb-4 rounded-2xl bg-slate-50 p-4 text-lg font-black text-slate-800">{step.sentence}</div>}
+  return <ExerciseFrame step={step} label={mode==='fix'?'SỬA LỖI':'LUYỆN THỬ'}>{mode==='fix'&&<div className="mb-4 rounded-2xl border border-red-100 bg-red-50 p-4"><p className="text-xs font-black uppercase tracking-wider text-red-600">Câu cần sửa</p><p className="mt-1 text-lg font-black text-slate-900">{step.incorrect}</p></div>}{mode==='fill'&&<div className="mb-4 rounded-2xl bg-slate-50 p-4 text-lg font-black text-slate-800">{step.sentence}</div>}
     <label className="sr-only" htmlFor={`text-ex-${step.promptVi}`}>{step.promptVi}</label><input id={`text-ex-${step.promptVi}`} value={value} disabled={checked} onChange={e=>{setValue(e.target.value);pushState(onStateChange,{answer:e.target.value,checked:false,correct:null,attempted:initialState.attempted||false})}} onKeyDown={e=>{if(e.key==='Enter')check()}} placeholder={mode==='fix'?'Viết toàn bộ câu đã sửa…':'Nhập đáp án…'} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"/>
     <ActionRow checked={checked} canCheck={!!value.trim()} onCheck={check} onReset={reset}/><Feedback correct={correct} text={step.explainVi}/>
   </ExerciseFrame>
+}
+
+function DictationExercise({step,onResult,initialState,onStateChange}){
+  const [value,setValue]=useState(initialState.answer||'');const [checked,setChecked]=useState(!!initialState.checked);const [correct,setCorrect]=useState(initialState.correct??null);const [played,setPlayed]=useState(!!initialState.played);const elapsed=useAttemptClock()
+  useEffect(()=>{setValue(initialState.answer||'');setChecked(!!initialState.checked);setCorrect(initialState.correct??null);setPlayed(!!initialState.played)},[step,initialState.stepKey])
+  const play=speed=>{if(AudioService.speak(step.audioText||step.answer,{speed})){setPlayed(true);pushState(onStateChange,{played:true,answer:value,checked:false,correct:null,attempted:initialState.attempted||false})}}
+  const check=()=>{if(!value.trim())return;const ok=validateTextAnswer(value,{...step,validationMode:step.validationMode||'normalizedExact'});setChecked(true);setCorrect(ok);const state={attempted:true,checked:true,correct:ok,bestCorrect:initialState.bestCorrect||ok,answer:value,played:true};pushState(onStateChange,state);onResult?.({...state,expected:step.answer,responseTimeMs:elapsed()})}
+  const reset=()=>{setValue('');setChecked(false);setCorrect(null);pushState(onStateChange,{attempted:initialState.attempted||checked,played,checked:false,correct:null,answer:''})}
+  return <ExerciseFrame step={step} label="NGHE & VIẾT"><div className="rounded-[24px] border border-blue-100 bg-blue-50 p-5 text-center"><p className="text-sm font-semibold text-blue-900">Không nhìn đáp án. Nghe rồi gõ điều bạn nghe được.</p><div className="mt-4 flex justify-center gap-2"><button onClick={()=>play('normal')} className="pressable inline-flex min-h-12 items-center gap-2 rounded-2xl bg-blue-600 px-5 text-sm font-bold text-white"><Volume2 className="h-4 w-4"/> Nghe</button><button onClick={()=>play('slow')} className="pressable inline-flex min-h-12 items-center gap-2 rounded-2xl border border-blue-200 bg-white px-4 text-sm font-bold text-blue-700"><Gauge className="h-4 w-4"/> Chậm</button></div>{played&&<p className="mt-2 text-xs font-bold text-emerald-700">✓ Đã nghe</p>}</div><label className="sr-only" htmlFor={`dictation-${step.id||step.promptVi}`}>{step.promptVi}</label><input id={`dictation-${step.id||step.promptVi}`} value={value} disabled={checked} onChange={e=>{setValue(e.target.value);pushState(onStateChange,{answer:e.target.value,played,checked:false,correct:null,attempted:initialState.attempted||false})}} onKeyDown={e=>{if(e.key==='Enter')check()}} placeholder="Gõ từ hoặc câu bạn nghe được…" className="mt-4 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"/><ActionRow checked={checked} canCheck={played&&!!value.trim()} onCheck={check} onReset={reset}/><Feedback correct={correct} text={step.explainVi||'Nghe lại, so sánh từng từ rồi thử thêm một lần.'}/></ExerciseFrame>
 }
 
 function IdentifyExercise({step,onResult,initialState,onStateChange}){
@@ -79,5 +90,5 @@ function IdentifyExercise({step,onResult,initialState,onStateChange}){
   return <ExerciseFrame step={step}><div className="flex flex-wrap gap-2" role={step.multi?'group':'radiogroup'}>{step.tokens.map((token,i)=><button key={`${token}-${i}`} disabled={checked} onClick={()=>toggle(i)} aria-pressed={selected.includes(i)} className={`pressable rounded-xl border px-3 py-2.5 text-sm font-extrabold ${selected.includes(i)?'border-violet-400 bg-violet-50 text-violet-800':'border-slate-200 bg-white text-slate-700'}`}>{token}</button>)}</div><ActionRow checked={checked} canCheck={selected.length>0} onCheck={check} onReset={reset}/><Feedback correct={correct} text={step.explainVi}/></ExerciseFrame>
 }
 
-function ExerciseFrame({step,children}){return <div><p className="text-xs font-black uppercase tracking-[.16em] text-violet-600">Luyện tập chủ động</p><h2 className="mt-2 text-2xl font-black tracking-tight text-slate-900">{step.promptVi}</h2><div className="mt-6">{children}</div></div>}
+function ExerciseFrame({step,children,label='LUYỆN THỬ'}){return <div><p className="text-xs font-black uppercase tracking-[.16em] text-violet-600">{label}</p><h2 className="mt-2 text-2xl font-black tracking-tight text-slate-900">{step.promptVi}</h2><div className="mt-6">{children}</div></div>}
 function ActionRow({checked,canCheck,onCheck,onReset}){return <div className="mt-5 flex items-center gap-3">{!checked?<button disabled={!canCheck} onClick={onCheck} className="pressable min-h-11 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-40">Kiểm tra</button>:<button onClick={onReset} className="pressable inline-flex min-h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700"><RotateCcw className="h-4 w-4"/> Thử lại</button>}</div>}

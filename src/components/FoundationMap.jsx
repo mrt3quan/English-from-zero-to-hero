@@ -1,17 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Check, ChevronDown, ChevronRight, Clock3, LockKeyhole, Map, Sparkles, X } from 'lucide-react'
-import { foundationChapters, foundationLessons, foundationUnits, getUnitLessons } from '../data/foundationCurriculum'
+import { foundationLessons, foundationUnits, foundationChapters, getChapterLessons } from '../data/foundationCurriculum'
 import { getAllProgress, isLessonPassed, markLessonsTestedOut } from '../lib/learningProgress'
 import Mascot from './Mascot'
 
-const CHAPTER_EMOJI = { 1: '🌱', 2: '🍎', 3: '🧩', 4: '🏗️', 5: '💬', 6: '🏆' }
-const chapters = foundationChapters.map(chapter => ({ ...chapter, emoji: CHAPTER_EMOJI[chapter.id] || '📘', units: chapter.unitIds }))
+const chapters = foundationChapters
 
 const unitById = Object.fromEntries(foundationUnits.map(unit => [unit.id, unit]))
 
-export default function FoundationMap({ onOpenLesson }) {
+export default function FoundationMap({ onOpenLesson, quickCheckSignal = 0 }) {
   const [progress, setProgress] = useState(() => getAllProgress())
   const [quickCheck, setQuickCheck] = useState(false)
+
+  useEffect(() => { if (quickCheckSignal) setQuickCheck(true) }, [quickCheckSignal])
 
   useEffect(() => {
     const refresh = () => setProgress(getAllProgress())
@@ -22,7 +23,7 @@ export default function FoundationMap({ onOpenLesson }) {
   const completed = foundationLessons.filter(lesson => isLessonPassed(progress[lesson.id])).length
   const percent = Math.round((completed / foundationLessons.length) * 100)
   const currentLesson = foundationLessons.find(lesson => !isLessonPassed(progress[lesson.id])) || foundationLessons.at(-1)
-  const currentChapter = chapters.find(chapter => chapter.units.includes(currentLesson.unit)) || chapters[0]
+  const currentChapter = chapters.find(chapter => chapter.lessonIds.includes(currentLesson.id)) || chapters[0]
   const [expanded, setExpanded] = useState(currentChapter.id)
 
   useEffect(() => setExpanded(currentChapter.id), [currentChapter.id])
@@ -44,13 +45,13 @@ export default function FoundationMap({ onOpenLesson }) {
           <div className="journey-map-icon hidden h-14 w-14 shrink-0 place-items-center rounded-2xl sm:grid"><Map className="h-6 w-6" /></div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2"><span className="eyebrow primary-eyebrow">Foundation</span><span className="journey-status">{completed}/{foundationLessons.length}</span></div>
-            <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-strong sm:text-3xl">Đi theo từng chặng — không cần nhìn mọi thứ cùng lúc.</h1>
-            <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-muted">Chặng hiện tại: <strong className="text-strong">{currentChapter.titleVi}</strong>. Hoàn thành một bài để mở bài tiếp theo.</p>
+            <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-strong sm:text-3xl">Mỗi chặng mở thêm một khả năng tiếng Anh.</h1>
+            <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-muted">Chặng hiện tại: <strong className="text-strong">{currentChapter.titleVi}</strong>. Học theo khả năng bạn có thể làm, không phải danh sách thuật ngữ grammar.</p>
           </div>
           <div className="hidden text-right md:block"><p className="text-3xl font-extrabold text-primary">{percent}%</p><p className="text-xs font-medium text-muted">Foundation</p></div>
         </div>
         <div className="progress-track mt-4 h-2.5 rounded-full"><div className="progress-motion progress-primary h-full rounded-full" style={{ width: `${percent}%` }} /></div>
-        <button onClick={() => setQuickCheck(true)} className="text-link mt-3 inline-flex min-h-10 items-center gap-2 text-xs font-bold">Đã biết phần rất cơ bản? Kiểm tra để bỏ qua <ChevronRight className="h-4 w-4" /></button>
+        <button onClick={() => setQuickCheck(true)} className="text-link mt-3 inline-flex min-h-10 items-center gap-2 text-xs font-bold">Đã biết alphabet và cách đọc chữ cơ bản? Quick Check để bỏ qua Khởi động <ChevronRight className="h-4 w-4" /></button>
       </section>
 
       <div className="space-y-3">
@@ -74,7 +75,7 @@ export default function FoundationMap({ onOpenLesson }) {
 }
 
 function JourneyChapter({ chapter, progress, unlockMap, expanded, current, onToggle, onOpenLesson }) {
-  const lessons = chapter.units.flatMap(unitId => getUnitLessons(unitId))
+  const lessons = getChapterLessons(chapter.id)
   const done = lessons.filter(lesson => isLessonPassed(progress[lesson.id])).length
   const pct = lessons.length ? Math.round((done / lessons.length) * 100) : 0
   const complete = done === lessons.length
@@ -84,8 +85,8 @@ function JourneyChapter({ chapter, progress, unlockMap, expanded, current, onTog
       <button onClick={onToggle} className="journey-chapter-head pressable flex min-h-20 w-full items-center gap-3 rounded-[26px] px-4 py-4 text-left sm:px-5">
         <div className="chapter-scene grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-2xl">{chapter.emoji}</div>
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2"><p className="text-base font-bold text-strong">Chặng {chapter.id}: {chapter.titleEn}</p>{current && <span className="current-badge">Bạn đang ở đây</span>}</div>
-          <p className="mt-0.5 text-sm font-medium text-muted">{chapter.titleVi} · {done}/{lessons.length} bài</p>
+          <div className="flex flex-wrap items-center gap-2"><p className="text-base font-bold text-strong">{chapter.optional ? 'Khởi động tùy chọn' : `Chặng ${chapter.id}`}: {chapter.titleEn}</p>{current && <span className="current-badge">Bạn đang ở đây</span>}</div>
+          <p className="mt-0.5 text-sm font-medium text-muted">{chapter.titleVi} · {done}/{lessons.length} bài</p>{chapter.outcomeVi && <p className="mt-1 hidden text-xs font-medium leading-5 text-muted sm:block">{chapter.outcomeVi}</p>}
         </div>
         <div className="hidden items-center gap-3 sm:flex"><div className="progress-track h-2 w-20 rounded-full"><div className="progress-motion progress-primary h-full rounded-full" style={{ width: `${pct}%` }} /></div><ChevronDown className={`h-5 w-5 text-muted transition ${expanded ? 'rotate-180' : ''}`} /></div>
         <ChevronDown className={`h-5 w-5 shrink-0 text-muted transition sm:hidden ${expanded ? 'rotate-180' : ''}`} />

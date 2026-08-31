@@ -45,6 +45,7 @@ export default function App() {
   const [lesson, setLesson] = useState(null)
   const [progress, setProgress] = useState(() => getAllProgress())
   const [dataTick, setDataTick] = useState(0)
+  const [quickCheckSignal, setQuickCheckSignal] = useState(0)
 
   useEffect(() => {
     const refreshProgress = () => setProgress(getAllProgress())
@@ -85,10 +86,11 @@ export default function App() {
             onContinue={() => openLesson(firstUnfinished)}
             onLearn={() => setActive('learn')}
             onPractice={() => setActive('practice')}
+            onQuickCheck={() => { setActive('learn'); setQuickCheckSignal(value => value + 1) }}
             dataTick={dataTick}
           />
         )}
-        {active === 'learn' && <FoundationMap onOpenLesson={openLesson} />}
+        {active === 'learn' && <FoundationMap onOpenLesson={openLesson} quickCheckSignal={quickCheckSignal} />}
         {active === 'practice' && <PracticePage onOpenLesson={openLesson} onOpenWriting={() => setActive('write')} />}
         {active === 'write' && <WritingPage onOpenLesson={openLesson} />}
         {active === 'profile' && (
@@ -170,7 +172,7 @@ function Sidebar({ active, setActive, completed }) {
         </div>
         <div className="learning-method rounded-3xl p-4">
           <div className="flex items-center gap-3"><Brain className="h-5 w-5" /><p className="text-sm font-bold">Cách bạn học</p></div>
-          <p className="mt-2 text-xs leading-5">Hiểu → Luyện → Tự viết → Ôn lại.</p>
+          <p className="mt-2 text-xs leading-5">Khám phá → Nhận ra → Hiểu → Nghe → Nói → Xây → Tự viết → Ôn lại.</p>
         </div>
       </div>
     </aside>
@@ -228,12 +230,13 @@ function BottomNav({ active, setActive }) {
   )
 }
 
-function HomePage({ completed, progress, current, onContinue, onLearn, onPractice, dataTick }) {
+function HomePage({ completed, progress, current, onContinue, onLearn, onPractice, onQuickCheck, dataTick }) {
   const total = foundationLessons.length
   const percent = Math.round((completed / total) * 100)
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Chào buổi sáng' : hour < 18 ? 'Chào buổi chiều' : 'Chào buổi tối'
   const currentProgress = progress[current.id]
+  const hasStarted = Object.values(progress || {}).some(item => item && item.status && item.status !== 'not_started')
   const lessonPercent = currentProgress?.status === 'in_progress' ? Math.round(((currentProgress.lastStep + 1) / current.steps.length) * 100) : 0
   const weak = useMemo(() => getWeakSkills(2), [dataTick])
   const due = useMemo(() => ReviewQueueService.due().length, [dataTick])
@@ -259,9 +262,13 @@ function HomePage({ completed, progress, current, onContinue, onLearn, onPractic
             <p className="mt-1 text-base font-semibold text-muted">{current.titleVi}</p>
             <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-muted">{current.objectiveVi}</p>
             <div className="progress-track mt-5 h-2.5 max-w-xl rounded-full"><div className="progress-motion progress-primary h-full rounded-full" style={{ width: `${lessonPercent}%` }} /></div>
-            <button onClick={onContinue} className="primary-button pressable mt-5 inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-base font-bold sm:w-auto">
-              {completed === 0 && !currentProgress ? 'Bắt đầu bài đầu tiên' : 'Tiếp tục học'} <ArrowRight className="h-5 w-5" />
-            </button>
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <button onClick={onContinue} className="primary-button pressable inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-base font-bold sm:w-auto">
+                {!hasStarted ? 'Tôi hoàn toàn mới — bắt đầu' : 'Tiếp tục học'} <ArrowRight className="h-5 w-5" />
+              </button>
+              {!hasStarted && <button onClick={onQuickCheck} className="pressable inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 sm:w-auto">Tôi biết alphabet rồi · Quick Check</button>}
+            </div>
+            {!hasStarted && <p className="mt-3 text-xs font-medium leading-5 text-muted">Tiếng Việt đã dùng bảng chữ cái Latin, nên người lớn có thể Quick Check và bắt đầu gần phần câu nếu đã biết chữ/âm cơ bản.</p>}
           </div>
           <div className="continue-mascot relative hidden min-h-52 place-items-center md:grid">
             <Mascot size={160} mood="encouraging" />
