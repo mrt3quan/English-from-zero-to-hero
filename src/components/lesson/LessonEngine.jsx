@@ -155,8 +155,8 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
 
   return (
     <div className="fixed inset-0 z-[80] overflow-y-auto bg-slate-950/40 p-0 backdrop-blur-sm sm:p-5">
-      <div className="mx-auto min-h-screen max-w-6xl overflow-hidden bg-[#fffaf4] shadow-2xl sm:min-h-0 sm:rounded-[32px]">
-        <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
+      <div className="lesson-shell mx-auto min-h-screen max-w-6xl overflow-hidden shadow-2xl sm:min-h-0 sm:rounded-[32px]">
+        <header className="lesson-header sticky top-0 z-20 border-b backdrop-blur-xl">
           <div className="flex items-center gap-3 px-4 py-3 sm:px-6">
             <button onClick={onClose} aria-label="Đóng bài học" className="pressable grid h-11 w-11 place-items-center rounded-xl bg-slate-100 text-slate-600"><X className="h-5 w-5" /></button>
             <div className="min-w-0 flex-1">
@@ -175,7 +175,7 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
         </header>
 
         <div className="grid lg:grid-cols-[270px_1fr]">
-          <aside className="hidden border-r border-slate-200 bg-white/70 p-5 lg:block">
+          <aside className="lesson-sidebar hidden border-r p-5 lg:block">
             <div className="rounded-3xl border border-blue-100 bg-blue-50/70 p-4">
               <div className="flex items-center gap-3">
                 <Mascot size={62} mood="encouraging" />
@@ -212,11 +212,11 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
                 <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">{lesson.objectiveVi}</p>
               </div>
 
-              <div className="min-h-[440px] rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
-                <StepRenderer step={step} stepState={state} onStepStateChange={updateStepState} onExerciseResult={handleExerciseResult} onReviewRating={handleReviewRating} />
+              <div className="lesson-canvas min-h-[440px] rounded-[28px] p-5 sm:p-8">
+                <div key={`${lesson.id}-${index}`} className="step-enter"><StepRenderer step={step} stepState={state} onStepStateChange={updateStepState} onExerciseResult={handleExerciseResult} onReviewRating={handleReviewRating} /></div>
               </div>
 
-              <div className="mt-5 flex items-center justify-between gap-3">
+              <div className="lesson-action-bar mt-5 flex items-center justify-between gap-3">
                 <button disabled={index === 0} onClick={() => setIndex(i => Math.max(0, i - 1))} className="pressable inline-flex min-h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 disabled:opacity-30"><ArrowLeft className="h-4 w-4" /> Quay lại</button>
                 {!atEnd ? (
                   <button disabled={!currentComplete} onClick={goNext} className="pressable inline-flex min-h-11 items-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-300">Tiếp tục <ArrowRight className="h-4 w-4" /></button>
