@@ -1,19 +1,8 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { Monitor, Moon, Sun } from 'lucide-react'
+import { getSystemTheme, readPreference, writePreference } from '../lib/themePreference'
 
-const STORAGE_KEY = 'bunny-english.theme.v1'
 const ThemeContext = createContext(null)
-
-function getSystemTheme() {
-  if (typeof window === 'undefined') return 'light'
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-}
-
-function readPreference() {
-  if (typeof window === 'undefined') return 'system'
-  const saved = window.localStorage.getItem(STORAGE_KEY)
-  return ['system', 'light', 'dark'].includes(saved) ? saved : 'system'
-}
 
 export function ThemeProvider({ children }) {
   const [preference, setPreferenceState] = useState(readPreference)
@@ -35,9 +24,7 @@ export function ThemeProvider({ children }) {
   }, [preference, resolvedTheme])
 
   const setPreference = next => {
-    const safe = ['system', 'light', 'dark'].includes(next) ? next : 'system'
-    setPreferenceState(safe)
-    window.localStorage.setItem(STORAGE_KEY, safe)
+    setPreferenceState(writePreference(next))
   }
 
   const value = useMemo(() => ({ preference, resolvedTheme, setPreference }), [preference, resolvedTheme])

@@ -5,6 +5,8 @@ const ARTICLES = /\b(a|an|the)\b/i
 const COMMON_PREPOSITIONS = /\b(in|on|at|under|over|above|below|beside|behind|between|near|next to|with|for|from|to)\b/i
 const QUESTION_START = /^(am|is|are|do|does|can|will|what|where|when|why|who|how)\b/i
 const ADVERBS = /\b(always|usually|often|sometimes|never|quickly|slowly|carefully|quietly|softly|well)\b|\b\w+ly\b/i
+const PRONOUNS = /\b(i|you|he|she|it|we|they|me|him|her|us|them|this|that|these|those)\b/i
+const COMMON_ADJECTIVES = /\b(good|bad|big|small|happy|sad|kind|nice|new|old|red|blue|green|black|white|young|beautiful|interesting|difficult|easy|tired|busy|ready|friendly|smart|quiet)\b/i
 
 export function splitNonEmptyLines(value) {
   return String(value ?? '').split(/\r?\n/).map(s => s.trim()).filter(Boolean)
@@ -115,6 +117,8 @@ export function evaluateRequirement(requirement, value, manualChecks = {}) {
     case 'containsArticle': passed = (lower.match(ARTICLES)||[]).length >= count; break
     case 'containsPreposition': passed = countLinesMatching(raw, COMMON_PREPOSITIONS) >= count; break
     case 'containsAdverb': passed = countLinesMatching(raw, ADVERBS) >= count; break
+    case 'containsPronoun': passed = countLinesMatching(raw, PRONOUNS) >= count; break
+    case 'containsAdjective': passed = countLinesMatching(raw, COMMON_ADJECTIVES) >= count; break
     case 'containsThirdPersonS': passed = countThirdPersonS(raw) >= count; detail = `${countThirdPersonS(raw)}/${count}`; break
     case 'selfCheck': passed = !!manualChecks[requirement.id]; break
     default: passed = false
