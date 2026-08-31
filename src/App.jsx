@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import {
+  ArrowRight,
   BookOpen,
   Brain,
   ChevronRight,
   CircleUserRound,
+  Flame,
   Home,
   Menu,
   Palette,
@@ -11,6 +13,7 @@ import {
   Puzzle,
   RotateCcw,
   Sparkles,
+  Star,
   Target,
   X,
 } from 'lucide-react'
@@ -24,14 +27,17 @@ import { foundationLessons, validateFoundationCurriculum } from './data/foundati
 import { getAllProgress, isLessonPassed, resetFoundationProgress } from './lib/learningProgress'
 import { getWeakSkills } from './lib/skillMasteryService'
 import { ReviewQueueService } from './lib/reviewQueueService'
+import { EngagementService } from './lib/engagementService'
 
-const nav = [
+const desktopNav = [
   { id: 'home', label: 'Trang chủ', short: 'Home', icon: Home },
   { id: 'learn', label: 'Học', short: 'Học', icon: BookOpen },
   { id: 'practice', label: 'Luyện tập', short: 'Luyện', icon: Puzzle },
   { id: 'write', label: 'Viết', short: 'Viết', icon: PenLine },
-  { id: 'profile', label: 'Hồ sơ', short: 'Hồ sơ', icon: CircleUserRound },
+  { id: 'profile', label: 'Hồ sơ', short: 'Tôi', icon: CircleUserRound },
 ]
+
+const mobileNav = desktopNav.filter(item => item.id !== 'write')
 
 export default function App() {
   const [active, setActive] = useState('home')
@@ -46,10 +52,12 @@ export default function App() {
     window.addEventListener('bunny-progress-updated', refreshProgress)
     window.addEventListener('bunny-attempt-updated', refreshData)
     window.addEventListener('bunny-review-updated', refreshData)
+    window.addEventListener('bunny-engagement-updated', refreshData)
     return () => {
       window.removeEventListener('bunny-progress-updated', refreshProgress)
       window.removeEventListener('bunny-attempt-updated', refreshData)
       window.removeEventListener('bunny-review-updated', refreshData)
+      window.removeEventListener('bunny-engagement-updated', refreshData)
     }
   }, [])
 
@@ -68,7 +76,7 @@ export default function App() {
       <MobileHeader onMenu={() => setDrawer(true)} />
       {drawer && <Drawer active={active} setActive={setActive} onClose={() => setDrawer(false)} />}
 
-      <main className="page-frame mx-auto w-full max-w-[1540px] px-4 pb-28 pt-5 sm:px-6 lg:pl-[280px] lg:pr-8 lg:pt-8">
+      <main className="page-frame mx-auto w-full max-w-[1460px] px-4 pb-28 pt-4 sm:px-6 lg:pl-[274px] lg:pr-8 lg:pt-7">
         {active === 'home' && (
           <HomePage
             completed={completed}
@@ -81,14 +89,14 @@ export default function App() {
           />
         )}
         {active === 'learn' && <FoundationMap onOpenLesson={openLesson} />}
-        {active === 'practice' && <PracticePage onOpenLesson={openLesson} />}
+        {active === 'practice' && <PracticePage onOpenLesson={openLesson} onOpenWriting={() => setActive('write')} />}
         {active === 'write' && <WritingPage onOpenLesson={openLesson} />}
         {active === 'profile' && (
           <Profile
             completed={completed}
             dataTick={dataTick}
             onReset={() => {
-              if (confirm('Reset all Foundation progress, attempts, and review data?')) resetFoundationProgress()
+              if (confirm('Reset all Foundation progress, attempts, review, and motivation data?')) resetFoundationProgress()
             }}
           />
         )}
@@ -109,17 +117,17 @@ export default function App() {
   )
 }
 
-function Logo() {
+function Logo({ compact = false }) {
   return (
     <div className="flex items-center gap-2.5">
-      <div className="brand-mark grid h-10 w-10 place-items-center rounded-2xl">
-        <Mascot size={38} withBook={false} />
+      <div className={`brand-mark grid place-items-center rounded-2xl ${compact ? 'h-9 w-9' : 'h-10 w-10'}`}>
+        <Mascot size={compact ? 34 : 38} withBook={false} />
       </div>
       <div className="leading-none">
-        <div className="text-lg font-extrabold tracking-tight">
+        <div className={`${compact ? 'text-base' : 'text-lg'} font-extrabold tracking-tight`}>
           <span className="brand-bunny">Bunny</span> <span className="brand-english">English</span>
         </div>
-        <div className="brand-tagline mt-1 text-[10px] font-bold uppercase tracking-[.16em]">Learn with clarity</div>
+        {!compact && <div className="brand-tagline mt-1 text-[10px] font-bold uppercase tracking-[.16em]">Learn with clarity</div>}
       </div>
     </div>
   )
@@ -128,7 +136,7 @@ function Logo() {
 function Sidebar({ active, setActive, completed }) {
   const total = foundationLessons.length
   return (
-    <aside className="app-sidebar fixed inset-y-0 left-0 z-40 hidden w-[248px] p-5 backdrop-blur-xl lg:flex lg:flex-col">
+    <aside className="app-sidebar fixed inset-y-0 left-0 z-40 hidden w-[244px] p-5 backdrop-blur-xl lg:flex lg:flex-col">
       <Logo />
       <div className="foundation-mini mt-7 rounded-3xl p-4">
         <div className="flex items-center gap-3">
@@ -141,12 +149,12 @@ function Sidebar({ active, setActive, completed }) {
         <div className="progress-track mt-3 h-2 rounded-full"><div className="progress-motion progress-primary h-full rounded-full" style={{ width: `${(completed / total) * 100}%` }} /></div>
       </div>
 
-      <nav className="mt-6 space-y-2" aria-label="Điều hướng chính">
-        {nav.map(item => {
+      <nav className="mt-6 space-y-1.5" aria-label="Điều hướng chính">
+        {desktopNav.map(item => {
           const Icon = item.icon
           const selected = active === item.id
           return (
-            <button key={item.id} onClick={() => setActive(item.id)} className={`nav-item pressable flex min-h-12 w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold ${selected ? 'is-active' : ''}`}>
+            <button key={item.id} onClick={() => setActive(item.id)} className={`nav-item pressable flex min-h-12 w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold ${selected ? 'is-active' : ''}`}>
               <span className="nav-icon grid h-9 w-9 place-items-center rounded-xl"><Icon className="h-4.5 w-4.5" /></span>
               {item.label}
               {selected && <ChevronRight className="ml-auto h-4 w-4" />}
@@ -162,7 +170,7 @@ function Sidebar({ active, setActive, completed }) {
         </div>
         <div className="learning-method rounded-3xl p-4">
           <div className="flex items-center gap-3"><Brain className="h-5 w-5" /><p className="text-sm font-bold">Cách bạn học</p></div>
-          <p className="mt-2 text-xs leading-5">Hiểu → Luyện → Tự viết → Nhận phản hồi → Ôn lại.</p>
+          <p className="mt-2 text-xs leading-5">Hiểu → Luyện → Tự viết → Ôn lại.</p>
         </div>
       </div>
     </aside>
@@ -171,9 +179,9 @@ function Sidebar({ active, setActive, completed }) {
 
 function MobileHeader({ onMenu }) {
   return (
-    <header className="mobile-header sticky top-0 z-30 flex items-center justify-between px-4 py-3 backdrop-blur-xl lg:hidden">
+    <header className="mobile-header sticky top-0 z-30 flex items-center justify-between px-3 py-2.5 backdrop-blur-xl lg:hidden">
       <button onClick={onMenu} aria-label="Mở menu" className="icon-button pressable"><Menu className="h-5 w-5" /></button>
-      <Logo />
+      <Logo compact />
       <ThemeCycleButton />
     </header>
   )
@@ -186,7 +194,7 @@ function Drawer({ active, setActive, onClose }) {
       <div className="drawer-panel absolute left-0 top-0 flex h-full w-[86%] max-w-sm flex-col p-5 shadow-2xl">
         <div className="flex justify-between"><Logo /><button onClick={onClose} aria-label="Đóng menu" className="icon-button"><X className="h-5 w-5" /></button></div>
         <nav className="mt-7 space-y-2">
-          {nav.map(item => {
+          {desktopNav.map(item => {
             const Icon = item.icon
             return (
               <button key={item.id} onClick={() => { setActive(item.id); onClose() }} className={`nav-item flex min-h-12 w-full items-center gap-3 rounded-2xl px-4 py-3 font-semibold ${active === item.id ? 'is-active' : ''}`}>
@@ -206,8 +214,8 @@ function Drawer({ active, setActive, onClose }) {
 
 function BottomNav({ active, setActive }) {
   return (
-    <nav className="bottom-nav fixed inset-x-3 bottom-3 z-40 grid grid-cols-5 rounded-[22px] p-1.5 backdrop-blur-xl lg:hidden" aria-label="Điều hướng dưới">
-      {nav.map(item => {
+    <nav className="bottom-nav fixed inset-x-3 bottom-3 z-40 grid grid-cols-4 rounded-[22px] p-1.5 backdrop-blur-xl lg:hidden" aria-label="Điều hướng dưới">
+      {mobileNav.map(item => {
         const Icon = item.icon
         const selected = active === item.id
         return (
@@ -224,100 +232,121 @@ function HomePage({ completed, progress, current, onContinue, onLearn, onPractic
   const total = foundationLessons.length
   const percent = Math.round((completed / total) * 100)
   const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
+  const greeting = hour < 12 ? 'Chào buổi sáng' : hour < 18 ? 'Chào buổi chiều' : 'Chào buổi tối'
   const currentProgress = progress[current.id]
   const lessonPercent = currentProgress?.status === 'in_progress' ? Math.round(((currentProgress.lastStep + 1) / current.steps.length) * 100) : 0
-  const weak = useMemo(() => getWeakSkills(3), [dataTick])
+  const weak = useMemo(() => getWeakSkills(2), [dataTick])
   const due = useMemo(() => ReviewQueueService.due().length, [dataTick])
+  const engagement = useMemo(() => EngagementService.summary(), [dataTick, completed, due])
 
   return (
-    <div className="space-y-5 page-enter">
-      <section className="hero-card surface-card overflow-hidden rounded-[30px]">
-        <div className="grid gap-5 p-5 md:grid-cols-[1.25fr_.75fr] md:p-7">
-          <div className="flex flex-col justify-center">
-            <div className="eyebrow success-eyebrow inline-flex w-fit items-center gap-2"><Sparkles className="h-3.5 w-3.5" />{greeting}</div>
-            <h1 className="mt-4 max-w-2xl text-3xl font-extrabold tracking-tight text-strong sm:text-4xl">Sẵn sàng học tiếp không?</h1>
-            <p className="mt-3 max-w-2xl text-[15px] font-medium leading-7 text-muted">Học tiếng Anh từng bước, hiểu rõ từ nền tảng. Từ câu đầu tiên đến đoạn văn và bài luận hoàn chỉnh.</p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <button onClick={onContinue} className="primary-button pressable min-h-12 rounded-2xl px-5 py-3 text-sm font-bold">{completed ? 'Tiếp tục học' : 'Bắt đầu Foundation'}</button>
-              <button onClick={onLearn} className="secondary-button pressable min-h-12 rounded-2xl px-5 py-3 text-sm font-bold">Xem lộ trình</button>
-            </div>
+    <div className="home-simple space-y-4 page-enter">
+      <section className="welcome-line flex items-center gap-3 px-1 py-1 sm:gap-4">
+        <div className="welcome-bunny grid h-16 w-16 shrink-0 place-items-center rounded-[22px]"><Mascot size={64} mood="happy" withBook={false} /></div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-muted">{greeting} 👋</p>
+          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-strong sm:text-3xl">Hôm nay học một bước thôi.</h1>
+          <p className="mt-1 hidden text-sm font-medium text-muted sm:block">Bunny sẽ đưa bạn đến đúng hoạt động tiếp theo.</p>
+        </div>
+      </section>
+
+      <section className="continue-stage overflow-hidden rounded-[30px]">
+        <div className="grid gap-2 p-5 sm:p-6 md:grid-cols-[1fr_230px] md:items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[.14em] text-primary"><Sparkles className="h-4 w-4" />Tiếp tục ở đây</div>
+            <p className="mt-4 text-xs font-semibold text-muted">Lesson {current.order} · {Math.max(lessonPercent, 0)}% hoàn thành</p>
+            <h2 className="mt-1 text-3xl font-extrabold tracking-tight text-strong sm:text-4xl">{current.titleEn}</h2>
+            <p className="mt-1 text-base font-semibold text-muted">{current.titleVi}</p>
+            <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-muted">{current.objectiveVi}</p>
+            <div className="progress-track mt-5 h-2.5 max-w-xl rounded-full"><div className="progress-motion progress-primary h-full rounded-full" style={{ width: `${lessonPercent}%` }} /></div>
+            <button onClick={onContinue} className="primary-button pressable mt-5 inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-base font-bold sm:w-auto">
+              {completed === 0 && !currentProgress ? 'Bắt đầu bài đầu tiên' : 'Tiếp tục học'} <ArrowRight className="h-5 w-5" />
+            </button>
           </div>
-          <div className="hero-illustration relative grid min-h-44 place-items-center rounded-[26px] sm:min-h-52">
+          <div className="continue-mascot relative hidden min-h-52 place-items-center md:grid">
             <Mascot size={160} mood="encouraging" />
-            <div className="teacher-note absolute bottom-3 right-3 max-w-[185px] rounded-2xl px-3 py-2 text-xs font-semibold">Hiểu rõ rồi mới tiến tiếp.</div>
+            <div className="speech-chip absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap">Một bước rõ ràng mỗi lần ✨</div>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[1.2fr_.8fr]">
-        <div className="surface-card rounded-[26px] p-5">
-          <p className="eyebrow primary-eyebrow">Continue Learning</p>
-          <div className="mt-3 flex items-start justify-between gap-4">
-            <div><h2 className="text-2xl font-extrabold text-strong">{current.titleEn}</h2><p className="mt-1 text-sm font-medium text-subtle">Lesson {current.order} · {current.titleVi}</p></div>
-            <span className="status-pill primary-pill">{lessonPercent}%</span>
-          </div>
-          <div className="progress-track mt-4 h-2 rounded-full"><div className="progress-motion progress-primary h-full rounded-full" style={{ width: `${lessonPercent}%` }} /></div>
-          <button onClick={onContinue} className="primary-button pressable mt-5 inline-flex min-h-11 items-center gap-2 rounded-2xl px-5 text-sm font-bold">Tiếp tục <ChevronRight className="h-4 w-4" /></button>
-        </div>
-
-        <div className="surface-card rounded-[26px] p-5">
-          <p className="eyebrow warning-eyebrow">Today's Goal</p>
-          <div className="mt-4 grid grid-cols-2 gap-3"><Goal value="1" label="lesson" /><Goal value={String(Math.max(5, due))} label="review items" /></div>
-          <p className="mt-4 text-xs font-medium leading-5 text-muted">Không có energy system. Học theo nhịp của bạn và nghỉ mắt khi cần.</p>
-        </div>
+      <section className="momentum-strip grid grid-cols-3 gap-2 rounded-[24px] p-2.5 sm:gap-3 sm:p-3">
+        <Momentum icon={Flame} value={engagement.streak ? `${engagement.streak}` : '—'} label="ngày streak" tone="warm" />
+        <Momentum icon={Star} value={String(engagement.xp)} label="XP đã kiếm" tone="gold" />
+        <Momentum icon={Target} value={`${Number(engagement.goal.lessonDone) + Number(engagement.goal.reviewDone)}/2`} label="mục tiêu hôm nay" tone="blue" />
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
-        <div className="surface-card rounded-[26px] p-5">
-          <div className="flex items-center justify-between gap-4"><div><p className="eyebrow success-eyebrow">Foundation Progress</p><h2 className="mt-1 text-2xl font-extrabold text-strong">{completed} / {total}</h2></div><span className="text-3xl font-extrabold text-success">{percent}%</span></div>
-          <div className="progress-track mt-4 h-2 rounded-full"><div className="progress-motion progress-success h-full rounded-full" style={{ width: `${percent}%` }} /></div>
-          <div className="mt-5 flex flex-wrap gap-2">{['Foundation', 'Sentence Builder', 'Everyday English', 'Intermediate', 'Writing', 'Academic English', 'College English'].map((item, index) => <span key={item} className={`path-pill ${index === 0 ? 'is-current' : ''}`}>{item}{index > 0 ? ' · later' : ''}</span>)}</div>
-        </div>
-
-        <div className="surface-card rounded-[26px] p-5">
-          <div className="flex items-center justify-between gap-3"><div className="flex items-center gap-2"><Target className="h-5 w-5 text-error" /><p className="eyebrow error-eyebrow">Needs Review</p></div>{due > 0 && <button onClick={onPractice} className="text-link text-xs font-bold">Ôn ngay</button>}</div>
-          <div className="mt-4 space-y-3">
-            {weak.length ? weak.map(skill => (
-              <div key={skill.skillId} className="muted-row flex items-center justify-between rounded-2xl p-3">
-                <div><p className="text-sm font-semibold text-strong">{skill.labelVi}</p><p className="mt-1 text-[11px] font-medium text-subtle">{skill.incorrect} lỗi gần đây</p></div>
-                <span className="text-xs font-bold text-warning">{skill.masteryScore}%</span>
-              </div>
-            )) : <div className="muted-row rounded-2xl p-4 text-xs font-medium leading-5 text-muted">Hãy hoàn thành vài bài; Bunny sẽ dùng lỗi thật để tìm điểm cần ôn.</div>}
+      <section className="grid gap-3 sm:grid-cols-2">
+        <button onClick={onPractice} className="home-action review-action pressable rounded-[24px] p-4 text-left sm:p-5">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[.13em] text-warning">Ôn nhanh</p>
+              <h3 className="mt-1 text-xl font-bold text-strong">{due ? `${due} mục đang chờ` : 'Trí nhớ đang ổn'}</h3>
+              <p className="mt-1 text-sm font-medium leading-5 text-muted">{due ? 'Ôn những gì Bunny biết bạn dễ quên.' : 'Bạn có thể luyện nhanh bất cứ lúc nào.'}</p>
+            </div>
+            <div className="action-orb"><Puzzle className="h-5 w-5" /></div>
           </div>
-        </div>
+        </button>
+
+        <button onClick={onLearn} className="home-action path-action pressable rounded-[24px] p-4 text-left sm:p-5">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[.13em] text-primary">Lộ trình</p>
+              <h3 className="mt-1 text-xl font-bold text-strong">Foundation {completed}/{total}</h3>
+              <p className="mt-1 text-sm font-medium leading-5 text-muted">{percent}% hoàn thành · xem hành trình tiếp theo.</p>
+            </div>
+            <div className="action-orb"><BookOpen className="h-5 w-5" /></div>
+          </div>
+        </button>
       </section>
+
+      {weak.length > 0 && (
+        <details className="quiet-details rounded-[22px]">
+          <summary className="flex min-h-12 cursor-pointer items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-muted">
+            <span>Bunny nhận thấy {weak.length} điểm nên luyện thêm</span><ChevronRight className="h-4 w-4" />
+          </summary>
+          <div className="grid gap-2 border-t px-4 py-3 sm:grid-cols-2">
+            {weak.map(skill => <div key={skill.skillId} className="muted-row rounded-xl p-3"><p className="text-sm font-semibold text-strong">{skill.labelVi}</p><p className="mt-1 text-xs text-muted">{skill.incorrect} lỗi gần đây · {skill.masteryScore}% mastery</p></div>)}
+          </div>
+        </details>
+      )}
     </div>
   )
 }
 
-function Goal({ value, label }) {
-  return <div className="muted-row rounded-2xl p-4 text-center"><p className="text-2xl font-extrabold text-strong">{value}</p><p className="mt-1 text-[11px] font-medium text-muted">{label}</p></div>
+function Momentum({ icon: Icon, value, label, tone }) {
+  return (
+    <div className={`momentum-item ${tone} flex min-w-0 items-center justify-center gap-2 rounded-[18px] px-2 py-3 sm:px-3`}>
+      <Icon className="h-4 w-4 shrink-0" />
+      <div className="min-w-0"><p className="text-sm font-extrabold leading-none text-strong sm:text-base">{value}</p><p className="mt-1 truncate text-[10px] font-semibold text-muted sm:text-[11px]">{label}</p></div>
+    </div>
+  )
 }
 
 function Profile({ completed, onReset, dataTick }) {
   const total = foundationLessons.length
   const weak = useMemo(() => getWeakSkills(5), [dataTick])
+  const engagement = useMemo(() => EngagementService.summary(), [dataTick, completed])
   return (
     <div className="space-y-5 page-enter">
-      <div className="surface-card rounded-[30px] p-7">
+      <div className="surface-card rounded-[30px] p-6 sm:p-7">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
           <div className="mascot-tile grid h-24 w-24 place-items-center rounded-[28px]"><Mascot size={88} mood="proud" /></div>
-          <div><p className="eyebrow primary-eyebrow">Foundation learner</p><h1 className="mt-1 text-3xl font-extrabold text-strong">Your learning profile</h1><p className="mt-2 text-sm text-muted">{completed}/{total} bài đã hoàn thành hoặc test out.</p></div>
+          <div><p className="eyebrow primary-eyebrow">Foundation learner</p><h1 className="mt-1 text-3xl font-extrabold text-strong">Tiến độ của bạn</h1><p className="mt-2 text-sm text-muted">{completed}/{total} bài đã hoàn thành hoặc test out · {engagement.xp} XP · {engagement.streak} ngày streak.</p></div>
         </div>
       </div>
 
       <div className="surface-card rounded-[28px] p-5">
-        <div className="flex items-center gap-2"><Palette className="h-5 w-5 text-primary" /><h2 className="text-xl font-bold text-strong">Appearance</h2></div>
+        <div className="flex items-center gap-2"><Palette className="h-5 w-5 text-primary" /><h2 className="text-xl font-bold text-strong">Giao diện</h2></div>
         <p className="mt-2 text-sm font-medium leading-6 text-muted">Chọn giao diện dễ chịu cho mắt. “Theo thiết bị” tự chuyển theo cài đặt hệ thống.</p>
         <div className="mt-4 max-w-xl"><ThemeSegmentedControl /></div>
       </div>
 
       <div className="surface-card rounded-[28px] p-5">
-        <h2 className="text-xl font-bold text-strong">Weakness profile</h2>
-        <p className="mt-2 text-xs font-medium leading-5 text-muted">Mastery dùng prior đơn giản để một câu trả lời không tạo cảm giác chính xác giả.</p>
+        <h2 className="text-xl font-bold text-strong">Điểm cần luyện thêm</h2>
+        <p className="mt-2 text-xs font-medium leading-5 text-muted">Mastery dùng dữ liệu nhiều lượt học, không coi một câu đúng là đã thành thạo.</p>
         <div className="mt-4 space-y-2">
-          {weak.length ? weak.map(skill => <div key={skill.skillId} className="muted-row flex items-center justify-between rounded-xl p-3"><span className="text-sm font-semibold text-strong">{skill.labelVi}</span><span className="text-xs font-bold text-muted">{skill.masteryScore}% · {skill.attempts} attempts</span></div>) : <p className="muted-row rounded-xl p-3 text-sm text-muted">Chưa đủ dữ liệu để hiển thị điểm yếu.</p>}
+          {weak.length ? weak.map(skill => <div key={skill.skillId} className="muted-row flex items-center justify-between rounded-xl p-3"><span className="text-sm font-semibold text-strong">{skill.labelVi}</span><span className="text-xs font-bold text-muted">{skill.masteryScore}% · {skill.attempts} lượt</span></div>) : <p className="muted-row rounded-xl p-3 text-sm text-muted">Chưa đủ dữ liệu để hiển thị điểm yếu.</p>}
         </div>
       </div>
 

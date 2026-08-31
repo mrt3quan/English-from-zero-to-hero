@@ -6,6 +6,7 @@ import { getLessonProgress, markLessonComplete, markLessonStarted, saveLessonSes
 import { AttemptRepository } from '../../lib/attemptRepository'
 import { ReviewQueueService } from '../../lib/reviewQueueService'
 import { inferErrorTags, inferSkillIds } from '../../lib/skillTaxonomy'
+import { EngagementService } from '../../lib/engagementService'
 
 export default function LessonEngine({ lesson, onClose, onComplete }) {
   const saved = useMemo(() => getLessonProgress(lesson.id), [lesson.id])
@@ -15,6 +16,7 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
   const [maxVisited, setMaxVisited] = useState(resumeIndex)
   const [showResume, setShowResume] = useState(resumeIndex > 0)
   const [celebrating, setCelebrating] = useState(false)
+  const [rewardedXp, setRewardedXp] = useState(0)
 
   const step = lesson.steps[index]
   const state = stepStates[index] || {}
@@ -40,6 +42,7 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
     setStepStates(p?.status === 'in_progress' ? (p?.stepStates || {}) : {})
     setShowResume(idx > 0)
     setCelebrating(false)
+    setRewardedXp(0)
   }, [lesson.id, lesson.steps.length])
 
   useEffect(() => {
@@ -116,6 +119,7 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
       dueAt: new Date().toISOString(),
     })
     ReviewQueueService.recordRating(item, rating)
+    EngagementService.recordReview(item.key)
   }
 
   const goNext = () => {
@@ -135,26 +139,30 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
 
   const finish = () => {
     if (!canFinish) return
+    const previous = getLessonProgress(lesson.id)
+    const firstCompletion = !['completed', 'tested_out'].includes(previous?.status)
     markLessonComplete(lesson.id, accuracy)
+    EngagementService.recordLessonComplete(lesson.id, { firstCompletion })
+    setRewardedXp(firstCompletion ? 20 : 0)
     setCelebrating(true)
   }
 
   if (celebrating) {
     return (
-      <div className="fixed inset-0 z-[90] grid place-items-center bg-slate-950/40 p-4 backdrop-blur-sm">
-        <div className="w-full max-w-lg rounded-[32px] border border-emerald-100 bg-white p-7 text-center shadow-2xl">
+      <div className="fixed inset-0 z-[90] grid place-items-center p-4 backdrop-blur-sm" style={{ background: 'var(--overlay)' }}>
+        <div className="completion-card surface-card w-full max-w-lg rounded-[32px] p-7 text-center" style={{ boxShadow: 'var(--shadow-floating)' }}>
           <Mascot size={160} mood="celebrating" withBook={false} className="mx-auto success-pop" />
           <p className="mt-3 text-xs font-black uppercase tracking-[.16em] text-emerald-700">Lesson complete</p>
           <h2 className="mt-2 text-3xl font-black">Bạn đã hoàn thành bài học!</h2>
-          <p className="mt-3 text-sm font-semibold leading-6 text-slate-500">Bunny đã lưu tiến độ, lỗi cần ôn và lịch review tiếp theo.</p>
-          <button onClick={() => onComplete?.(lesson.id)} className="pressable mt-6 min-h-12 w-full rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white">Tiếp tục học</button>
+          <p className="mt-3 text-sm font-semibold leading-6 text-muted">Bunny đã lưu tiến độ, lỗi cần ôn và lịch review tiếp theo.</p>{rewardedXp > 0 && <div className="xp-reward mx-auto mt-4 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-extrabold">+{rewardedXp} XP · Bài mới hoàn thành</div>}
+          <button onClick={() => onComplete?.(lesson.id)} className="pressable mt-6 min-h-[52px] w-full rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white">Đi tới bài tiếp theo</button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="fixed inset-0 z-[80] overflow-y-auto bg-slate-950/40 p-0 backdrop-blur-sm sm:p-5">
+    <div className="fixed inset-0 z-[80] overflow-y-auto p-0 backdrop-blur-sm sm:p-5" style={{ background: 'var(--overlay)' }}>
       <div className="lesson-shell mx-auto min-h-screen max-w-6xl overflow-hidden shadow-2xl sm:min-h-0 sm:rounded-[32px]">
         <header className="lesson-header sticky top-0 z-20 border-b backdrop-blur-xl">
           <div className="flex items-center gap-3 px-4 py-3 sm:px-6">
@@ -162,10 +170,10 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-black text-slate-900">{lesson.titleEn}</p>
-                  <p className="truncate text-xs font-semibold text-slate-400">{lesson.titleVi}</p>
+                  <p className="truncate text-sm font-bold text-strong">{lesson.titleEn}</p>
+                  <p className="truncate text-xs font-medium text-muted">Bước {index + 1}/{lesson.steps.length} · {stepLabel(step)}</p>
                 </div>
-                <div className="hidden items-center gap-2 text-xs font-bold text-slate-400 sm:flex"><Clock3 className="h-4 w-4" />{lesson.minutes} phút</div>
+                <div className="hidden items-center gap-2 text-xs font-semibold text-muted sm:flex"><Clock3 className="h-4 w-4" />{lesson.minutes} phút</div>
               </div>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
                 <div className="progress-motion h-full rounded-full bg-blue-600" style={{ width: `${((index + 1) / lesson.steps.length) * 100}%` }} />
@@ -207,9 +215,9 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
                 </div>
               )}
 
-              <div className="mb-6 lg:hidden">
-                <p className="text-xs font-black uppercase tracking-[.16em] text-blue-700">Mục tiêu bài học</p>
-                <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">{lesson.objectiveVi}</p>
+              <div className="lesson-focus-note mb-4 flex items-center gap-3 rounded-2xl px-3 py-2.5 lg:hidden">
+                <Mascot size={42} mood={step.type === 'exercise' ? 'thinking' : step.type === 'production' ? 'encouraging' : 'explaining'} withBook={false} />
+                <div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-primary">{stepLabel(step)}</p><p className="truncate text-xs font-medium text-muted">{lesson.objectiveVi}</p></div>
               </div>
 
               <div className="lesson-canvas min-h-[440px] rounded-[28px] p-5 sm:p-8">
@@ -217,11 +225,11 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
               </div>
 
               <div className="lesson-action-bar mt-5 flex items-center justify-between gap-3">
-                <button disabled={index === 0} onClick={() => setIndex(i => Math.max(0, i - 1))} className="pressable inline-flex min-h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 disabled:opacity-30"><ArrowLeft className="h-4 w-4" /> Quay lại</button>
+                <button disabled={index === 0} onClick={() => setIndex(i => Math.max(0, i - 1))} className="pressable inline-flex min-h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 disabled:opacity-30"><ArrowLeft className="h-4 w-4" /> Quay lại</button>
                 {!atEnd ? (
-                  <button disabled={!currentComplete} onClick={goNext} className="pressable inline-flex min-h-11 items-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-300">Tiếp tục <ArrowRight className="h-4 w-4" /></button>
+                  <button disabled={!currentComplete} onClick={goNext} className="pressable inline-flex min-h-11 items-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-slate-300">Tiếp tục <ArrowRight className="h-4 w-4" /></button>
                 ) : (
-                  <button disabled={!canFinish} onClick={finish} className="pressable inline-flex min-h-11 items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-300"><ListChecks className="h-4 w-4" /> Hoàn thành bài</button>
+                  <button disabled={!canFinish} onClick={finish} className="pressable inline-flex min-h-11 items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-slate-300"><ListChecks className="h-4 w-4" /> Hoàn thành bài</button>
                 )}
               </div>
 
@@ -255,8 +263,8 @@ function getBlockMessage(step) {
 }
 
 function stepLabel(s) {
-  if (s.type === 'exercise') return 'Practice'
-  if (s.type === 'production') return 'Produce'
-  if (s.type === 'review') return 'Review'
-  return ({ discover: 'Discover', understand: 'Understand', visualize: 'Visualize', compare: 'Compare' })[s.kind] || 'Learn'
+  if (s.type === 'exercise') return 'Luyện thử'
+  if (s.type === 'production') return 'Tự viết'
+  if (s.type === 'review') return 'Nhớ lại'
+  return ({ discover: 'Khám phá', understand: 'Hiểu ý chính', visualize: 'Nhìn cấu trúc', compare: 'So với tiếng Việt' })[s.kind] || 'Học'
 }

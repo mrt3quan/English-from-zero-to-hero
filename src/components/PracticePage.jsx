@@ -1,23 +1,146 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { AlertCircle, ArrowRight, Brain, CheckCircle2, Clock3, Play, RotateCcw, Target, X } from 'lucide-react'
+import { AlertCircle, ArrowRight, Brain, Clock3, PenLine, Play, Target, X } from 'lucide-react'
 import Mascot from './Mascot'
 import { AttemptRepository } from '../lib/attemptRepository'
 import { getWeakSkills } from '../lib/skillMasteryService'
 import { ReviewQueueService } from '../lib/reviewQueueService'
 import { ERROR_TAGS } from '../lib/skillTaxonomy'
 import { foundationLessonById } from '../data/foundationCurriculum'
+import { EngagementService } from '../lib/engagementService'
 
-export default function PracticePage({onOpenLesson}){
-  const [tick,setTick]=useState(0);const [session,setSession]=useState(false)
-  useEffect(()=>{const refresh=()=>setTick(v=>v+1);window.addEventListener('bunny-attempt-updated',refresh);window.addEventListener('bunny-review-updated',refresh);return()=>{window.removeEventListener('bunny-attempt-updated',refresh);window.removeEventListener('bunny-review-updated',refresh)}},[])
-  const due=useMemo(()=>ReviewQueueService.due(),[tick]);const upcoming=useMemo(()=>ReviewQueueService.upcoming(12),[tick]);const weak=useMemo(()=>getWeakSkills(5),[tick]);const mistakes=useMemo(()=>AttemptRepository.recent(30).filter(a=>!a.correct).slice(0,6),[tick])
-  return <div className="space-y-6"><section className="rounded-[30px] border border-slate-200 bg-white p-6 card-shadow sm:p-7"><div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[.16em] text-blue-700">Practice</p><h1 className="mt-2 text-3xl font-black">Ôn đúng thứ bạn đang cần.</h1><p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-slate-500">Bunny ưu tiên lỗi gần đây, kỹ năng còn yếu và những nội dung đã đến lúc cần nhớ lại.</p></div><Mascot size={118} mood="encouraging"/></div></section>
-    <section className="grid gap-5 lg:grid-cols-[1.1fr_.9fr]"><div className="rounded-[28px] border border-blue-100 bg-blue-50/60 p-5 card-shadow"><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.14em] text-blue-700">Today's Review</p><h2 className="mt-1 text-2xl font-black">{due.length} mục cần ôn</h2><p className="mt-1 text-xs font-semibold text-slate-500">Khoảng {Math.max(1,Math.ceil(due.length*.65))} phút</p></div><div className="grid h-12 w-12 place-items-center rounded-2xl bg-white text-blue-700"><Clock3 className="h-5 w-5"/></div></div>{due.length?<div className="mt-5 space-y-2">{due.slice(0,4).map(item=><div key={item.key} className="rounded-2xl border border-blue-100 bg-white p-3"><p className="text-sm font-black text-slate-900">{item.prompt}</p><p className="mt-1 text-[11px] font-bold text-slate-400">{(item.skillIds||[]).join(' · ')||'retrieval practice'}</p></div>)}</div>:<div className="mt-5 rounded-2xl bg-white p-4 text-sm font-semibold text-slate-500">Chưa có mục nào đến hạn. Hãy học hoặc thử một vài bài; review queue sẽ tự hình thành từ hoạt động thật.</div>}<button disabled={!due.length} onClick={()=>setSession(true)} className="pressable mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 text-sm font-black text-white disabled:opacity-40"><Play className="h-4 w-4"/> Bắt đầu ôn</button></div>
-      <div className="rounded-[28px] border border-slate-200 bg-white p-5 card-shadow"><div className="flex items-center gap-3"><Target className="h-5 w-5 text-amber-600"/><div><p className="text-xs font-black uppercase tracking-[.14em] text-amber-700">Your Weak Areas</p><h2 className="mt-1 text-xl font-black">Kỹ năng cần thêm lượt luyện</h2></div></div><div className="mt-4 space-y-3">{weak.length?weak.map(skill=><div key={skill.skillId} className="rounded-2xl bg-slate-50 p-3"><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-black">{skill.labelVi}</p><p className="mt-1 text-[11px] font-semibold text-slate-400">{skill.attempts} lần thử · {skill.incorrect} lỗi</p></div><span className={`rounded-full px-2.5 py-1 text-[10px] font-black ${skill.masteryScore<50?'bg-red-50 text-red-700':skill.masteryScore<70?'bg-amber-50 text-amber-700':'bg-emerald-50 text-emerald-700'}`}>{skill.masteryScore}%</span></div></div>):<EmptySmall text="Chưa đủ dữ liệu để xác định điểm yếu."/>}</div></div></section>
-    <section className="grid gap-5 lg:grid-cols-2"><div className="rounded-[28px] border border-slate-200 bg-white p-5 card-shadow"><div className="flex items-center gap-3"><Brain className="h-5 w-5 text-violet-600"/><h2 className="text-xl font-black">Quick Practice</h2></div><div className="mt-4 grid gap-3 sm:grid-cols-2"><QuickCard title="Sentence Builder" text="Mở rộng câu từng lớp" onClick={()=>onOpenLesson?.(foundationLessonById['f29-sentence-expansion'])}/><QuickCard title="Questions" text="Luyện be / do / does" onClick={()=>onOpenLesson?.(foundationLessonById['f27-questions'])}/></div></div>
-      <div className="rounded-[28px] border border-slate-200 bg-white p-5 card-shadow"><div className="flex items-center gap-3"><AlertCircle className="h-5 w-5 text-red-600"/><h2 className="text-xl font-black">Recent Mistakes</h2></div><div className="mt-4 space-y-3">{mistakes.length?mistakes.map(a=><button key={a.id} onClick={()=>onOpenLesson?.(foundationLessonById[a.lessonId])} className="w-full rounded-2xl border border-slate-100 bg-slate-50 p-3 text-left hover:border-blue-200"><p className="text-xs font-black text-slate-900">{a.answer||'No answer'}</p><p className="mt-1 text-[11px] font-semibold text-emerald-700">→ {a.expected}</p><p className="mt-1 text-[10px] font-bold text-red-600">{(a.errorTags||[]).map(t=>ERROR_TAGS[t]||t).join(' · ')||'Cần ôn lại'}</p></button>):<EmptySmall text="Chưa có lỗi gần đây. Khi bạn trả lời sai, Bunny sẽ đưa lỗi vào đây để ôn lại."/>}</div></div></section>
-    {session&&<ReviewSession items={due} onClose={()=>setSession(false)}/>}</div>
+export default function PracticePage({ onOpenLesson, onOpenWriting }) {
+  const [tick, setTick] = useState(0)
+  const [session, setSession] = useState(false)
+  useEffect(() => {
+    const refresh = () => setTick(v => v + 1)
+    window.addEventListener('bunny-attempt-updated', refresh)
+    window.addEventListener('bunny-review-updated', refresh)
+    return () => {
+      window.removeEventListener('bunny-attempt-updated', refresh)
+      window.removeEventListener('bunny-review-updated', refresh)
+    }
+  }, [])
+
+  const due = useMemo(() => ReviewQueueService.due(), [tick])
+  const weak = useMemo(() => getWeakSkills(5), [tick])
+  const mistakes = useMemo(() => AttemptRepository.recent(30).filter(a => !a.correct).slice(0, 6), [tick])
+
+  return (
+    <div className="practice-simple space-y-4 page-enter">
+      <section className="practice-welcome flex items-center gap-4 px-1 py-1">
+        <div className="welcome-bunny grid h-16 w-16 shrink-0 place-items-center rounded-[22px]"><Mascot size={64} mood="encouraging" withBook={false} /></div>
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[.14em] text-primary">Practice</p>
+          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-strong sm:text-3xl">Ôn đúng thứ bạn cần.</h1>
+          <p className="mt-1 text-sm font-medium text-muted">Không cần chọn từ hàng chục mục — Bunny ưu tiên giúp bạn.</p>
+        </div>
+      </section>
+
+      <section className="review-stage rounded-[30px] p-5 sm:p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[.14em] text-primary">Hôm nay</p>
+            <h2 className="mt-2 text-3xl font-extrabold text-strong">{due.length ? `${due.length} mục cần nhớ lại` : 'Bạn đã ôn xong hôm nay'}</h2>
+            <p className="mt-2 max-w-xl text-sm font-medium leading-6 text-muted">{due.length ? `Khoảng ${Math.max(1, Math.ceil(due.length * .65))} phút. Tự nhớ trước, rồi mới xem đáp án.` : 'Bạn vẫn có thể luyện câu hoặc viết thêm nếu muốn.'}</p>
+          </div>
+          <div className="review-clock hidden h-14 w-14 shrink-0 place-items-center rounded-2xl sm:grid"><Clock3 className="h-6 w-6" /></div>
+        </div>
+        {due.length > 0 && (
+          <div className="mt-5 flex flex-wrap gap-2">
+            {due.slice(0, 3).map(item => <span key={item.key} className="review-preview-chip">{(item.skillIds?.[0] || 'review').replaceAll('_', ' ')}</span>)}
+            {due.length > 3 && <span className="review-preview-chip">+{due.length - 3}</span>}
+          </div>
+        )}
+        <button disabled={!due.length} onClick={() => setSession(true)} className="primary-button pressable mt-5 inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl px-5 text-base font-bold disabled:opacity-40 sm:w-auto">
+          <Play className="h-5 w-5" /> {due.length ? 'Bắt đầu ôn' : 'Đã hoàn thành'}
+        </button>
+      </section>
+
+      <section className="grid gap-3 sm:grid-cols-3">
+        <QuickCard title="Sentence Builder" text="Xây câu từng lớp" icon={Brain} onClick={() => onOpenLesson?.(foundationLessonById['f29-sentence-expansion'])} />
+        <QuickCard title="Questions" text="Luyện be / do / does" icon={Target} onClick={() => onOpenLesson?.(foundationLessonById['f27-questions'])} />
+        <QuickCard title="Writing" text="Tự viết câu của bạn" icon={PenLine} onClick={onOpenWriting} />
+      </section>
+
+      <details className="quiet-details rounded-[24px]" open={weak.some(skill => skill.masteryScore < 50)}>
+        <summary className="flex min-h-14 cursor-pointer items-center justify-between gap-3 px-4 py-3">
+          <div className="flex items-center gap-3"><Target className="h-5 w-5 text-warning" /><div><p className="text-sm font-bold text-strong">Điểm cần luyện thêm</p><p className="text-xs text-muted">{weak.length ? `${weak.length} kỹ năng từ dữ liệu thật` : 'Chưa đủ dữ liệu'}</p></div></div>
+          <ArrowRight className="h-4 w-4 text-muted" />
+        </summary>
+        <div className="grid gap-2 border-t px-4 py-4 sm:grid-cols-2">
+          {weak.length ? weak.map(skill => (
+            <div key={skill.skillId} className="muted-row rounded-2xl p-3">
+              <div className="flex items-center justify-between gap-3"><p className="text-sm font-semibold text-strong">{skill.labelVi}</p><span className="text-xs font-bold text-warning">{skill.masteryScore}%</span></div>
+              <p className="mt-1 text-xs text-muted">{skill.attempts} lượt · {skill.incorrect} lỗi</p>
+            </div>
+          )) : <EmptySmall text="Hãy học vài bài; Bunny sẽ dùng lỗi thật để tìm điểm cần ôn." />}
+        </div>
+      </details>
+
+      <details className="quiet-details rounded-[24px]">
+        <summary className="flex min-h-14 cursor-pointer items-center justify-between gap-3 px-4 py-3">
+          <div className="flex items-center gap-3"><AlertCircle className="h-5 w-5 text-error" /><div><p className="text-sm font-bold text-strong">Lỗi gần đây</p><p className="text-xs text-muted">Chạm để xem và quay lại bài liên quan</p></div></div>
+          <ArrowRight className="h-4 w-4 text-muted" />
+        </summary>
+        <div className="space-y-2 border-t px-4 py-4">
+          {mistakes.length ? mistakes.map(a => (
+            <button key={a.id} onClick={() => onOpenLesson?.(foundationLessonById[a.lessonId])} className="mistake-row pressable w-full rounded-2xl p-3 text-left">
+              <p className="text-sm font-semibold text-strong">{a.answer || 'No answer'}</p>
+              <p className="mt-1 text-xs font-semibold text-success">→ {a.expected}</p>
+              <p className="mt-1 text-[11px] font-bold text-error">{(a.errorTags || []).map(t => ERROR_TAGS[t] || t).join(' · ') || 'Cần ôn lại'}</p>
+            </button>
+          )) : <EmptySmall text="Chưa có lỗi gần đây." />}
+        </div>
+      </details>
+
+      {session && <ReviewSession items={due} onClose={() => setSession(false)} />}
+    </div>
+  )
 }
-function QuickCard({title,text,onClick}){return <button onClick={onClick} className="pressable flex min-h-24 items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left"><div><p className="text-sm font-black">{title}</p><p className="mt-1 text-xs font-semibold text-slate-500">{text}</p></div><ArrowRight className="h-4 w-4 text-blue-600"/></button>}
-function EmptySmall({text}){return <div className="rounded-2xl bg-slate-50 p-4 text-xs font-semibold leading-5 text-slate-500">{text}</div>}
-function ReviewSession({items,onClose}){const [index,setIndex]=useState(0);const [open,setOpen]=useState(false);const item=items[index];if(!item)return <div/>;const rate=r=>{ReviewQueueService.recordRating(item,r);if(index>=items.length-1)onClose();else{setIndex(i=>i+1);setOpen(false)}};return <div className="fixed inset-0 z-[95] grid place-items-center bg-slate-950/40 p-4 backdrop-blur-sm"><div className="w-full max-w-xl rounded-[30px] bg-white p-6 shadow-2xl"><div className="flex items-center justify-between"><p className="text-xs font-black uppercase tracking-[.14em] text-blue-700">Review {index+1}/{items.length}</p><button onClick={onClose} className="grid h-11 w-11 place-items-center rounded-xl bg-slate-100" aria-label="Đóng review"><X className="h-5 w-5"/></button></div><h2 className="mt-4 text-2xl font-black">{item.prompt}</h2>{!open?<button onClick={()=>setOpen(true)} className="pressable mt-6 min-h-12 w-full rounded-2xl bg-blue-600 px-4 text-sm font-black text-white">Tôi đã nghĩ xong — xem đáp án</button>:<><div className="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50 p-4"><p className="text-xs font-black uppercase tracking-wider text-emerald-700">Đáp án</p><p className="mt-2 text-sm font-bold text-emerald-900">{item.expected}</p></div><div className="mt-4 grid grid-cols-3 gap-2"><button onClick={()=>rate(0)} className="min-h-12 rounded-xl border border-red-100 bg-red-50 text-xs font-black text-red-700">Chưa nhớ</button><button onClick={()=>rate(.5)} className="min-h-12 rounded-xl border border-amber-100 bg-amber-50 text-xs font-black text-amber-800">Gần đúng</button><button onClick={()=>rate(1)} className="min-h-12 rounded-xl border border-emerald-100 bg-emerald-50 text-xs font-black text-emerald-700">Nhớ rồi</button></div></>}</div></div>}
+
+function QuickCard({ title, text, icon: Icon, onClick }) {
+  return (
+    <button onClick={onClick} className="quick-practice-card pressable flex min-h-28 items-center justify-between gap-3 rounded-[22px] p-4 text-left">
+      <div><div className="quick-icon mb-3 grid h-9 w-9 place-items-center rounded-xl"><Icon className="h-4.5 w-4.5" /></div><p className="text-sm font-bold text-strong">{title}</p><p className="mt-1 text-xs font-medium text-muted">{text}</p></div>
+      <ArrowRight className="h-4 w-4 shrink-0 text-primary" />
+    </button>
+  )
+}
+
+function EmptySmall({ text }) {
+  return <div className="muted-row rounded-2xl p-4 text-xs font-medium leading-5 text-muted">{text}</div>
+}
+
+function ReviewSession({ items, onClose }) {
+  const [index, setIndex] = useState(0)
+  const [open, setOpen] = useState(false)
+  const item = items[index]
+  if (!item) return <div />
+  const rate = rating => {
+    ReviewQueueService.recordRating(item, rating)
+    EngagementService.recordReview(item.key)
+    if (index >= items.length - 1) onClose()
+    else { setIndex(i => i + 1); setOpen(false) }
+  }
+  return (
+    <div className="fixed inset-0 z-[95] grid place-items-center p-4 backdrop-blur-sm" style={{ background: 'var(--overlay)' }}>
+      <div className="review-session surface-card w-full max-w-xl rounded-[30px] p-5 sm:p-6" style={{ boxShadow: 'var(--shadow-floating)' }}>
+        <div className="flex items-center justify-between"><p className="text-xs font-bold uppercase tracking-[.14em] text-primary">Review {index + 1}/{items.length}</p><button onClick={onClose} className="icon-button" aria-label="Đóng review"><X className="h-5 w-5" /></button></div>
+        <div className="mt-6 text-center"><Mascot size={84} mood={open ? 'encouraging' : 'thinking'} withBook={false} className="mx-auto" /><h2 className="mt-3 text-2xl font-extrabold text-strong">{item.prompt}</h2><p className="mt-2 text-sm text-muted">{open ? 'So với câu bạn vừa nhớ trong đầu.' : 'Đừng mở đáp án ngay — thử nhớ trước.'}</p></div>
+        {!open ? (
+          <button onClick={() => setOpen(true)} className="primary-button pressable mt-6 min-h-[52px] w-full rounded-2xl px-4 text-sm font-bold">Tôi đã nghĩ xong — xem đáp án</button>
+        ) : (
+          <>
+            <div className="review-answer mt-6 rounded-2xl p-4"><p className="text-xs font-bold uppercase tracking-wider text-success">Đáp án</p><p className="mt-2 text-base font-bold text-strong">{item.expected}</p></div>
+            <p className="mt-5 text-center text-xs font-semibold text-muted">Bạn nhớ được đến đâu?</p>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              <button onClick={() => rate(0)} className="rating-danger min-h-12 rounded-xl px-2 text-xs font-bold">Chưa nhớ</button>
+              <button onClick={() => rate(.5)} className="rating-warning min-h-12 rounded-xl px-2 text-xs font-bold">Gần đúng</button>
+              <button onClick={() => rate(1)} className="rating-success min-h-12 rounded-xl px-2 text-xs font-bold">Nhớ rồi</button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}

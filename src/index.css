@@ -291,3 +291,136 @@ html[data-theme="dark"] .shadow-2xl { box-shadow: var(--shadow-floating) !import
 .quick-option.is-selected { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
 .review-success { background: var(--success-soft); border-color: var(--success-border); color: var(--success); }
 .review-warning { background: var(--warning-soft); border-color: var(--warning-border); color: var(--warning); }
+
+/* v1.4 — engagement without clutter: one clear action, visual journey, focused lesson scenes */
+.welcome-bunny { background: color-mix(in srgb, var(--primary-soft) 72%, var(--surface-elevated)); border: 1px solid var(--primary-border); }
+.continue-stage { background: linear-gradient(135deg, color-mix(in srgb, var(--primary-soft) 74%, var(--surface-elevated)), var(--surface-elevated) 62%); border: 1px solid var(--primary-border); box-shadow: var(--shadow-card); }
+.continue-mascot { background: radial-gradient(circle, color-mix(in srgb, var(--warning-soft) 74%, transparent), transparent 66%); }
+.speech-chip { background: var(--surface-elevated); color: var(--primary); border: 1px solid var(--border); box-shadow: var(--shadow-card); padding: 8px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+
+.momentum-strip { background: color-mix(in srgb, var(--surface-elevated) 76%, transparent); border: 1px solid var(--border-soft); }
+.momentum-item { background: var(--surface-elevated); border: 1px solid var(--border-soft); }
+.momentum-item.warm svg { color: #ef7a45; }
+.momentum-item.gold svg { color: #d99b22; }
+.momentum-item.blue svg { color: var(--primary); }
+html[data-theme="dark"] .momentum-item.warm svg { color: #ff9b6b; }
+html[data-theme="dark"] .momentum-item.gold svg { color: #f4c861; }
+
+.home-action { border: 1px solid var(--border); background: var(--surface-elevated); box-shadow: 0 1px 2px rgba(16,24,40,.02); }
+.home-action:hover { border-color: var(--primary-border); }
+.review-action { background: linear-gradient(135deg, color-mix(in srgb, var(--warning-soft) 45%, var(--surface-elevated)), var(--surface-elevated)); }
+.path-action { background: linear-gradient(135deg, color-mix(in srgb, var(--primary-soft) 42%, var(--surface-elevated)), var(--surface-elevated)); }
+.action-orb { display:grid; width:44px; height:44px; place-items:center; flex-shrink:0; border-radius:15px; background:var(--surface-elevated); color:var(--primary); border:1px solid var(--border); box-shadow:var(--shadow-card); }
+.review-action .action-orb { color: var(--warning); }
+
+.quiet-details { background: color-mix(in srgb, var(--surface) 78%, transparent); border: 1px solid var(--border-soft); overflow: hidden; }
+.quiet-details > summary { list-style: none; }
+.quiet-details > summary::-webkit-details-marker { display:none; }
+.quiet-details[open] > summary svg:last-child { transform: rotate(90deg); }
+.quiet-details > div { border-color: var(--border-soft); }
+
+/* Learn journey */
+.journey-hero { background: linear-gradient(135deg, color-mix(in srgb, var(--primary-soft) 58%, var(--surface-elevated)), var(--surface-elevated)); border: 1px solid var(--primary-border); box-shadow: var(--shadow-card); }
+.journey-map-icon { color: var(--primary); background: var(--surface-elevated); border: 1px solid var(--primary-border); }
+.journey-status, .current-badge { display:inline-flex; align-items:center; min-height:24px; border-radius:999px; padding:3px 9px; font-size:10px; font-weight:800; }
+.journey-status { background: var(--surface-elevated); border:1px solid var(--border); color:var(--text-secondary); }
+.current-badge { background:var(--primary-soft); border:1px solid var(--primary-border); color:var(--primary); }
+
+.journey-chapter { background:var(--surface-elevated); border:1px solid var(--border); box-shadow:0 1px 2px rgba(16,24,40,.025); overflow:hidden; }
+.journey-chapter.is-current { border-color:var(--primary-border); box-shadow:0 7px 24px color-mix(in srgb, var(--primary) 7%, transparent); }
+.journey-chapter.is-complete { border-color:var(--success-border); }
+.journey-chapter-head { color:var(--text-primary); }
+.journey-chapter-head:hover { background:var(--surface-soft); }
+.chapter-scene { background:var(--surface-muted); border:1px solid var(--border-soft); }
+.journey-path { border-color:var(--border-soft); background:linear-gradient(180deg, color-mix(in srgb, var(--surface-soft) 70%, transparent), transparent); }
+
+.journey-spine { position:absolute; left:22px; top:22px; bottom:22px; width:3px; border-radius:999px; background:linear-gradient(var(--primary-border), var(--border)); }
+.journey-step { position:relative; display:grid; grid-template-columns:46px minmax(0,1fr); align-items:center; gap:10px; min-height:82px; }
+.journey-node-wrap { z-index:2; display:grid; place-items:center; }
+.journey-node { display:grid; width:42px; height:42px; place-items:center; border-radius:50%; border:3px solid var(--border); background:var(--surface-elevated); color:var(--text-secondary); font-size:11px; font-weight:800; box-shadow:0 0 0 5px var(--surface-soft); transition:transform .16s ease, box-shadow .16s ease, background-color .16s ease; }
+.journey-node.is-passed { background:var(--success); color:white; border-color:var(--success); }
+.journey-node.is-current { background:var(--primary); color:white; border-color:var(--primary); box-shadow:0 0 0 6px var(--primary-soft), 0 6px 18px color-mix(in srgb, var(--primary) 18%, transparent); animation:current-node-pulse 2.6s ease-in-out infinite; }
+.journey-node.is-open { border-color:var(--primary-border); color:var(--primary); }
+.journey-node.is-locked { background:var(--surface-muted); color:var(--text-subtle); }
+.journey-lesson { display:flex; width:100%; min-height:68px; align-items:center; gap:12px; border-radius:18px; border:1px solid var(--border-soft); background:var(--surface-elevated); padding:12px 13px; text-align:left; }
+.journey-lesson:hover:not(.is-locked) { border-color:var(--primary-border); background:color-mix(in srgb, var(--primary-soft) 32%, var(--surface-elevated)); }
+.journey-lesson.is-locked { opacity:.55; background:var(--surface-soft); cursor:not-allowed; }
+.chapter-finish { background:var(--success-soft); border:1px solid var(--success-border); color:var(--success); }
+
+@media (min-width: 640px) {
+  .journey-spine { left:50%; transform:translateX(-50%); }
+  .journey-step { grid-template-columns:minmax(0,1fr) 56px minmax(0,1fr); gap:14px; min-height:98px; }
+  .journey-node-wrap { grid-column:2; }
+  .journey-lesson { max-width:320px; }
+  .journey-step.left .journey-lesson { grid-column:1; grid-row:1; justify-self:end; }
+  .journey-step.right .journey-lesson { grid-column:3; grid-row:1; justify-self:start; }
+  .journey-step.left .journey-node-wrap, .journey-step.right .journey-node-wrap { grid-row:1; }
+}
+
+@keyframes current-node-pulse {
+  0%,100% { transform:translateY(0); }
+  50% { transform:translateY(-2px); }
+}
+
+/* Practice: fewer choices up front; details stay one tap away */
+.practice-welcome { min-height:74px; }
+.review-stage { background:linear-gradient(135deg, color-mix(in srgb, var(--primary-soft) 62%, var(--surface-elevated)), var(--surface-elevated)); border:1px solid var(--primary-border); box-shadow:var(--shadow-card); }
+.review-clock { background:var(--surface-elevated); color:var(--primary); border:1px solid var(--primary-border); }
+.review-preview-chip { border-radius:999px; padding:7px 10px; background:var(--surface-elevated); border:1px solid var(--border); color:var(--text-secondary); font-size:10px; font-weight:700; text-transform:capitalize; }
+.quick-practice-card { background:var(--surface-elevated); border:1px solid var(--border); box-shadow:0 1px 2px rgba(16,24,40,.02); }
+.quick-practice-card:hover { border-color:var(--primary-border); }
+.quick-icon { background:var(--primary-soft); color:var(--primary); }
+.mistake-row { background:var(--surface-muted); border:1px solid var(--border-soft); }
+.mistake-row:hover { border-color:var(--primary-border); }
+.review-answer { background:var(--success-soft); border:1px solid var(--success-border); }
+.rating-danger { background:var(--error-soft); border:1px solid var(--error-border); color:var(--error); }
+.rating-warning { background:var(--warning-soft); border:1px solid var(--warning-border); color:var(--warning); }
+.rating-success { background:var(--success-soft); border:1px solid var(--success-border); color:var(--success); }
+
+/* Lesson focus mode */
+.lesson-focus-note { background:color-mix(in srgb, var(--primary-soft) 50%, var(--surface-elevated)); border:1px solid var(--primary-border); }
+.scene-cue { color:var(--primary); }
+.example-row, .token-role, .lesson-chip { box-shadow:none !important; }
+.example-row { background:color-mix(in srgb, var(--surface-elevated) 92%, var(--surface-muted)) !important; }
+.key-idea { box-shadow:none; }
+.xp-reward { background:var(--warning-soft); border:1px solid var(--warning-border); color:var(--warning); }
+
+@media (max-width: 639px) {
+  .page-frame { padding-top: .75rem; }
+  .surface-card { box-shadow: 0 1px 2px rgba(16,24,40,.02); }
+  .home-simple { padding-bottom: 4px; }
+  .welcome-line { min-height:76px; }
+  .continue-stage { border-radius:26px; }
+  .momentum-strip { border-radius:20px; }
+  .momentum-item { padding-block:11px; }
+  .home-action { border-radius:21px; }
+  .lesson-shell { background:var(--surface-elevated); }
+  .lesson-header { background:color-mix(in srgb, var(--surface-elevated) 96%, transparent); }
+  .lesson-canvas { min-height:0 !important; padding:10px 2px 18px !important; border:0 !important; border-radius:0 !important; box-shadow:none !important; background:transparent !important; }
+  .lesson-action-bar { margin-top:8px; }
+  .lesson-action-bar > button { flex:1; justify-content:center; min-height:52px; }
+  .content-scene h2 { font-size:26px; line-height:1.18; }
+  .example-row { padding:14px; }
+  .concept-map-surface { margin-inline:-2px; padding:12px; border-radius:22px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journey-node.is-current { animation:none !important; }
+}
+
+/* Writing: one primary task, optional tools below */
+.writing-stage { background:linear-gradient(135deg, color-mix(in srgb, var(--warning-soft) 62%, var(--surface-elevated)), var(--surface-elevated)); border:1px solid var(--warning-border); box-shadow:var(--shadow-card); }
+.writing-icon { background:var(--surface-elevated); border:1px solid var(--warning-border); color:var(--warning); }
+.writing-input { background:var(--surface-elevated); border-color:var(--border); color:var(--text-primary); }
+.writing-input:focus { border-color:var(--primary); box-shadow:0 0 0 4px color-mix(in srgb, var(--primary) 14%, transparent); }
+.writing-check { background:var(--surface-elevated); border-color:var(--border); color:var(--text-secondary); }
+.writing-check.is-passed { background:var(--success-soft); border-color:var(--success-border); color:var(--success); }
+.writing-save { background:#e4a12e; color:#fff; }
+.writing-save:hover:not(:disabled) { background:#cc8c22; }
+html[data-theme="dark"] .writing-save { background:#c98d2b; }
+.writing-option { background:var(--surface-elevated); border:1px solid var(--border); box-shadow:0 1px 2px rgba(16,24,40,.02); }
+.writing-option:hover:not(:disabled) { border-color:var(--primary-border); }
+.soon-pill { display:inline-flex; border-radius:999px; padding:5px 9px; background:var(--primary-soft); color:var(--primary); font-size:10px; font-weight:800; }
+.writing-saved { background:var(--surface-muted); border:1px solid var(--border-soft); }
+.icon-quiet { display:grid; width:40px; height:40px; place-items:center; border-radius:12px; color:var(--text-subtle); }
+.icon-quiet:hover { background:var(--surface-elevated); color:var(--error); }
