@@ -1,6 +1,7 @@
 import { readJson, writeJson, removeKey } from './storage.js'
 import { AttemptRepository } from './attemptRepository.js'
 import { ReviewQueueService } from './reviewQueueService.js'
+import { EngagementService } from './engagementService.js'
 
 const STORAGE_KEY='bunny-english.foundation-progress.v3'
 const LEGACY_KEYS=['bunny-english.foundation-progress.v2','apple-english.foundation-progress.v2']
@@ -40,5 +41,5 @@ export function saveLessonSession(id,{lastStep,stepStates,lastAccuracy}){
 }
 export function getAllProgress(){ if(typeof window==='undefined') return {}; return loadAll() }
 export function resetFoundationProgress(){
-  removeKey(STORAGE_KEY); LEGACY_KEYS.forEach(removeKey); AttemptRepository.clear(); ReviewQueueService.clear(); emit()
+  removeKey(STORAGE_KEY); LEGACY_KEYS.forEach(removeKey); AttemptRepository.clear(); ReviewQueueService.clear(); EngagementService.clear(); emit()
 }

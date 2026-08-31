@@ -56,38 +56,44 @@ export default function WritingPage({ onOpenLesson }) {
     setSavedId(record.id)
   }
 
-  return <div className="space-y-6">
-    <section className="rounded-[30px] border border-slate-200 bg-white p-6 card-shadow sm:p-7">
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <div><p className="text-xs font-black uppercase tracking-[.16em] text-amber-700">Writing</p><h1 className="mt-2 text-3xl font-black">Bắt đầu từ câu bạn tự viết.</h1><p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-slate-500">Foundation Writing tập trung vào tạo câu, tự kiểm tra và sửa — Bunny không viết thay bạn.</p></div>
-        <Mascot size={124} mood="proud" activity="writing" withBook={false} />
+  return <div className="writing-simple space-y-4 page-enter">
+    <section className="practice-welcome flex items-center gap-4 px-1 py-1">
+      <div className="welcome-bunny grid h-16 w-16 shrink-0 place-items-center rounded-[22px]"><Mascot size={64} mood="proud" activity="writing" withBook={false} /></div>
+      <div><p className="text-xs font-bold uppercase tracking-[.14em] text-warning">Writing</p><h1 className="mt-1 text-2xl font-extrabold tracking-tight text-strong sm:text-3xl">Tự viết trước. Bunny chỉ giúp bạn kiểm tra.</h1><p className="mt-1 text-sm font-medium text-muted">Bắt đầu từ câu ngắn, không cần nghĩ về bài luận lúc này.</p></div>
+    </section>
+
+    <section className="writing-stage rounded-[30px] p-5 sm:p-6">
+      <div className="flex items-center gap-3"><div className="writing-icon grid h-11 w-11 place-items-center rounded-2xl"><PenLine className="h-5 w-5"/></div><div><p className="text-xs font-bold uppercase tracking-[.13em] text-warning">Bài viết hôm nay</p><h2 className="text-xl font-bold text-strong">Daily routine</h2></div></div>
+      <p className="mt-4 text-sm font-semibold text-strong">{routineTask.promptVi}</p>
+      <p className="mt-1 text-xs font-medium text-muted">Viết đơn giản. Mỗi dòng một câu sẽ dễ kiểm tra hơn.</p>
+      <label className="sr-only" htmlFor="foundation-writing-routine">Viết ba câu về thói quen hằng ngày</label>
+      <textarea id="foundation-writing-routine" value={value} onChange={e => { setValue(e.target.value); setSavedId(null) }} rows={6} placeholder={routineTask.placeholder} className="writing-input mt-4 w-full rounded-2xl border p-4 text-sm font-semibold leading-6 outline-none"/>
+      <div className="mt-3 grid gap-2 sm:grid-cols-3">{evaluation.requirements.map(r => <button key={r.id} type="button" disabled={r.type !== 'selfCheck'} onClick={() => r.type === 'selfCheck' && toggle(r.id)} className={`writing-check flex min-h-11 items-center gap-2 rounded-xl border p-3 text-left text-xs font-bold ${r.passed ? 'is-passed' : ''} disabled:cursor-default`} aria-pressed={r.type === 'selfCheck' ? r.passed : undefined}><CheckCircle2 className="h-4 w-4 shrink-0"/>{r.labelVi}</button>)}</div>
+      <button disabled={!evaluation.passed} onClick={save} className="writing-save pressable mt-4 min-h-[52px] w-full rounded-2xl px-5 text-sm font-bold disabled:opacity-40 sm:w-auto">Lưu vào My Writing</button>
+      {savedId && <p className="mt-3 text-xs font-bold text-success">✓ Đã lưu. Bạn có thể xem lại phía dưới.</p>}
+    </section>
+
+    <section className="grid gap-3 sm:grid-cols-2">
+      <button disabled={!masteryUnlocked} onClick={() => onOpenLesson?.(foundationLessonById['f30-foundation-mastery'])} className="writing-option pressable rounded-[22px] p-4 text-left disabled:opacity-55">
+        <div className="flex items-center justify-between gap-3"><div className="quick-icon grid h-10 w-10 place-items-center rounded-xl"><Sparkles className="h-5 w-5"/></div><span className="text-[10px] font-bold uppercase tracking-[.12em] text-muted">Project</span></div>
+        <h3 className="mt-3 text-base font-bold text-strong">Foundation Mastery</h3><p className="mt-1 text-xs font-medium leading-5 text-muted">Viết 10 câu về bản thân và dùng những cấu trúc đã học.</p><p className="mt-3 text-xs font-bold text-primary">{masteryUnlocked ? 'Mở dự án →' : 'Mở sau Sentence Expansion'}</p>
+      </button>
+      <div className="writing-option rounded-[22px] p-4">
+        <div className="flex items-center justify-between gap-3"><div className="quick-icon grid h-10 w-10 place-items-center rounded-xl"><Beaker className="h-5 w-5"/></div><span className="soon-pill">Sắp ra mắt</span></div>
+        <h3 className="mt-3 text-base font-bold text-strong">Sentence Lab</h3><p className="mt-1 text-xs font-medium leading-5 text-muted">Phân tích subject, verb, object và giải thích vì sao trước khi sửa.</p>
       </div>
     </section>
 
-    <section className="grid gap-5 lg:grid-cols-[1.15fr_.85fr]">
-      <div className="rounded-[28px] border border-amber-100 bg-amber-50/50 p-5 card-shadow">
-        <div className="flex items-center gap-3"><PenLine className="h-5 w-5 text-amber-700"/><div><p className="text-xs font-black uppercase tracking-[.14em] text-amber-700">Sentence Practice</p><h2 className="text-xl font-black">Daily routine</h2></div></div>
-        <p className="mt-3 text-sm font-semibold text-slate-600">{routineTask.promptVi}</p>
-        <label className="sr-only" htmlFor="foundation-writing-routine">Viết ba câu về thói quen hằng ngày</label>
-        <textarea id="foundation-writing-routine" value={value} onChange={e => { setValue(e.target.value); setSavedId(null) }} rows={6} placeholder={routineTask.placeholder} className="mt-4 w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm font-semibold leading-6 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"/>
-        <div className="mt-3 space-y-2">{evaluation.requirements.map(r => <button key={r.id} type="button" disabled={r.type !== 'selfCheck'} onClick={() => r.type === 'selfCheck' && toggle(r.id)} className={`flex min-h-11 w-full items-center gap-2 rounded-xl border p-3 text-left text-xs font-bold ${r.passed ? 'border-emerald-100 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-white text-slate-600'} disabled:cursor-default`} aria-pressed={r.type === 'selfCheck' ? r.passed : undefined}><CheckCircle2 className={`h-4 w-4 ${r.passed ? 'text-emerald-600' : 'text-slate-300'}`}/>{r.labelVi}</button>)}</div>
-        <button disabled={!evaluation.passed} onClick={save} className="pressable mt-4 min-h-11 rounded-2xl bg-amber-500 px-5 text-sm font-black text-white disabled:opacity-40">Lưu vào My Writing</button>
-        {savedId && <p className="mt-3 text-xs font-bold text-emerald-700">✓ Đã lưu. Bạn có thể xem lại bài này trong My Writing.</p>}
+    <details className="quiet-details rounded-[24px]" open={savedWriting.length + lessonDrafts.length > 0}>
+      <summary className="flex min-h-14 cursor-pointer items-center justify-between gap-3 px-4 py-3">
+        <div className="flex items-center gap-3"><FileText className="h-5 w-5 text-primary"/><div><p className="text-sm font-bold text-strong">My Writing</p><p className="text-xs text-muted">{savedWriting.length + lessonDrafts.length} bài viết và bản nháp</p></div></div>
+        <span className="text-xs font-bold text-primary">Xem</span>
+      </summary>
+      <div className="grid gap-3 border-t px-4 py-4 sm:grid-cols-2">
+        {savedWriting.map(item => <article key={item.id} className="writing-saved rounded-2xl p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-bold text-warning">{item.title || 'Sentence Practice'}</p><p className="mt-1 text-[10px] font-medium text-muted">{new Date(item.createdAt).toLocaleDateString()}</p></div><button onClick={() => WritingRepository.remove(item.id)} aria-label="Xóa bài viết" className="icon-quiet"><Trash2 className="h-4 w-4"/></button></div><p className="mt-2 whitespace-pre-line text-xs font-medium leading-5 text-muted">{item.content}</p></article>)}
+        {lessonDrafts.map((d, i) => <button key={`${d.lesson.id}-${d.index}-${i}`} onClick={() => onOpenLesson?.(d.lesson)} className="writing-saved rounded-2xl p-4 text-left"><p className="text-xs font-bold text-primary">{d.lesson.titleEn}</p><p className="mt-1 text-[10px] font-medium text-muted">Lesson production</p><p className="mt-2 line-clamp-3 whitespace-pre-line text-xs font-medium leading-5 text-muted">{d.state.value}</p></button>)}
+        {!savedWriting.length && !lessonDrafts.length && <div className="muted-row rounded-2xl p-4 text-sm font-medium text-muted">Các câu bạn tự viết và production draft trong lesson sẽ xuất hiện ở đây.</div>}
       </div>
-
-      <div className="space-y-5">
-        <div className="rounded-[28px] border border-violet-100 bg-violet-50/60 p-5 card-shadow"><div className="flex items-center gap-3"><Sparkles className="h-5 w-5 text-violet-700"/><h2 className="text-xl font-black">Foundation Mastery Project</h2></div><p className="mt-3 text-sm font-semibold leading-6 text-slate-600">Viết 10 câu về bản thân và dùng những cấu trúc đã học.</p><button disabled={!masteryUnlocked} onClick={() => onOpenLesson?.(foundationLessonById['f30-foundation-mastery'])} className="pressable mt-4 min-h-11 w-full rounded-2xl bg-violet-600 px-4 text-sm font-black text-white disabled:bg-slate-300">{masteryUnlocked ? 'Mở dự án' : 'Hoàn thành Sentence Expansion trước'}</button></div>
-        <div className="rounded-[28px] border border-blue-100 bg-blue-50/60 p-5 card-shadow"><div className="flex items-center gap-3"><Beaker className="h-5 w-5 text-blue-700"/><h2 className="text-xl font-black">Sentence Lab</h2></div><p className="mt-3 text-sm font-semibold leading-6 text-slate-600">Sắp tới: phân tích subject, verb, object, tense và lỗi thường gặp — giải thích vì sao trước khi sửa.</p><span className="mt-4 inline-flex rounded-full bg-white px-3 py-1.5 text-xs font-black text-blue-700">Coming soon</span></div>
-      </div>
-    </section>
-
-    <section className="rounded-[28px] border border-slate-200 bg-white p-5 card-shadow">
-      <div className="flex items-center gap-3"><FileText className="h-5 w-5 text-blue-700"/><h2 className="text-xl font-black">My Writing</h2></div>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        {savedWriting.map(item => <article key={item.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-black text-amber-700">{item.title || 'Sentence Practice'}</p><p className="mt-1 text-[10px] font-semibold text-slate-400">{new Date(item.createdAt).toLocaleDateString()}</p></div><button onClick={() => WritingRepository.remove(item.id)} aria-label="Xóa bài viết" className="grid h-10 w-10 place-items-center rounded-xl text-slate-400 hover:bg-white hover:text-red-600"><Trash2 className="h-4 w-4"/></button></div><p className="mt-2 whitespace-pre-line text-xs font-semibold leading-5 text-slate-600">{item.content}</p></article>)}
-        {lessonDrafts.map((d, i) => <button key={`${d.lesson.id}-${d.index}-${i}`} onClick={() => onOpenLesson?.(d.lesson)} className="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-left"><p className="text-xs font-black text-blue-700">{d.lesson.titleEn}</p><p className="mt-1 text-[10px] font-semibold text-slate-400">Lesson production</p><p className="mt-2 line-clamp-3 whitespace-pre-line text-xs font-semibold leading-5 text-slate-600">{d.state.value}</p></button>)}
-        {!savedWriting.length && !lessonDrafts.length && <div className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-slate-500">Các câu bạn tự viết và production draft trong lesson sẽ xuất hiện ở đây.</div>}
-      </div>
-    </section>
+    </details>
   </div>
 }
