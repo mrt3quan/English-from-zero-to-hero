@@ -26,3 +26,19 @@ test('mastery project rejects random text with enough lines',()=>{
   const text=Array.from({length:10},()=> 'random words here.').join('\n')
   assert.equal(evaluateProduction(step,text).passed,false)
 })
+
+test('containsPronoun and containsAdjective detect their targets independently',()=>{
+  const step={requirements:[
+    {id:'pronoun',type:'containsPronoun',count:1,labelVi:'pronoun'},
+    {id:'adjective',type:'containsAdjective',count:1,labelVi:'adjective'},
+  ]}
+  const withBoth=evaluateProduction(step,'She is happy today.')
+  assert.equal(withBoth.requirements[0].passed,true)
+  assert.equal(withBoth.requirements[1].passed,true)
+  assert.equal(withBoth.passed,true)
+
+  const withNeither=evaluateProduction(step,'Birds fly south.')
+  assert.equal(withNeither.requirements[0].passed,false)
+  assert.equal(withNeither.requirements[1].passed,false)
+  assert.equal(withNeither.passed,false)
+})
