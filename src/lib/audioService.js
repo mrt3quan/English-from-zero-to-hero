@@ -14,6 +14,19 @@ function pickVoice(voices) {
   return female || pool[0] || null
 }
 
+// Curriculum text sometimes carries display-only notation that isn't meant to
+// be read aloud: checkmarks, arrows, a "|" separator, and IPA slashes like
+// "/m/ /æ/ /p/" (the browser voice would otherwise literally say "slash").
+// IPA slashes are unwrapped rather than dropped so the symbol inside is still
+// spoken (best-effort — TTS engines vary in how well they render IPA glyphs).
+function sanitizeForSpeech(text) {
+  return String(text)
+    .replace(/[✓✗→|]/g, ' ')
+    .replace(/\/([^/]+)\//g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 // Chrome/Edge load the voice list asynchronously; without this, the very first
 // speak() call can run before any voices are available and silently skip the
 // female-voice preference.
@@ -27,7 +40,7 @@ export const AudioService = {
   speak(text,{speed='normal'}={}){
     if(!this.supported()) return false
     window.speechSynthesis.cancel()
-    const utterance=new SpeechSynthesisUtterance(String(text).replace(/[✓✗→]/g,' '))
+    const utterance=new SpeechSynthesisUtterance(sanitizeForSpeech(text))
     utterance.lang='en-US'
     utterance.rate=speed==='slow' ? 0.68 : 0.9
     utterance.pitch=1.05
