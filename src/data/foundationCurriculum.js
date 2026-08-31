@@ -35,6 +35,15 @@ export const foundationUnits = [
   { id: 20, titleEn: 'Foundation Mastery', titleVi: 'Dự án tổng kết', descriptionVi: 'Viết 10 câu đúng về chính bạn.' },
 ]
 
+export const foundationChapters = [
+  { id: 1, titleEn: 'English Start', titleVi: 'Bắt đầu với tiếng Anh', unitIds: [1, 2], color: 'blue' },
+  { id: 2, titleEn: 'Words Build Meaning', titleVi: 'Từ tạo nên ý nghĩa', unitIds: [3, 4, 5, 6, 7, 8, 9, 10, 11], color: 'emerald' },
+  { id: 3, titleEn: 'See the Whole System', titleVi: 'Nhìn toàn bộ hệ thống', unitIds: [12], color: 'violet' },
+  { id: 4, titleEn: 'Core Sentence Patterns', titleVi: 'Các mẫu câu cốt lõi', unitIds: [13, 14, 15], color: 'orange' },
+  { id: 5, titleEn: 'Control the Sentence', titleVi: 'Điều khiển câu', unitIds: [16, 17, 18, 19], color: 'blue' },
+  { id: 6, titleEn: 'Foundation Mastery', titleVi: 'Chứng minh nền tảng', unitIds: [20], color: 'violet' },
+]
+
 export const foundationLessons = [
   lesson({
     id: 'f01-alphabet-map', unit: 1, order: 1, titleEn: 'The English Alphabet', titleVi: 'Bản đồ 26 chữ cái', minutes: 9,
@@ -441,7 +450,7 @@ export const foundationLessons = [
       content('understand', 'Yêu cầu 10 câu', 'Hãy viết: 2 câu với be, 3 câu Present Simple, 1 câu phủ định, 1 câu hỏi, 1 câu có adjective, 1 câu có preposition, 1 câu nối bằng because/so. Một câu có thể đáp ứng nhiều yêu cầu.', { chips: ['be ×2', 'Present Simple ×3', 'negative ×1', 'question ×1', 'adjective ×1', 'preposition ×1', 'because/so ×1'] }),
       choice('Câu nào có lỗi?', ['I am a student.', 'She is kind.', 'He work every day.', 'We live here.'], 'He work every day.', 'he → works.'),
       fix('Sửa lỗi.', 'Because I like English, so I study every day.', ['Because I like English, I study every day.', 'I like English, so I study every day.'], 'Chọn because hoặc so trong cấu trúc cơ bản này.', { flexible: true }),
-      produce('Viết 10 câu về bản thân. Mỗi câu trên một dòng. Sau khi viết, tự đọc lại subject, verb, article, -s/-es và dấu câu.', 'I am Minh.\nI am a student.\nI live in Washington.\nI study English every day.\nI like coffee.\nI do not work on Sunday.\nDo I need more practice?\nI have a small car.\nMy phone is on the desk.\nI study English because I want to write better.', ['Có đúng 10 dòng câu hoặc nhiều hơn', 'Có ít nhất 2 câu với be', 'Có một negative', 'Có một question', 'Có because hoặc so'], { minLines: 10, minWords: 35, masteryProject: true }),
+      produce('Viết 10 câu về bản thân. Mỗi câu trên một dòng. Sau khi viết, tự đọc lại subject, verb, article, -s/-es và dấu câu.', 'I am Minh.\nI am a student.\nI live in Washington.\nI study English every day.\nI like coffee.\nI do not work on Sunday.\nDo I need more practice?\nI have a small car.\nMy phone is on the desk.\nI study English because I want to write better.', ['Có đúng 10 dòng câu hoặc nhiều hơn', 'Có ít nhất 2 câu với be', 'Có ít nhất 3 câu Present Simple', 'Có một negative', 'Có một question', 'Có một adjective', 'Có một preposition', 'Có because hoặc so', 'Mỗi dòng bắt đầu bằng chữ hoa và kết thúc bằng dấu câu'], { minLines: 10, minWords: 35, masteryProject: true, validators: [{ type: 'minSentenceLines', value: 10 }, { type: 'beSentenceCount', value: 2 }, { type: 'presentSimpleLike', value: 3 }, { type: 'negativeCount', value: 1 }, { type: 'minQuestions', value: 1 }, { type: 'adjectiveLike', min: 1 }, { type: 'containsAny', values: ['in','on','at','under','over','with','for','from','next to','between'] }, { type: 'containsAny', values: ['because','so'] }, { type: 'eachLineCapitalizedAndPunctuated', minWords: 2 }] }),
       review([['Foundation không chỉ kiểm tra gì?', 'Không chỉ recognition/multiple choice'], ['Bước tự sửa quan trọng?', 'Kiểm tra subject, verb, article, agreement, punctuation'], ['Bước tiếp theo sau Foundation?', 'Sentence Foundation sâu hơn rồi paragraph/writing.']]),
     ],
   }),
