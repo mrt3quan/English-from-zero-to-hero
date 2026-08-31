@@ -35,6 +35,15 @@ export const foundationUnits = [
   { id: 20, titleEn: 'Foundation Mastery', titleVi: 'Dự án tổng kết', descriptionVi: 'Viết 10 câu đúng về chính bạn.' },
 ]
 
+export const foundationChapters = [
+  { id: 1, titleEn: 'Starting English', titleVi: 'Bắt đầu với tiếng Anh', unitIds: [1, 2] },
+  { id: 2, titleEn: 'Naming & Being', titleVi: 'Gọi tên và mô tả', unitIds: [3, 4, 5] },
+  { id: 3, titleEn: 'Word Jobs', titleVi: 'Công việc của từ', unitIds: [6, 7, 8, 9, 10, 11, 12] },
+  { id: 4, titleEn: 'Sentence Patterns', titleVi: 'Mẫu câu cốt lõi', unitIds: [13, 14, 15] },
+  { id: 5, titleEn: 'Everyday Sentences', titleVi: 'Câu dùng hằng ngày', unitIds: [16, 17, 18, 19] },
+  { id: 6, titleEn: 'Foundation Mastery', titleVi: 'Tổng kết nền tảng', unitIds: [20] },
+]
+
 export const foundationLessons = [
   lesson({
     id: 'f01-alphabet-map', unit: 1, order: 1, titleEn: 'The English Alphabet', titleVi: 'Bản đồ 26 chữ cái', minutes: 9,

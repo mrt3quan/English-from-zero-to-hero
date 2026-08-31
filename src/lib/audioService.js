@@ -42,7 +42,7 @@ export const AudioService = {
     window.speechSynthesis.cancel()
     const utterance=new SpeechSynthesisUtterance(sanitizeForSpeech(text))
     utterance.lang='en-US'
-    utterance.rate=speed==='slow' ? 0.68 : 0.9
+    utterance.rate=speed==='slow' ? 0.5 : 0.9
     utterance.pitch=1.05
     const voice=pickVoice(window.speechSynthesis.getVoices?.() || [])
     if(voice) utterance.voice=voice
