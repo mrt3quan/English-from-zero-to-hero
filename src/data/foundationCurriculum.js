@@ -1,9 +1,9 @@
 const content = (kind, title, bodyVi, extra = {}) => ({ type: 'content', kind, title, bodyVi, ...extra })
 const choice = (promptVi, options, answer, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'choice', promptVi, options, answer, explainVi, ...extra })
-const order = (promptVi, tokens, answer, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'wordOrder', promptVi, tokens, answer, explainVi, ...extra })
-const fill = (promptVi, sentence, answer, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'fillBlank', promptVi, sentence, answer, explainVi, ...extra })
+const order = (promptVi, tokens, answer, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'wordOrder', punctuationRequired: false, promptVi, tokens, answer, explainVi, ...extra })
+const fill = (promptVi, sentence, answer, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'fillBlank', validationMode: 'normalizedExact', promptVi, sentence, answer, explainVi, ...extra })
 const identify = (promptVi, tokens, answerIndexes, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'identify', promptVi, tokens, answerIndexes, explainVi, ...extra })
-const fix = (promptVi, incorrect, accepted, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'errorFix', promptVi, incorrect, accepted, explainVi, ...extra })
+const fix = (promptVi, incorrect, accepted, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'errorFix', validationMode: 'acceptedVariants', promptVi, incorrect, accepted, explainVi, ...extra })
 const produce = (promptVi, placeholder, checks, extra = {}) => ({ type: 'production', promptVi, placeholder, checks, ...extra })
 const review = (items) => ({ type: 'review', items })
 
@@ -24,7 +24,7 @@ export const foundationUnits = [
   { id: 9, titleEn: 'Adverbs', titleVi: 'Trạng từ', descriptionVi: 'Nói hành động xảy ra như thế nào và thường xuyên ra sao.' },
   { id: 10, titleEn: 'Prepositions', titleVi: 'Giới từ', descriptionVi: 'Nói vị trí và mối quan hệ: in, on, at, under…' },
   { id: 11, titleEn: 'Conjunctions', titleVi: 'Liên từ', descriptionVi: 'Nối từ và nối ý bằng and, but, or, because, so.' },
-  { id: 12, titleEn: 'Parts of Speech Map', titleVi: 'Bản đồ từ loại', descriptionVi: 'Ghép các mảnh đã học thành một hệ thống.' },
+  { id: 12, titleEn: 'Core Word Jobs Map', titleVi: 'Bản đồ 9 nhóm từ cốt lõi', descriptionVi: 'Ghép các mảnh đã học thành một hệ thống dễ nhìn.' },
   { id: 13, titleEn: 'S + V', titleVi: 'Mẫu câu S + V', descriptionVi: 'Chủ ngữ + động từ: bộ xương tối thiểu của nhiều câu.' },
   { id: 14, titleEn: 'S + V + O', titleVi: 'Mẫu câu S + V + O', descriptionVi: 'Thêm tân ngữ để nói hành động tác động lên ai/cái gì.' },
   { id: 15, titleEn: 'S + V + C', titleVi: 'Mẫu câu S + V + C', descriptionVi: 'Dùng bổ ngữ để mô tả hoặc gọi tên chủ ngữ.' },
@@ -33,15 +33,6 @@ export const foundationUnits = [
   { id: 18, titleEn: 'Present Simple', titleVi: 'Hiện tại đơn', descriptionVi: 'Nói thói quen, sự thật và điều ổn định.' },
   { id: 19, titleEn: 'Sentence Expansion', titleVi: 'Mở rộng câu', descriptionVi: 'Thêm chi tiết mà vẫn giữ cấu trúc rõ ràng.' },
   { id: 20, titleEn: 'Foundation Mastery', titleVi: 'Dự án tổng kết', descriptionVi: 'Viết 10 câu đúng về chính bạn.' },
-]
-
-export const foundationChapters = [
-  { id: 1, titleEn: 'English Start', titleVi: 'Bắt đầu với tiếng Anh', unitIds: [1, 2], color: 'blue' },
-  { id: 2, titleEn: 'Words Build Meaning', titleVi: 'Từ tạo nên ý nghĩa', unitIds: [3, 4, 5, 6, 7, 8, 9, 10, 11], color: 'emerald' },
-  { id: 3, titleEn: 'See the Whole System', titleVi: 'Nhìn toàn bộ hệ thống', unitIds: [12], color: 'violet' },
-  { id: 4, titleEn: 'Core Sentence Patterns', titleVi: 'Các mẫu câu cốt lõi', unitIds: [13, 14, 15], color: 'orange' },
-  { id: 5, titleEn: 'Control the Sentence', titleVi: 'Điều khiển câu', unitIds: [16, 17, 18, 19], color: 'blue' },
-  { id: 6, titleEn: 'Foundation Mastery', titleVi: 'Chứng minh nền tảng', unitIds: [20], color: 'violet' },
 ]
 
 export const foundationLessons = [
@@ -200,7 +191,7 @@ export const foundationLessons = [
       content('compare', 'Tiếng Việt thường không cần từ tương đương trực tiếp', '“Cô ấy mệt” không có từ đứng giữa “cô ấy” và “mệt”. Tiếng Anh bắt buộc: “She is tired.”'),
       fill('Điền be đúng.', 'I ___ ready.', 'am', 'I luôn đi với am ở hiện tại.'),
       choice('Câu nào đúng?', ['They is home.', 'They are home.', 'They am home.', 'They be home.'], 'They are home.', 'they → are.'),
-      produce('Viết 3 câu: 1 câu với am, 1 với is, 1 với are.', 'I am ready.\nMy friend is kind.\nWe are students.', ['Có 3 dòng', 'Có am, is, are'], { minLines: 3, minWords: 6 }),
+      produce('Viết 3 câu: 1 câu với am, 1 với is, 1 với are.', 'I am ready.\nMy friend is kind.\nWe are students.', ['Có 3 dòng', 'Có am, is, are'], { minLines: 3, minWords: 6, requirements: [{ id:'lines', type:'minLines', value:3, labelVi:'Có ít nhất 3 dòng' }, { id:'be_forms', type:'containsAll', values:['am','is','are'], labelVi:'Có am, is và are' }] }),
       review([['I → ?', 'am'], ['he/she/it → ?', 'is'], ['you/we/they → ?', 'are']]),
     ],
   }),
@@ -212,9 +203,9 @@ export const foundationLessons = [
       content('visualize', 'Statement → Negative → Question', 'She is tired. → She is not tired. → Is she tired?', { examples: ['They are ready.', 'They are not ready.', 'Are they ready?'] }),
       content('understand', 'be tự làm trợ động từ', 'Khi động từ chính là be, chỉ cần thêm not để phủ định hoặc đưa be lên trước subject để hỏi. Không dùng “do”.'),
       choice('Phủ định đúng của “He is busy.”?', ['He does not busy.', 'He is not busy.', 'He not is busy.', 'He do not be busy.'], 'He is not busy.', 'be + not.'),
-      order('Sắp xếp thành câu hỏi.', ['you', 'ready', 'Are', '?'], 'Are you ready ?', 'Đưa are lên trước subject “you”.'),
+      order('Sắp xếp thành câu hỏi.', ['you', 'ready', 'Are', '?'], 'Are you ready?', 'Đưa are lên trước subject “you”. Dấu ? là một phần của câu hỏi.', { punctuationRequired: true }),
       fix('Sửa lỗi.', 'Do you are tired?', ['Are you tired?'], 'Với be, không thêm do.', { flexible: false }),
-      produce('Viết 1 câu với be, rồi biến nó thành câu hỏi ở dòng 2.', 'She is happy.\nIs she happy?', ['Có 2 dòng', 'Dòng 2 là câu hỏi'], { minLines: 2, minWords: 4 }),
+      produce('Viết 1 câu với be, rồi biến nó thành câu hỏi ở dòng 2.', 'She is happy.\nIs she happy?', ['Có 2 dòng', 'Dòng 2 là câu hỏi'], { minLines: 2, minWords: 4, requirements: [{ id:'lines', type:'minLines', value:2, labelVi:'Có ít nhất 2 dòng' }, { id:'question_line', type:'lineIsQuestion', line:2, labelVi:'Dòng 2 là câu hỏi đúng dạng' }] }),
       review([['Phủ định với be?', 'be + not'], ['Câu hỏi với be?', 'Be + subject + ...?'], ['Có dùng do với “Are you…?” không?', 'Không.']]),
     ],
   }),
@@ -242,7 +233,7 @@ export const foundationLessons = [
       fill('Điền verb đúng.', 'She ___ English every day. (study)', 'studies', 'Phụ âm + y: study → studies.'),
       choice('Câu nào đúng?', ['He watch TV.', 'He watches TV.', 'He watching TV.', 'He watchs TV.'], 'He watches TV.', 'watch → watches với he.'),
       fix('Sửa lỗi.', 'My brother work at a hospital.', ['My brother works at a hospital.'], 'My brother = he → works.'),
-      produce('Viết 2 câu với he/she/it ở Present Simple.', 'She reads every night.\nMy phone works well.', ['Có 2 dòng', 'Có verb -s/-es phù hợp'], { minLines: 2, minWords: 6 }),
+      produce('Viết 2 câu với he/she/it ở Present Simple.', 'She reads every night.\nMy phone works well.', ['Có 2 dòng', 'Có verb -s/-es phù hợp'], { minLines: 2, minWords: 6, requirements: [{ id:'lines', type:'minLines', value:2, labelVi:'Có ít nhất 2 dòng' }, { id:'third_s', type:'containsThirdPersonS', count:1, labelVi:'Có ít nhất một verb -s/-es với he/she/it' }] }),
       review([['He work hay he works?', 'He works'], ['study với she?', 'studies'], ['Vì sao người Việt hay quên -s?', 'Tiếng Việt không chia động từ theo chủ ngữ theo cách này.']]),
     ],
   }),
@@ -324,18 +315,18 @@ export const foundationLessons = [
       choice('Chọn từ nối: “I was hungry, ___ I ate.”', ['because', 'so', 'but', 'or'], 'so', 'Đói là nguyên nhân; ăn là kết quả → so.'),
       choice('Chọn từ nối: “I stayed home ___ I was sick.”', ['because', 'so', 'or', 'and'], 'because', 'because mở phần lý do.'),
       fix('Sửa câu.', 'Because I was tired, so I went home.', ['Because I was tired, I went home.', 'I was tired, so I went home.'], 'Không cần dùng cả because và so trong mẫu này.', { flexible: true }),
-      produce('Viết 2 câu nối ý: một câu với because, một câu với so.', 'I study English because I need it for school.\nI was tired, so I went to bed.', ['Có 2 câu', 'Có because và so'], { minLines: 2, minWords: 10 }),
+      produce('Viết 2 câu nối ý: một câu với because, một câu với so.', 'I study English because I need it for school.\nI was tired, so I went to bed.', ['Có 2 câu', 'Có because và so'], { minLines: 2, minWords: 10, requirements: [{ id:'lines', type:'minLines', value:2, labelVi:'Có ít nhất 2 câu' }, { id:'connectors', type:'containsAll', values:['because','so'], labelVi:'Có cả because và so (ở hai cấu trúc phù hợp)' }] }),
       review([['because giới thiệu gì?', 'Lý do'], ['so giới thiệu gì?', 'Kết quả'], ['Because..., so... cùng lúc?', 'Tránh trong cấu trúc cơ bản tiếng Anh chuẩn.']]),
     ],
   }),
   lesson({
-    id: 'f22-parts-of-speech-map', unit: 12, order: 22, titleEn: 'The Parts-of-Speech Map', titleVi: 'Bản đồ từ loại', minutes: 15,
+    id: 'f22-parts-of-speech-map', unit: 12, order: 22, titleEn: '9 Core Word Jobs', titleVi: '9 nhóm từ cốt lõi', minutes: 15,
     focus: ['concept map', 'grammar'], standards: ['CCSS L.3.1a', 'WIDA language features'],
     objectiveVi: 'Kết nối noun, pronoun, verb, adjective, adverb, article/determiner, preposition, conjunction, quantifier trong một ví dụ chung.',
     steps: [
       content('discover', 'Một quả táo, nhiều “công việc”', 'Thay vì học 9 định nghĩa rời rạc, ta xoay quanh một đối tượng: apple.', { examples: ['apple', 'an apple', 'a red apple', 'eat an apple', 'eat quickly', 'six apples', 'in the box', 'it is red', 'an apple and a banana'] }),
-      content('visualize', 'Concept map: APPLE ở giữa', 'Mỗi nhánh thêm một loại từ và mở rộng ý nghĩa.', { conceptMap: [
-        { label: 'Noun', example: 'apple' }, { label: 'Article', example: 'an apple' }, { label: 'Adjective', example: 'red apple' }, { label: 'Verb', example: 'eat' }, { label: 'Adverb', example: 'quickly' }, { label: 'Pronoun', example: 'it' }, { label: 'Preposition', example: 'in the box' }, { label: 'Conjunction', example: 'and' }, { label: 'Quantifier', example: 'six apples' },
+      content('visualize', 'Một apple, chín công việc của từ', 'Apple là vật liệu học ở trung tâm; Bunny đứng bên cạnh để hướng dẫn. Mỗi nhánh cho thấy một nhóm từ thay đổi hoặc mở rộng ý nghĩa.', { conceptMap: [
+        { label: 'Noun', labelVi: 'Danh từ', example: 'apple' }, { label: 'Article', labelVi: 'Mạo từ', example: 'an apple' }, { label: 'Adjective', labelVi: 'Tính từ', example: 'a red apple' }, { label: 'Quantifier', labelVi: 'Từ chỉ lượng', example: 'six apples' }, { label: 'Pronoun', labelVi: 'Đại từ', example: 'it' }, { label: 'Verb', labelVi: 'Động từ', example: 'eat an apple' }, { label: 'Adverb', labelVi: 'Trạng từ', example: 'eat quickly' }, { label: 'Preposition', labelVi: 'Giới từ', example: 'in the box' }, { label: 'Conjunction', labelVi: 'Liên từ', example: 'an apple and a banana' },
       ] }),
       identify('Chọn adjective trong cụm.', ['a', 'red', 'apple'], [1], 'red mô tả apple.'),
       identify('Chọn verb trong câu.', ['They', 'eat', 'apples', 'quickly', '.'], [1], 'eat nói hành động.'),
@@ -395,7 +386,7 @@ export const foundationLessons = [
       choice('Phủ định đúng: “They are busy.”', ['They do not busy.', 'They are not busy.', 'They does not busy.', 'They not are busy.'], 'They are not busy.', 'Có be → be + not.'),
       choice('Phủ định đúng: “He works here.”', ['He not works here.', 'He does not works here.', 'He does not work here.', 'He is not work here.'], 'He does not work here.', 'Normal verb + he → does not + base verb.'),
       fix('Sửa lỗi.', 'She does not likes coffee.', ['She does not like coffee.', "She doesn't like coffee."], 'Sau does/doesn’t dùng base verb “like”.', { flexible: true }),
-      produce('Viết 2 câu khẳng định rồi phủ định chúng: một câu với be, một câu với normal verb.', 'I am tired. → I am not tired.\nHe likes tea. → He does not like tea.', ['Có be-negative', 'Có do/does-negative'], { minLines: 2, minWords: 10 }),
+      produce('Viết 2 câu khẳng định rồi phủ định chúng: một câu với be, một câu với normal verb.', 'I am tired. → I am not tired.\nHe likes tea. → He does not like tea.', ['Có be-negative', 'Có do/does-negative'], { minLines: 2, minWords: 10, requirements: [{ id:'be_neg', type:'containsBeNegative', count:1, labelVi:'Có một câu phủ định với be' }, { id:'do_neg', type:'containsDoNegative', count:1, labelVi:'Có một câu phủ định với do/does' }] }),
       review([['be negative?', 'be + not'], ['normal verb negative present?', 'do/does + not + base verb'], ['does not likes đúng không?', 'Không. does not like.']]),
     ],
   }),
@@ -406,10 +397,10 @@ export const foundationLessons = [
     steps: [
       content('visualize', 'BE moves · DO appears', 'She is ready. → Is she ready? | You like coffee. → Do you like coffee? | He likes coffee. → Does he like coffee?'),
       content('understand', 'Question = thay đổi “khung”, không chỉ thêm dấu ?', 'Word order là một phần của grammar. Với normal verb, English cần do/does đứng trước subject.'),
-      order('Sắp xếp câu hỏi.', ['you', 'Do', 'English', 'study', '?'], 'Do you study English ?', 'Do + subject + base verb + object.'),
-      order('Sắp xếp câu hỏi.', ['she', 'Is', 'ready', '?'], 'Is she ready ?', 'Với be, đưa be lên trước subject.'),
+      order('Sắp xếp câu hỏi.', ['you', 'Do', 'English', 'study', '?'], 'Do you study English?', 'Do + subject + base verb + object + ?. ', { punctuationRequired: true }),
+      order('Sắp xếp câu hỏi.', ['she', 'Is', 'ready', '?'], 'Is she ready?', 'Với be, đưa be lên trước subject và giữ dấu ?.', { punctuationRequired: true }),
       fix('Sửa lỗi.', 'Does he likes pizza?', ['Does he like pizza?'], 'Sau does dùng base verb “like”.'),
-      produce('Viết 3 Yes/No questions: 1 với be, 1 với do, 1 với does.', 'Are you ready?\nDo you work here?\nDoes she study English?', ['Có 3 câu hỏi', 'Có be/do/does'], { minLines: 3, minWords: 9 }),
+      produce('Viết 3 Yes/No questions: 1 với be, 1 với do, 1 với does.', 'Are you ready?\nDo you work here?\nDoes she study English?', ['Có 3 câu hỏi', 'Có be/do/does'], { minLines: 3, minWords: 9, requirements: [{ id:'questions', type:'containsQuestion', count:3, labelVi:'Có ít nhất 3 câu hỏi' }, { id:'frames', type:'containsAll', values:['be-question','do-question','does-question'], labelVi:'Có câu hỏi với be, do và does' }] }),
       review([['Question với be?', 'Be + subject + ...?'], ['Question với normal verb?', 'Do/Does + subject + base verb...?'], ['Does he likes?', 'Sai → Does he like?']]),
     ],
   }),
@@ -450,7 +441,18 @@ export const foundationLessons = [
       content('understand', 'Yêu cầu 10 câu', 'Hãy viết: 2 câu với be, 3 câu Present Simple, 1 câu phủ định, 1 câu hỏi, 1 câu có adjective, 1 câu có preposition, 1 câu nối bằng because/so. Một câu có thể đáp ứng nhiều yêu cầu.', { chips: ['be ×2', 'Present Simple ×3', 'negative ×1', 'question ×1', 'adjective ×1', 'preposition ×1', 'because/so ×1'] }),
       choice('Câu nào có lỗi?', ['I am a student.', 'She is kind.', 'He work every day.', 'We live here.'], 'He work every day.', 'he → works.'),
       fix('Sửa lỗi.', 'Because I like English, so I study every day.', ['Because I like English, I study every day.', 'I like English, so I study every day.'], 'Chọn because hoặc so trong cấu trúc cơ bản này.', { flexible: true }),
-      produce('Viết 10 câu về bản thân. Mỗi câu trên một dòng. Sau khi viết, tự đọc lại subject, verb, article, -s/-es và dấu câu.', 'I am Minh.\nI am a student.\nI live in Washington.\nI study English every day.\nI like coffee.\nI do not work on Sunday.\nDo I need more practice?\nI have a small car.\nMy phone is on the desk.\nI study English because I want to write better.', ['Có đúng 10 dòng câu hoặc nhiều hơn', 'Có ít nhất 2 câu với be', 'Có ít nhất 3 câu Present Simple', 'Có một negative', 'Có một question', 'Có một adjective', 'Có một preposition', 'Có because hoặc so', 'Mỗi dòng bắt đầu bằng chữ hoa và kết thúc bằng dấu câu'], { minLines: 10, minWords: 35, masteryProject: true, validators: [{ type: 'minSentenceLines', value: 10 }, { type: 'beSentenceCount', value: 2 }, { type: 'presentSimpleLike', value: 3 }, { type: 'negativeCount', value: 1 }, { type: 'minQuestions', value: 1 }, { type: 'adjectiveLike', min: 1 }, { type: 'containsAny', values: ['in','on','at','under','over','with','for','from','next to','between'] }, { type: 'containsAny', values: ['because','so'] }, { type: 'eachLineCapitalizedAndPunctuated', minWords: 2 }] }),
+      produce('Viết 10 câu về bản thân. Mỗi câu trên một dòng. Sau khi viết, tự đọc lại subject, verb, article, -s/-es và dấu câu.', 'I am Minh.\nI am a student.\nI live in Washington.\nI study English every day.\nI like coffee.\nI do not work on Sunday.\nDo I need more practice?\nI have a small car.\nMy phone is on the desk.\nI study English because I want to write better.', ['Có đúng 10 dòng câu hoặc nhiều hơn', 'Có ít nhất 2 câu với be', 'Có một negative', 'Có một question', 'Có because hoặc so'], { minLines: 10, minWords: 35, masteryProject: true, requirements: [
+        { id:'min_lines', type:'minLines', value:10, labelVi:'Có ít nhất 10 câu/dòng' },
+        { id:'min_words', type:'minWords', value:35, labelVi:'Có đủ nội dung để tạo 10 câu có ý nghĩa (ít nhất 35 từ)' },
+        { id:'be_sentences', type:'containsPattern', pattern:'be', count:2, labelVi:'Có ít nhất 2 câu với am/is/are' },
+        { id:'present_simple', type:'selfCheck', labelVi:'Có ít nhất 3 câu Present Simple về thói quen/sự thật' },
+        { id:'negative', type:'containsNegative', count:1, labelVi:'Có ít nhất một câu phủ định' },
+        { id:'question', type:'containsQuestion', count:1, labelVi:'Có ít nhất một câu hỏi' },
+        { id:'adjective', type:'selfCheck', labelVi:'Có ít nhất một câu dùng adjective để mô tả noun' },
+        { id:'preposition', type:'containsPreposition', count:1, labelVi:'Có ít nhất một preposition cơ bản' },
+        { id:'connector', type:'containsAny', values:['because','so'], count:1, labelVi:'Có because hoặc so' },
+        { id:'self_review', type:'selfCheck', labelVi:'Tôi đã tự kiểm tra subject, verb, article, -s/-es và dấu câu' },
+      ] }),
       review([['Foundation không chỉ kiểm tra gì?', 'Không chỉ recognition/multiple choice'], ['Bước tự sửa quan trọng?', 'Kiểm tra subject, verb, article, agreement, punctuation'], ['Bước tiếp theo sau Foundation?', 'Sentence Foundation sâu hơn rồi paragraph/writing.']]),
     ],
   }),

@@ -1,19 +1,18 @@
 import { foundationLessons, validateFoundationCurriculum } from '../src/data/foundationCurriculum.js'
-import { evaluateProduction } from '../src/lib/productionValidation.js'
+import { evaluateProduction, getRequirements } from '../src/lib/productionValidator.js'
 
 const errors = validateFoundationCurriculum()
 
 for (const lesson of foundationLessons) {
   lesson.steps.forEach((step, index) => {
     if (step.type !== 'production') return
-    const initial = evaluateProduction(step.placeholder || '', step, {})
-    const manual = {}
-    initial.checks.forEach((check, checkIndex) => {
-      if (check.manual) manual[checkIndex] = true
-    })
-    const result = evaluateProduction(step.placeholder || '', step, manual)
+    const requirements = getRequirements(step)
+    // An honest learner would confirm every self-check the placeholder genuinely satisfies.
+    const manualChecks = {}
+    requirements.forEach(r => { if (r.type === 'selfCheck') manualChecks[r.id] = true })
+    const result = evaluateProduction(step, step.placeholder || '', manualChecks)
     if (!result.passed) {
-      const failed = result.checks.filter(check => !check.passed).map(check => check.label).join(', ')
+      const failed = result.requirements.filter(r => !r.passed).map(r => `${r.id} (${r.type})`).join(', ')
       errors.push(`${lesson.id} step ${index + 1}: production placeholder fails: ${failed}`)
     }
   })
