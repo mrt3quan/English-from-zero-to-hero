@@ -1,8 +1,8 @@
-# Bunny English v1.6 — Teacher-Led Lesson Model
+# Bunny English v1.7 — Teacher-Led Lesson Model
 
 ## Goal
 
-Foundation should feel like a patient teacher is guiding a learner, not like a digital grammar handout.
+A0 should feel like a patient teacher is guiding a learner, not like a digital grammar handout.
 
 The teacher flow is now:
 
@@ -17,7 +17,7 @@ The teacher flow is now:
 
 ## Teacher presence
 
-Every Foundation lesson has a lesson-specific guide in `src/data/teacherGuides.js`:
+Every A0 lesson has a lesson-specific guide in `src/data/teacherGuides.js`:
 
 - `welcome` — how Bunny opens the lesson
 - `why` — why the skill is useful

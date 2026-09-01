@@ -80,7 +80,10 @@ function countThirdPersonS(value) {
 export function evaluateRequirement(requirement, value, manualChecks = {}) {
   const lines = splitSentences(value)
   const words = tokenize(value)
-  const raw = String(value ?? '').trim()
+  // Phone keyboards (and our own curriculum text) produce the typographic
+  // apostrophe "’", while requirement values are written with "'". Fold them
+  // together so "can’t" and "can't" satisfy the same requirement.
+  const raw = String(value ?? '').trim().replace(/[‘’]/g, "'")
   const lower = raw.toLowerCase()
   const count = requirement.count || 1
   let passed = false

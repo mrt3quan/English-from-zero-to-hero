@@ -33,6 +33,17 @@ export const foundationUnits = [
   { id: 18, titleEn: 'Everyday Present', titleVi: 'Hiện tại hằng ngày', descriptionVi: 'Nói thói quen, sự thật, have/has và điều ổn định.' },
   { id: 19, titleEn: 'Sentence Expansion', titleVi: 'Mở rộng câu', descriptionVi: 'Thêm chi tiết mà vẫn giữ cấu trúc rõ ràng.' },
   { id: 20, titleEn: 'Foundation Mastery', titleVi: 'Dự án tổng kết', descriptionVi: 'Viết 10 câu đúng về chính bạn.' },
+  { id: 21, titleEn: 'Greetings', titleVi: 'Chào hỏi & giới thiệu', descriptionVi: 'Chào, nói tên và phản hồi trong một cuộc gặp rất ngắn.' },
+  { id: 22, titleEn: 'Numbers & Age', titleVi: 'Số & tuổi', descriptionVi: 'Hiểu số cơ bản và nói tuổi/thông tin đơn giản.' },
+  { id: 23, titleEn: 'Possessives', titleVi: 'my / your / his / her', descriptionVi: 'Nói đồ vật hoặc người thuộc về ai.' },
+  { id: 24, titleEn: 'Pointing Words', titleVi: 'this / that / these / those', descriptionVi: 'Chỉ một hay nhiều vật ở gần hoặc xa.' },
+  { id: 25, titleEn: 'WH Questions', titleVi: 'What / Who / Where', descriptionVi: 'Hỏi về vật, người và nơi chốn.' },
+  { id: 26, titleEn: 'There is / are', titleVi: 'Có gì ở đây?', descriptionVi: 'Mô tả một hay nhiều thứ tồn tại ở một nơi.' },
+  { id: 27, titleEn: 'Can / Can’t', titleVi: 'Khả năng', descriptionVi: 'Nói điều mình hoặc người khác có thể/không thể làm.' },
+  { id: 28, titleEn: 'Requests & Instructions', titleVi: 'Yêu cầu & chỉ dẫn', descriptionVi: 'Hiểu và dùng những câu đơn giản như Please sit down.' },
+  { id: 29, titleEn: 'Days & Time', titleVi: 'Ngày & giờ cơ bản', descriptionVi: 'Nói ngày, hôm nay/ngày mai và giờ đơn giản.' },
+  { id: 30, titleEn: 'Short Conversation', titleVi: 'Hội thoại ngắn', descriptionVi: 'Nghe/đọc một cuộc hội thoại A0 và lấy thông tin chính.' },
+  { id: 31, titleEn: 'A0 Big Review', titleVi: 'Ôn lớn A0', descriptionVi: 'Kết nối những khả năng quan trọng trước bài kiểm tra A0.' },
 ]
 
 const rawFoundationLessons = [
@@ -449,21 +460,159 @@ const rawFoundationLessons = [
     ],
   }),
 
+
   lesson({
-    id: 'f30-foundation-mastery', unit: 20, order: 30, titleEn: 'Foundation Mastery Project', titleVi: 'Dự án: 10 câu về bản thân', minutes: 22,
+    id: 'f32-hello-introduce-yourself', unit: 21, order: 32, titleEn: 'Hello! Introduce Yourself', titleVi: 'Chào và giới thiệu bản thân', minutes: 12,
+    focus: ['speaking','listening','conversation'], objectiveVi: 'Chào một người, nói tên của mình và đáp lại một lời chào cơ bản.',
+    steps: [
+      content('discover','Một cuộc gặp rất ngắn','Nghe/đọc: “Hi! I’m Mai.” — “Hi, Mai. I’m Tom.” Không cần biết mọi quy tắc; trước tiên chỉ cần hiểu hai người đang chào và nói tên.',{examples:['Hi! I’m Mai.','Hello. My name is Tom.']}),
+      content('notice','Bạn thấy hai cách nói tên','“I’m Mai.” và “My name is Mai.” đều giúp người nghe biết tên. I’m = I am.',{examples:['I’m Mai.','My name is Mai.']}),
+      content('understand','Mẫu giao tiếp đầu tiên','Khi mới gặp: chào → nói tên → đáp lại. Hãy coi đây là một “khung hội thoại” để dùng ngay, không phải một bảng ngữ pháp.',{callout:'Hi/Hello → I’m… / My name is… → Nice to meet you.'}),
+      choice('Bạn muốn nói “Tên tôi là Lan.” Câu nào phù hợp?', ['My name is Lan.','I name Lan.','Me Lan name.','Lan is my.'], 'My name is Lan.', '“My name is Lan.” là mẫu tự nhiên để nói tên.'),
+      order('Xây câu chào.', ['Hello,','I’m','Minh','.'], 'Hello, I’m Minh .', 'Chào trước, rồi giới thiệu tên.'),
+      produce('Viết 2 dòng như một cuộc gặp: dòng 1 chào; dòng 2 nói tên của bạn.', 'Hello!\nI’m Minh.', ['Có lời chào','Có tên'], {minLines:2,minWords:3,requirements:[{id:'hello',type:'containsAny',values:['hi','hello'],count:1,labelVi:'Có Hi hoặc Hello'},{id:'name',type:'containsAny',values:["i'm",'i am','my name is'],count:1,labelVi:'Có cách nói tên'}]}),
+      review([['Hai lời chào cơ bản?','Hi / Hello'],['Hai cách nói tên?','I’m… / My name is…'],['Mục tiêu quan trọng nhất?','Có thể dùng mẫu trong một cuộc gặp thật.']]),
+    ],
+  }),
+  lesson({
+    id: 'f33-numbers-age-info', unit: 22, order: 33, titleEn: 'Numbers, Age & Basic Information', titleVi: 'Số, tuổi & thông tin cơ bản', minutes: 13,
+    focus: ['numbers','listening','speaking'], objectiveVi: 'Hiểu các số cơ bản và nói tuổi bằng cấu trúc “I am … years old.”',
+    steps: [
+      content('discover','Số xuất hiện trong giao tiếp','Nghe những câu như “I am twenty years old.” hoặc “Room 12.” Số không chỉ để làm toán — chúng cho biết tuổi, giờ, số phòng, số điện thoại.',{examples:['I am twenty years old.','Room 12.','It is 7 o’clock.']}),
+      content('understand','Tuổi dùng be','Tiếng Anh nói “I am 20 years old.” Không nói “I have 20 years” theo kiểu một số ngôn ngữ khác.',{callout:'I am + number + years old.'}),
+      choice('Câu nào nói “Tôi 25 tuổi”?', ['I have 25 years.','I am 25 years old.','I 25 old.','My age have 25.'], 'I am 25 years old.', 'Tuổi dùng be: I am … years old.'),
+      fill('Điền số.', 'I am ___ years old.', '30', 'Câu hoàn chỉnh: I am 30 years old.', {accepted:['30','thirty']}),
+      produce('Viết tuổi của bạn. Nếu không muốn dùng tuổi thật, chọn một số bất kỳ để luyện.', 'I am 30 years old.', ['Có am','Có years old'], {minWords:5,requirements:[{id:'be',type:'containsAny',values:['am'],count:1,labelVi:'Có am'},{id:'old',type:'containsAny',values:['years old'],count:1,labelVi:'Có years old'}]}),
+      review([['Tuổi dùng have hay be?','be'],['Khung cơ bản?','I am + number + years old.'],['Số dùng ở đâu ngoài tuổi?','Giờ, phòng, điện thoại, số lượng…']]),
+    ],
+  }),
+  lesson({
+    id: 'f34-possessive-adjectives', unit: 23, order: 34, titleEn: 'My, Your, His, Her', titleVi: 'Nói “của ai”', minutes: 14,
+    focus: ['possessives','family','noun phrases'], objectiveVi: 'Dùng my/your/his/her trước danh từ để nói một người/vật thuộc về ai.',
+    steps: [
+      content('discover','Tên đồ vật + người sở hữu','So sánh: “my book”, “your phone”, “his car”, “her bag”. Từ đầu tiên giúp người nghe biết “của ai”.',{examples:['my book','your phone','his car','her bag']}),
+      content('compare','Khác trật tự tiếng Việt','Tiếng Việt thường nói “sách của tôi”. Tiếng Anh đặt từ sở hữu trước danh từ: “my book”.',{examples:['sách của tôi → my book','điện thoại của cô ấy → her phone']}),
+      choice('“quyển sách của tôi” là gì?', ['book my','my book','I book','me book'], 'my book', 'my đứng trước noun.'),
+      choice('Lan có một chiếc túi. Chọn cụm đúng để nói “túi của cô ấy”.', ['his bag','her bag','your bag','my bag'], 'her bag', 'Lan → she → her bag.'),
+      produce('Viết 3 cụm: một thứ của bạn, một thứ của một người nam, một thứ của một người nữ.', 'my phone\nhis car\nher book', ['Có 3 dòng','Có my/his/her'], {minLines:3,minWords:6,requirements:[{id:'my',type:'containsAny',values:['my'],count:1,labelVi:'Có my'},{id:'his_her',type:'containsAny',values:['his','her'],count:1,labelVi:'Có his hoặc her'}]}),
+      review([['my đứng ở đâu?','Trước danh từ'],['he → từ sở hữu?','his'],['she → từ sở hữu?','her']]),
+    ],
+  }),
+  lesson({
+    id: 'f35-this-that-these-those', unit: 24, order: 35, titleEn: 'This, That, These, Those', titleVi: 'Chỉ vật gần và xa', minutes: 14,
+    focus: ['demonstratives','singular_plural'], objectiveVi: 'Chọn this/that cho một vật và these/those cho nhiều vật, đồng thời phân biệt gần/xa.',
+    steps: [
+      content('discover','Một hay nhiều? Gần hay xa?','Hãy hình dung Bunny đang chỉ đồ vật. this = một vật gần; that = một vật xa; these = nhiều vật gần; those = nhiều vật xa.',{examples:['this book','that house','these shoes','those cars']}),
+      content('visualize','Hai câu hỏi trước khi chọn','1) Một hay nhiều? 2) Gần hay xa? Trả lời hai câu này trước, rồi mới chọn từ.',{chips:['1 + near → this','1 + far → that','many + near → these','many + far → those']}),
+      choice('Nhiều chiếc giày ở gần: ___ shoes', ['this','that','these','those'], 'these', 'many + near → these.'),
+      choice('Một ngôi nhà ở xa: ___ house', ['this','that','these','those'], 'that', 'one + far → that.'),
+      produce('Viết 4 cụm, mỗi cụm dùng một từ: this, that, these, those.', 'this book\nthat house\nthese shoes\nthose cars', ['Có 4 dòng'], {minLines:4,minWords:8,requirements:[{id:'all',type:'selfCheck',labelVi:'Tôi đã dùng đủ this / that / these / those'}]}),
+      review([['this?','một vật gần'],['those?','nhiều vật xa'],['Trước khi chọn, hỏi gì?','Một/nhiều và gần/xa.']]),
+    ],
+  }),
+  lesson({
+    id: 'f36-wh-what-who-where', unit: 25, order: 36, titleEn: 'What? Who? Where?', titleVi: 'Hỏi về vật, người và nơi', minutes: 15,
+    focus: ['questions','wh_words'], objectiveVi: 'Dùng What, Who và Where để hỏi loại thông tin mình thật sự cần.',
+    steps: [
+      content('discover','Câu hỏi bắt đầu bằng điều bạn muốn biết','What hỏi “cái gì”; Who hỏi “ai”; Where hỏi “ở đâu”. Đừng học ba từ rời rạc — hãy nghĩ về loại thông tin bạn đang thiếu.',{examples:['What is this?','Who is she?','Where is the book?']}),
+      content('understand','Từ hỏi + khung câu','Với be, bạn có thể dùng: What/Who/Where + is/are + …? Hãy nghe ý nghĩa trước rồi mới chú ý thứ tự.',{callout:'Where + is + the book?'}),
+      choice('Bạn muốn hỏi “Cuốn sách ở đâu?”', ['What is the book?','Who is the book?','Where is the book?','Where the book is?'], 'Where is the book?', 'Hỏi nơi chốn → Where.'),
+      order('Xây câu hỏi.', ['Who','is','she','?'], 'Who is she ?', 'Who hỏi người; với be, is đứng trước subject.' , {punctuationRequired:true}),
+      produce('Viết 3 câu hỏi: một câu What, một câu Who, một câu Where.', 'What is this?\nWho is he?\nWhere is my phone?', ['Có 3 câu hỏi'], {minLines:3,minWords:8,requirements:[{id:'what',type:'containsAny',values:['what'],count:1,labelVi:'Có What'},{id:'who',type:'containsAny',values:['who'],count:1,labelVi:'Có Who'},{id:'where',type:'containsAny',values:['where'],count:1,labelVi:'Có Where'},{id:'q',type:'containsQuestion',count:3,labelVi:'Có 3 câu hỏi'}]}),
+      review([['What hỏi?','cái gì/thông tin gì'],['Who hỏi?','ai'],['Where hỏi?','ở đâu']]),
+    ],
+  }),
+  lesson({
+    id: 'f37-there-is-are', unit: 26, order: 37, titleEn: 'There Is / There Are', titleVi: 'Nói “có” ở một nơi', minutes: 15,
+    focus: ['there_is_are','singular_plural','places'], objectiveVi: 'Dùng there is cho một thứ và there are cho nhiều thứ khi mô tả một nơi.',
+    steps: [
+      content('discover','Nhìn vào một căn phòng','“There is a chair.” = có một chiếc ghế. “There are two books.” = có hai cuốn sách. Mẫu này giới thiệu thứ đang tồn tại ở một nơi.',{examples:['There is a chair in the room.','There are two books on the table.']}),
+      content('notice','Một hay nhiều quyết định is/are','one → there is; plural/many → there are.',{chips:['one → There is','many → There are']}),
+      choice('Chọn câu đúng.', ['There is two books.','There are two books.','There two books are.','There have two books.'], 'There are two books.', 'two books là plural → are.'),
+      fill('Điền is/are.', 'There ___ a cat under the chair.', 'is', 'a cat = một → There is.'),
+      produce('Mô tả phòng bạn hoặc một căn phòng tưởng tượng bằng 3 câu there is/there are.', 'There is a desk.\nThere are two chairs.\nThere is a book on the desk.', ['Có 3 câu'], {minLines:3,minWords:12,requirements:[{id:'there',type:'containsAny',values:['there is','there are'],count:2,labelVi:'Có there is / there are'}]}),
+      review([['Một vật?','There is'],['Nhiều vật?','There are'],['Mẫu này dùng để làm gì?','Giới thiệu/mô tả thứ tồn tại ở một nơi.']]),
+    ],
+  }),
+  lesson({
+    id: 'f38-can-cant', unit: 27, order: 38, titleEn: 'Can / Can’t', titleVi: 'Nói khả năng', minutes: 14,
+    focus: ['modals','ability','speaking'], objectiveVi: 'Dùng can/can’t + động từ gốc để nói điều mình hoặc người khác có thể/không thể làm.',
+    steps: [
+      content('discover','Một từ nhỏ thay đổi ý nghĩa','“I swim.” nói hành động. “I can swim.” nói khả năng. “I can’t swim.” nói không có khả năng.',{examples:['I can swim.','She can drive.','He can’t cook.']}),
+      content('understand','Sau can dùng động từ gốc','can + swim, can + drive. Không thêm to và không thêm -s sau can.',{callout:'She can swim. ✓ · She can swims. ✗ · She can to swim. ✗'}),
+      choice('Câu nào đúng?', ['He can drives.','He can drive.','He can to drive.','He cans drive.'], 'He can drive.', 'Sau can dùng verb gốc.'),
+      choice('Câu nào nghĩa là “Tôi không thể bơi”?', ['I do not can swim.','I can’t swim.','I am not swim.','I no can swim.'], 'I can’t swim.', 'can’t = cannot.'),
+      produce('Viết 3 câu: 2 điều bạn có thể làm và 1 điều bạn không thể làm.', 'I can cook.\nI can drive.\nI can’t sing.', ['Có 3 câu'], {minLines:3,minWords:8,requirements:[{id:'can',type:'containsPattern',pattern:'\\bcan\\b',count:2,labelVi:'Có ít nhất 2 câu can'},{id:'cant',type:'containsAny',values:["can't",'cannot'],count:1,labelVi:'Có một câu can’t/cannot'}]}),
+      review([['Sau can dùng dạng nào?','verb gốc'],['can’t nghĩa là?','cannot / không thể'],['Có thêm -s sau can không?','Không.']]),
+    ],
+  }),
+  lesson({
+    id: 'f39-simple-requests-instructions', unit: 28, order: 39, titleEn: 'Simple Requests & Instructions', titleVi: 'Yêu cầu & chỉ dẫn đơn giản', minutes: 14,
+    focus: ['imperatives','survival_english','listening'], objectiveVi: 'Hiểu và dùng một số câu chỉ dẫn/yêu cầu cơ bản bắt đầu bằng động từ.',
+    steps: [
+      content('discover','Đôi khi tiếng Anh bắt đầu thẳng bằng hành động','“Sit down.” “Open the book.” “Please wait.” Đây là những câu chỉ dẫn/yêu cầu; subject thường không cần nói ra.',{examples:['Please sit down.','Open the book.','Please wait here.']}),
+      content('understand','Động từ đứng đầu','Trong một instruction đơn giản, bắt đầu bằng verb gốc. Thêm please để lịch sự hơn.',{callout:'Please + verb…'}),
+      choice('Câu nào là một yêu cầu lịch sự?', ['Please open the door.','You opening door.','Door please opens.','Please to open door.'], 'Please open the door.', 'Please + verb gốc.'),
+      choice('Bạn nghe “Please wait here.” Bạn nên làm gì?', ['đi ngay','chờ ở đây','mở cửa','ngồi xuống'], 'chờ ở đây', 'wait here = chờ ở đây.'),
+      produce('Viết 3 yêu cầu/chỉ dẫn đơn giản mà bạn có thể nghe ở lớp học hoặc nơi công cộng.', 'Please sit down.\nOpen the book.\nPlease wait here.', ['Có 3 dòng'], {minLines:3,minWords:7,requirements:[{id:'please',type:'containsAny',values:['please'],count:1,labelVi:'Có ít nhất một câu với please'}]}),
+      review([['Instruction cơ bản bắt đầu bằng gì?','verb gốc'],['Thêm gì để lịch sự?','please'],['Subject “you” có bắt buộc không?','Thường không trong imperative.']]),
+    ],
+  }),
+  lesson({
+    id: 'f40-days-basic-time', unit: 29, order: 40, titleEn: 'Days & Basic Time', titleVi: 'Ngày và giờ cơ bản', minutes: 15,
+    focus: ['time','days','listening'], objectiveVi: 'Hiểu today/tomorrow, các ngày trong tuần và nói một giờ đơn giản.',
+    steps: [
+      content('discover','Thời gian giúp câu có bối cảnh','“I study on Monday.” “It is 7 o’clock.” “I work tomorrow.” Những từ thời gian nói khi nào điều gì xảy ra.',{examples:['I study on Monday.','It is 7 o’clock.','I work tomorrow.']}),
+      content('understand','Ngày trong tuần dùng on','Foundation chỉ cần một khung quan trọng: on + Monday/Tuesday…; còn giờ cơ bản dùng at + time.',{callout:'on Monday · at 7 o’clock'}),
+      choice('Cụm nào đúng?', ['in Monday','on Monday','at Monday','Monday on'], 'on Monday', 'Ngày trong tuần dùng on.'),
+      choice('“at 7 o’clock” nói về gì?', ['nơi chốn','giờ','người','số nhiều'], 'giờ', 'at + giờ cụ thể.'),
+      produce('Viết 3 câu về lịch đơn giản của bạn. Dùng một ngày và một giờ.', 'I study on Monday.\nI work at 8 o’clock.\nI rest on Sunday.', ['Có 3 câu'], {minLines:3,minWords:10,requirements:[{id:'on',type:'containsAny',values:['on monday','on tuesday','on wednesday','on thursday','on friday','on saturday','on sunday'],count:1,labelVi:'Có on + ngày'},{id:'at',type:'selfCheck',labelVi:'Tôi đã dùng at + giờ cụ thể'}]}),
+      review([['Ngày trong tuần thường dùng giới từ?','on'],['Giờ cụ thể thường dùng?','at'],['today / tomorrow nói gì?','thời điểm hiện tại / ngày kế tiếp.']]),
+    ],
+  }),
+  lesson({
+    id: 'f41-short-conversation', unit: 30, order: 41, titleEn: 'Understand a Short Conversation', titleVi: 'Hiểu một cuộc hội thoại ngắn', minutes: 18,
+    focus: ['listening','reading','conversation'], objectiveVi: 'Nghe/đọc một hội thoại A0 và lấy được tên, nơi ở, hoạt động và thông tin đơn giản.',
+    steps: [
+      content('discover','Đừng cố dịch từng từ','Hội thoại: “Hi, I’m Anna.” — “Hello, I’m Minh. Where do you live?” — “I live in Seattle. I study English.” Hãy tìm thông tin chính trước.',{examples:['Hi, I’m Anna.','Where do you live?','I live in Seattle.','I study English.']}),
+      content('understand','Nghe theo mục tiêu','Khi nghe, hãy hỏi: Ai? Ở đâu? Làm gì? Không cần bắt được 100% từng từ mới hiểu được ý chính.',{callout:'Who? → Where? → What does the person do?'}),
+      choice('Anna/Minh hỏi loại thông tin nào bằng “Where do you live?”', ['tên','nơi sống','tuổi','khả năng'], 'nơi sống', 'Where hỏi nơi chốn.'),
+      choice('“I study English.” cho biết điều gì?', ['nơi ở','hoạt động','tuổi','số lượng'], 'hoạt động', 'study English = hoạt động.'),
+      produce('Viết một hội thoại 4 dòng giữa bạn và Bunny: chào, nói tên, hỏi nơi sống, trả lời.', 'Bunny: Hello!\nYou: Hi, I’m Minh.\nBunny: Where do you live?\nYou: I live in Bellingham.', ['Có 4 dòng'], {minLines:4,minWords:10,requirements:[{id:'hello',type:'containsAny',values:['hi','hello'],count:1,labelVi:'Có lời chào'},{id:'where',type:'containsAny',values:['where'],count:1,labelVi:'Có câu hỏi Where'},{id:'live',type:'containsAny',values:['live'],count:1,labelVi:'Có câu trả lời về nơi sống'}]}),
+      review([['Khi nghe hội thoại A0, có cần dịch từng từ không?','Không'],['Ba câu hỏi lấy ý chính?','Ai? Ở đâu? Làm gì?'],['Where do you live? hỏi gì?','Nơi sống.']]),
+    ],
+  }),
+  lesson({
+    id: 'f42-a0-big-review', unit: 31, order: 42, titleEn: 'A0 Big Review', titleVi: 'Ôn lớn trước kiểm tra A0', minutes: 22,
+    focus: ['review','integration','mastery'], objectiveVi: 'Kết nối các cấu trúc A0 thành khả năng giao tiếp nhỏ: giới thiệu, hỏi/đáp, mô tả, nói routine và hiểu đoạn ngắn.', mastery:{minAccuracy:.7,requiresProduction:true},
+    steps: [
+      content('discover','A0 không phải 42 quy tắc rời rạc','Bunny muốn bạn nhìn thấy 5 khả năng: giới thiệu mình, mô tả người/vật, nói routine, hỏi thông tin, và hiểu một đoạn tiếng Anh ngắn.',{chips:['Introduce yourself','Describe','Routine','Ask','Understand']}),
+      content('understand','Ôn bằng việc sử dụng','Thay vì đọc lại toàn bộ lý thuyết, hãy trả lời các tình huống nhỏ. Nếu một phần còn yếu, Bunny sẽ đưa nó trở lại Practice.'),
+      choice('Chọn câu đúng.', ['She can swims.','She can swim.','She cans swim.','She can to swim.'], 'She can swim.', 'Sau can dùng verb gốc.'),
+      choice('Chọn câu đúng.', ['There is two chairs.','There are two chairs.','There two chairs.','There have two chairs.'], 'There are two chairs.', 'two chairs → are.'),
+      fix('Sửa câu.', 'Where you live?', ['Where do you live?'], 'Với normal verb live, câu hỏi cần do.'),
+      choice('Chọn câu đúng.', ['This are my book.','These is my books.','This is my book.','This my book is.'], 'This is my book.', 'one + near → this; be với singular → is.'),
+      produce('Viết 6–8 câu như một mini profile: tên/tuổi (có thể giả), nơi ở, một thứ bạn có, một điều bạn có thể làm, routine và một câu phủ định.', 'I’m Minh.\nI am 30 years old.\nI live in Washington.\nI have a small car.\nI can cook.\nI study English every day.\nI do not work on Sunday.', ['Có ít nhất 6 câu'], {minLines:6,minWords:25,requirements:[{id:'be',type:'containsPattern',pattern:'be',count:1,labelVi:'Có am/is/are'},{id:'have',type:'containsAny',values:['have','has'],count:1,labelVi:'Có have/has'},{id:'can',type:'containsAny',values:['can'],count:1,labelVi:'Có can'},{id:'negative',type:'containsNegative',count:1,labelVi:'Có câu phủ định'}]}),
+      review([['A0 nên chứng minh điều gì?','Có thể hiểu và tự tạo tiếng Anh rất cơ bản.'],['Nếu sai một cấu trúc?','Đưa vào review và học lại đúng chỗ.'],['Sau bài này?','Dự án viết A0 rồi bài kiểm tra cuối A0.']]),
+    ],
+  }),
+
+  lesson({
+    id: 'f30-foundation-mastery', unit: 20, order: 30, titleEn: 'A0 Mastery Project', titleVi: 'Dự án A0: 10 câu về bản thân', minutes: 22,
     focus: ['writing', 'mastery'], standards: ['CCSS L.1.1', 'CCSS W.1.2', 'WIDA ELD-SI.K-3.Inform'],
     objectiveVi: 'Chứng minh nền tảng bằng cách tự tạo 10 câu có cấu trúc đúng, thay vì chỉ nhận diện đáp án.', mastery: { minAccuracy: 0.7, requiresProduction: true },
     steps: [
-      content('discover', 'Mastery = tạo được ngôn ngữ', 'Bạn không “qua Foundation” chỉ vì chọn đúng nhiều câu trắc nghiệm. Bài cuối yêu cầu bạn tự viết.'),
-      content('understand', 'Yêu cầu 10 câu', 'Hãy viết: 2 câu với be, 3 câu Present Simple, ít nhất 1 câu với have/has, 1 câu phủ định, 1 câu hỏi, 1 câu có adjective, 1 câu có preposition, 1 câu nối bằng because/so. Một câu có thể đáp ứng nhiều yêu cầu.', { chips: ['be ×2', 'Present Simple ×3', 'have/has ×1', 'negative ×1', 'question ×1', 'adjective ×1', 'preposition ×1', 'because/so ×1'] }),
+      content('discover', 'Mastery = tự tạo được tiếng Anh', 'Bạn không “qua A0” chỉ vì chọn đúng nhiều câu trắc nghiệm. Dự án này yêu cầu bạn tự tạo tiếng Anh trước khi làm bài kiểm tra cuối A0.'),
+      content('understand', 'Yêu cầu 10 câu', 'Hãy viết: 2 câu với be, 3 câu Present Simple, ít nhất 1 câu với have/has, 1 câu với can/can’t, 1 câu phủ định, 1 câu hỏi, 1 câu có adjective, 1 câu có preposition, 1 câu nối bằng because/so. Một câu có thể đáp ứng nhiều yêu cầu.', { chips: ['be ×2', 'Present Simple ×3', 'have/has ×1', 'can/can’t ×1', 'negative ×1', 'question ×1', 'adjective ×1', 'preposition ×1', 'because/so ×1'] }),
       choice('Câu nào có lỗi?', ['I am a student.', 'She is kind.', 'He work every day.', 'We live here.'], 'He work every day.', 'he → works.'),
       fix('Sửa lỗi.', 'Because I like English, so I study every day.', ['Because I like English, I study every day.', 'I like English, so I study every day.'], 'Chọn because hoặc so trong cấu trúc cơ bản này.', { flexible: true }),
-      produce('Viết 10 câu về bản thân. Mỗi câu trên một dòng. Sau khi viết, tự đọc lại subject, verb, article, -s/-es và dấu câu.', 'I am Minh.\nI am a student.\nI live in Washington.\nI study English every day.\nI like coffee.\nI do not work on Sunday.\nDo I need more practice?\nI have a small car.\nMy phone is on the desk.\nI study English because I want to write better.', ['Có đúng 10 dòng câu hoặc nhiều hơn', 'Có ít nhất 2 câu với be', 'Có một negative', 'Có một question', 'Có because hoặc so'], { minLines: 10, minWords: 35, masteryProject: true, requirements: [
+      produce('Viết 10 câu về bản thân. Mỗi câu trên một dòng. Sau khi viết, tự đọc lại subject, verb, article, -s/-es và dấu câu.', 'I am Minh.\nI am a student.\nI live in Washington.\nI study English every day.\nI like coffee.\nI can cook simple food.\nI do not work on Sunday.\nDo I need more practice?\nI have a small car.\nMy phone is on the desk.\nI study English because I want to write better.', ['Có đúng 10 dòng câu hoặc nhiều hơn', 'Có ít nhất 2 câu với be', 'Có một negative', 'Có một question', 'Có because hoặc so'], { minLines: 10, minWords: 35, masteryProject: true, requirements: [
         { id:'min_lines', type:'minLines', value:10, labelVi:'Có ít nhất 10 câu/dòng' },
         { id:'min_words', type:'minWords', value:35, labelVi:'Có đủ nội dung để tạo 10 câu có ý nghĩa (ít nhất 35 từ)' },
         { id:'be_sentences', type:'containsPattern', pattern:'be', count:2, labelVi:'Có ít nhất 2 câu với am/is/are' },
         { id:'present_simple', type:'selfCheck', labelVi:'Có ít nhất 3 câu Present Simple về thói quen/sự thật' },
         { id:'have_has', type:'containsAny', values:['have','has'], count:1, labelVi:'Có ít nhất một câu với have hoặc has' },
+        { id:'can', type:'containsAny', values:['can',"can't",'cannot'], count:1, labelVi:'Có ít nhất một câu với can/can’t' },
         { id:'negative', type:'containsNegative', count:1, labelVi:'Có ít nhất một câu phủ định' },
         { id:'question', type:'containsQuestion', count:1, labelVi:'Có ít nhất một câu hỏi' },
         { id:'adjective', type:'selfCheck', labelVi:'Có ít nhất một câu dùng adjective để mô tả noun' },
@@ -471,7 +620,7 @@ const rawFoundationLessons = [
         { id:'connector', type:'containsAny', values:['because','so'], count:1, labelVi:'Có because hoặc so' },
         { id:'self_review', type:'selfCheck', labelVi:'Tôi đã tự kiểm tra subject, verb, article, -s/-es và dấu câu' },
       ] }),
-      review([['Foundation không chỉ kiểm tra gì?', 'Không chỉ recognition/multiple choice'], ['Bước tự sửa quan trọng?', 'Kiểm tra subject, verb, article, agreement, punctuation'], ['Bước tiếp theo sau Foundation?', 'Sentence Foundation sâu hơn rồi paragraph/writing.']]),
+      review([['A0 không chỉ kiểm tra gì?', 'Không chỉ recognition/multiple choice'], ['Bước tự sửa quan trọng?', 'Kiểm tra subject, verb, article, agreement, punctuation'], ['Bước tiếp theo sau A0?', 'A1 Everyday English, rồi A2 và các level cao hơn.']]),
     ],
   }),
 ]
@@ -491,6 +640,10 @@ export const FOUNDATION_PATH_IDS = [
   'f23-sv-pattern','f24-svo-pattern','f25-svc-pattern','f21-conjunctions','f29-sentence-expansion',
   // See the System
   'f22-parts-of-speech-map','f17-the-and-zero',
+  // Everyday Starter Communication
+  'f32-hello-introduce-yourself','f33-numbers-age-info','f34-possessive-adjectives','f35-this-that-these-those','f36-wh-what-who-where','f37-there-is-are','f38-can-cant','f39-simple-requests-instructions','f40-days-basic-time',
+  // Understand & Integrate
+  'f41-short-conversation','f42-a0-big-review',
   // Use Your English
   'f30-foundation-mastery',
 ]
@@ -502,7 +655,9 @@ export const foundationChapters = [
   { id: 3, emoji: '🚶', titleEn: 'Everyday Life', titleVi: 'Nói về cuộc sống hằng ngày', outcomeVi: 'Tôi có thể nói routine, điều mình có, câu phủ định và câu hỏi Yes/No.', lessonIds: ['f14-action-verbs','f28-present-simple-meaning','f15-third-person-s','f19-adverbs','f31-have-has','f26-negatives','f27-questions'] },
   { id: 4, emoji: '🧩', titleEn: 'Build Better Sentences', titleVi: 'Xây câu tốt hơn', outcomeVi: 'Tôi có thể nhìn các hình dạng câu, nối ý và thêm chi tiết mà không phá cấu trúc.', lessonIds: ['f23-sv-pattern','f24-svo-pattern','f25-svc-pattern','f21-conjunctions','f29-sentence-expansion'] },
   { id: 5, emoji: '🗺️', titleEn: 'See the System', titleVi: 'Nhìn thấy cả hệ thống', outcomeVi: 'Tôi có thể nối các nhóm từ thành một bản đồ và hiểu the ở mức Foundation.', lessonIds: ['f22-parts-of-speech-map','f17-the-and-zero'] },
-  { id: 6, emoji: '🏆', titleEn: 'Use Your English', titleVi: 'Dùng tiếng Anh của bạn', outcomeVi: 'Tôi có thể tự viết 10 câu về bản thân và tự kiểm tra nền tảng.', lessonIds: ['f30-foundation-mastery'] },
+  { id: 6, emoji: '💬', titleEn: 'Starter Communication', titleVi: 'Giao tiếp A0 thực tế', outcomeVi: 'Tôi có thể chào hỏi, nói tuổi/sở hữu, hỏi thông tin, mô tả nơi chốn, khả năng và lịch đơn giản.', lessonIds: ['f32-hello-introduce-yourself','f33-numbers-age-info','f34-possessive-adjectives','f35-this-that-these-those','f36-wh-what-who-where','f37-there-is-are','f38-can-cant','f39-simple-requests-instructions','f40-days-basic-time'] },
+  { id: 7, emoji: '🎧', titleEn: 'Understand Short English', titleVi: 'Hiểu tiếng Anh ngắn', outcomeVi: 'Tôi có thể lấy ý chính từ hội thoại ngắn và kết nối các cấu trúc A0.', lessonIds: ['f41-short-conversation','f42-a0-big-review'] },
+  { id: 8, emoji: '🏆', titleEn: 'Use Your English', titleVi: 'Dùng tiếng Anh của bạn', outcomeVi: 'Tôi có thể tự viết 10 câu về bản thân và chuẩn bị cho bài kiểm tra A0.', lessonIds: ['f30-foundation-mastery'] },
 ]
 
 const cycleConfigs = {
@@ -605,6 +760,52 @@ const cycleConfigs = {
     notice: ['I have a book.', 'The book is new.', 'Books are useful.'], noticeVi: 'a giới thiệu một thứ; the trỏ lại thứ đã xác định; plural không article có thể nói về cả nhóm nói chung.',
     target: 'The book is new.', build: { tokens:['The book','is','new','.'], answer:'The book is new .' },
   },
+
+  'f32-hello-introduce-yourself': {
+    notice:['Hi! I’m Mai.','Hello. My name is Tom.'], noticeVi:'Hai câu khác nhau nhưng cùng mục đích: chào và cho người nghe biết tên.',
+    target:'Hello. My name is Tom.', dictation:'My name is Tom.', build:{tokens:['My name','is','Tom','.'],answer:'My name is Tom .'},
+  },
+  'f33-numbers-age-info': {
+    notice:['I am twenty years old.','It is 7 o’clock.'], noticeVi:'Số mang thông tin cụ thể: tuổi hoặc thời gian.',
+    target:'I am twenty years old.', dictation:'I am twenty years old.', build:{tokens:['I','am','twenty years old','.'],answer:'I am twenty years old .'},
+  },
+  'f34-possessive-adjectives': {
+    notice:['my book','your phone','his car','her bag'], noticeVi:'Từ đầu tiên thay đổi để cho biết “của ai”, nhưng noun chính vẫn giữ nguyên.',
+    target:'This is my book.', build:{tokens:['This','is','my book','.'],answer:'This is my book .'},
+  },
+  'f35-this-that-these-those': {
+    notice:['this book','that house','these shoes','those cars'], noticeVi:'Bạn luôn giải hai câu hỏi: một/nhiều và gần/xa.',
+    target:'These are my shoes.', build:{tokens:['These','are','my shoes','.'],answer:'These are my shoes .'},
+  },
+  'f36-wh-what-who-where': {
+    notice:['What is this?','Who is she?','Where is the book?'], noticeVi:'Từ hỏi thay đổi theo loại thông tin bạn muốn nhận.',
+    target:'Where is my phone?', dictation:'Where is my phone?', build:{tokens:['Where','is','my phone','?'],answer:'Where is my phone ?',punctuationRequired:true},
+  },
+  'f37-there-is-are': {
+    notice:['There is a chair.','There are two chairs.'], noticeVi:'Số lượng quyết định is hay are.',
+    target:'There are two books on the table.', build:{tokens:['There are','two books','on the table','.'],answer:'There are two books on the table .'},
+  },
+  'f38-can-cant': {
+    notice:['I can swim.','She can drive.','He can’t cook.'], noticeVi:'can/can’t đứng trước verb gốc để nói khả năng.',
+    target:'I can swim.', dictation:'I can swim.', build:{tokens:['I','can','swim','.'],answer:'I can swim .'},
+  },
+  'f39-simple-requests-instructions': {
+    notice:['Please sit down.','Open the book.','Please wait here.'], noticeVi:'Instruction thường bắt đầu thẳng bằng verb gốc; please làm câu lịch sự hơn.',
+    target:'Please open the book.', dictation:'Please open the book.', build:{tokens:['Please','open','the book','.'],answer:'Please open the book .'},
+  },
+  'f40-days-basic-time': {
+    notice:['on Monday','at 7 o’clock'], noticeVi:'Ngày và giờ dùng những preposition khác nhau trong các mẫu cơ bản.',
+    target:'I study on Monday.', build:{tokens:['I','study','on Monday','.'],answer:'I study on Monday .'},
+  },
+  'f41-short-conversation': {
+    notice:['Where do you live?','I live in Seattle.'], noticeVi:'Một câu hỏi nhắm vào nơi chốn; câu trả lời giữ lại động từ live và thêm địa điểm.',
+    target:'Where do you live?', dictation:'Where do you live?', build:{tokens:['Where','do','you','live','?'],answer:'Where do you live ?',punctuationRequired:true},
+  },
+  'f42-a0-big-review': {
+    notice:['I’m Anna.','I live in Seattle.','I can swim.','I study every day.'], noticeVi:'A0 là khả năng kết hợp nhiều mẫu nhỏ để nói những điều thật về một người.',
+    target:'I study English every day.', dictation:'I study English every day.',
+  },
+
   'f30-foundation-mastery': {
     target: 'I study English every day.',
   },

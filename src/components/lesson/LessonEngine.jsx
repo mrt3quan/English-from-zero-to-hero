@@ -8,6 +8,7 @@ import { ReviewQueueService } from '../../lib/reviewQueueService'
 import { inferErrorTags, inferSkillIds } from '../../lib/skillTaxonomy'
 import { EngagementService } from '../../lib/engagementService'
 import { getTeacherGuide } from '../../data/teacherGuides'
+import { SoundEffectsService } from '../../lib/soundEffectsService'
 
 export default function LessonEngine({ lesson, onClose, onComplete }) {
   const saved = useMemo(() => getLessonProgress(lesson.id), [lesson.id])
@@ -151,6 +152,7 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
     markLessonComplete(lesson.id, accuracy)
     EngagementService.recordLessonComplete(lesson.id, { firstCompletion })
     setRewardedXp(firstCompletion ? 20 : 0)
+    SoundEffectsService.lessonComplete()
     setCelebrating(true)
   }
 
