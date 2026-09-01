@@ -7,9 +7,11 @@ import { AttemptRepository } from '../../lib/attemptRepository'
 import { ReviewQueueService } from '../../lib/reviewQueueService'
 import { inferErrorTags, inferSkillIds } from '../../lib/skillTaxonomy'
 import { EngagementService } from '../../lib/engagementService'
+import { getTeacherGuide } from '../../data/teacherGuides'
 
 export default function LessonEngine({ lesson, onClose, onComplete }) {
   const saved = useMemo(() => getLessonProgress(lesson.id), [lesson.id])
+  const teacherGuide = useMemo(() => getTeacherGuide(lesson.id), [lesson.id])
   const resumeIndex = saved?.status === 'in_progress' ? Math.min(saved?.lastStep || 0, lesson.steps.length - 1) : 0
   const [index, setIndex] = useState(resumeIndex)
   const [stepStates, setStepStates] = useState(saved?.status === 'in_progress' ? (saved?.stepStates || {}) : {})
@@ -189,10 +191,10 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
 
         <div className="grid lg:grid-cols-[270px_1fr]">
           <aside className="lesson-sidebar hidden border-r p-5 lg:block">
-            <div className="rounded-3xl border border-blue-100 bg-blue-50/70 p-4">
-              <div className="flex items-center gap-3">
-                <Mascot size={62} mood="encouraging" />
-                <div><p className="text-xs font-black uppercase tracking-wider text-blue-700">Mục tiêu</p><p className="mt-1 text-xs font-semibold leading-5 text-slate-600">{lesson.objectiveVi}</p></div>
+            <div className="teacher-sidebar-card rounded-3xl border p-4">
+              <div className="flex items-start gap-3">
+                <Mascot size={68} mood="explaining" />
+                <div className="min-w-0"><p className="text-[10px] font-extrabold uppercase tracking-[.14em] text-primary">Bunny · Giáo viên</p><p className="mt-1 text-sm font-bold leading-5 text-strong">{teacherGuide.checkpoint}</p><p className="mt-2 text-[11px] font-medium leading-5 text-muted">{lesson.objectiveVi}</p></div>
               </div>
             </div>
             <div className="mt-5 space-y-1.5">
@@ -220,13 +222,13 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
                 </div>
               )}
 
-              <div className="lesson-focus-note mb-4 flex items-center gap-3 rounded-2xl px-3 py-2.5 lg:hidden">
-                <Mascot size={42} mood={step.type === 'exercise' ? 'thinking' : step.type === 'production' ? 'encouraging' : 'explaining'} withBook={false} />
-                <div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-primary">{stepLabel(step)}</p><p className="truncate text-xs font-medium text-muted">{lesson.objectiveVi}</p></div>
+              <div className="lesson-focus-note mb-4 rounded-2xl px-3 py-2.5 lg:hidden">
+                <p className="text-[10px] font-bold uppercase tracking-[.12em] text-primary">Mục tiêu bài học · {stepLabel(step)}</p>
+                <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-muted">{lesson.objectiveVi}</p>
               </div>
 
               <div className="lesson-canvas min-h-[440px] rounded-[28px] p-5 sm:p-8">
-                <div key={`${lesson.id}-${index}`} className="step-enter"><StepRenderer step={step} stepState={state} onStepStateChange={updateStepState} onExerciseResult={handleExerciseResult} onReviewRating={handleReviewRating} /></div>
+                <div key={`${lesson.id}-${index}`} className="step-enter"><StepRenderer lesson={lesson} step={step} stepIndex={index} stepState={state} onStepStateChange={updateStepState} onExerciseResult={handleExerciseResult} onReviewRating={handleReviewRating} /></div>
               </div>
 
               <div className="lesson-action-bar mt-5 flex items-center justify-between gap-3">
@@ -253,7 +255,7 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
 }
 
 function isStepComplete(step, state) {
-  if (step.type === 'content') return true
+  if (step.type === 'content') return needsContentReveal(step) ? !!state.teacherRevealed : true
   if (step.type === 'exercise') return !!state.attempted
   if (step.type === 'listen') return !!state.completed
   if (step.type === 'speak') return !!state.completed
@@ -262,7 +264,14 @@ function isStepComplete(step, state) {
   return true
 }
 
+function needsContentReveal(step) {
+  if (step.type !== 'content') return false
+  const hasPreview = !!(step.examples?.length || step.chips?.length || step.tokenRoles?.length)
+  return step.guidedReveal ?? ((step.kind === 'discover' || step.kind === 'notice') && hasPreview)
+}
+
 function getBlockMessage(step) {
+  if (step.type === 'content' && needsContentReveal(step)) return 'Hãy nhìn ví dụ, tự đoán một chút, rồi chạm “nghe Bunny giải thích” trước khi tiếp tục.'
   if (step.type === 'exercise') return 'Kiểm tra câu trả lời trước khi tiếp tục. Sai vẫn có thể đi tiếp — mục tiêu là thử và học từ phản hồi.'
   if (step.type === 'listen') return 'Hãy nghe ít nhất một lần trước khi tiếp tục.'
   if (step.type === 'speak') return 'Hãy thử nói câu thành tiếng. Nếu trình duyệt không hỗ trợ microphone, bạn có thể tự xác nhận đã luyện nói.'

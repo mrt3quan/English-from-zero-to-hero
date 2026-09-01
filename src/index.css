@@ -424,3 +424,33 @@ html[data-theme="dark"] .writing-save { background:#c98d2b; }
 .writing-saved { background:var(--surface-muted); border:1px solid var(--border-soft); }
 .icon-quiet { display:grid; width:40px; height:40px; place-items:center; border-radius:12px; color:var(--text-subtle); }
 .icon-quiet:hover { background:var(--surface-elevated); color:var(--error); }
+
+/* Teacher-led lesson layer */
+.teacher-guide {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary-soft) 72%, var(--surface-elevated)), var(--surface-elevated));
+  border-color: var(--primary-border);
+  box-shadow: 0 1px 0 rgba(16,24,40,.02), 0 8px 22px color-mix(in srgb, var(--primary) 7%, transparent);
+}
+.teacher-avatar { background: color-mix(in srgb, var(--surface-elevated) 80%, transparent); border: 1px solid var(--border-soft); }
+.teacher-badge { background: var(--surface-elevated); border: 1px solid var(--primary-border); color: var(--primary); }
+.teacher-why { background: color-mix(in srgb, var(--surface-elevated) 62%, transparent); border: 1px solid color-mix(in srgb, var(--primary-border) 70%, transparent); }
+.teacher-sidebar-card { background: linear-gradient(180deg, color-mix(in srgb, var(--primary-soft) 78%, var(--surface-elevated)), var(--surface-elevated)); border-color: var(--primary-border); }
+.teacher-pause { background: color-mix(in srgb, var(--warning-soft) 58%, var(--surface-elevated)); border-color: var(--warning-border); }
+.teacher-feedback { box-shadow: 0 8px 20px rgba(16,24,40,.04); }
+.teacher-led-step .content-scene > h2,
+.teacher-led-step > div > h2 { max-width: 52rem; }
+.teacher-led-step .scene-cue { color: var(--text-secondary); }
+
+html[data-theme="dark"] .teacher-guide {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary-soft) 78%, var(--surface-elevated)), var(--surface-elevated));
+  box-shadow: 0 10px 26px rgba(0,0,0,.16);
+}
+html[data-theme="dark"] .teacher-why,
+html[data-theme="dark"] .teacher-avatar,
+html[data-theme="dark"] .teacher-badge { background: color-mix(in srgb, var(--surface-elevated) 86%, transparent); }
+
+@media (max-width: 640px) {
+  .teacher-guide { border-radius: 20px; padding: 12px; }
+  .teacher-guide .teacher-why { display: none; }
+  .teacher-led-step .content-scene > h2 { font-size: 1.55rem; line-height: 1.2; }
+}

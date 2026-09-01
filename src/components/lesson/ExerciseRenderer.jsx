@@ -2,11 +2,19 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Check, RotateCcw, X, Volume2, Gauge } from 'lucide-react'
 import { normalizeCase, validateTextAnswer, validateWordOrder } from '../../lib/textValidation'
 import { AudioService } from '../../lib/audioService'
+import Mascot from '../Mascot'
 
 function Feedback({ correct, text }) {
   if (correct == null) return null
-  return <div aria-live="polite" className={`mt-5 rounded-2xl border p-4 text-sm leading-6 ${correct ? 'success-pop border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-amber-200 bg-amber-50 text-amber-950'}`}>
-    <div className="flex gap-2"><span className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full ${correct ? 'bg-emerald-500 text-white' : 'bg-amber-400 text-white'}`}>{correct ? <Check className="h-4 w-4"/> : <X className="h-4 w-4"/>}</span><div><strong>{correct ? 'Đúng rồi.' : 'Chưa đúng.'}</strong> {text}</div></div>
+  return <div aria-live="polite" className={`teacher-feedback mt-5 rounded-2xl border p-3.5 text-sm leading-6 ${correct ? 'success-pop border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-amber-200 bg-amber-50 text-amber-950'}`}>
+    <div className="flex items-start gap-3">
+      <Mascot size={48} mood={correct?'proud':'tryAgain'} withBook={false}/>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2"><span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full ${correct ? 'bg-emerald-500 text-white' : 'bg-amber-400 text-white'}`}>{correct ? <Check className="h-4 w-4"/> : <X className="h-4 w-4"/>}</span><strong>{correct ? 'Đúng rồi — Bunny chốt lại:' : 'Chưa đúng — Bunny chỉ chỗ cần nhìn:'}</strong></div>
+        <p className="mt-1.5 font-medium">{text}</p>
+        {!correct&&<p className="mt-1.5 text-xs font-semibold opacity-80">Không sao. Hãy đọc lại câu hỏi, tìm đúng phần đang được kiểm tra rồi thử lại.</p>}
+      </div>
+    </div>
   </div>
 }
 
