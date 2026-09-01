@@ -15,12 +15,15 @@ import {
   Sparkles,
   Star,
   Target,
+  Volume2,
+  VolumeX,
   X,
 } from 'lucide-react'
 import Mascot from './components/Mascot'
 import FoundationMap from './components/FoundationMap'
 import PracticePage from './components/PracticePage'
 import WritingPage from './components/WritingPage'
+import LevelAssessment from './components/LevelAssessment'
 import LessonEngine from './components/lesson/LessonEngine'
 import { ThemeCycleButton, ThemeSegmentedControl } from './components/ThemeProvider'
 import { foundationLessons, validateFoundationCurriculum } from './data/foundationCurriculum'
@@ -28,6 +31,8 @@ import { getAllProgress, isLessonPassed, resetFoundationProgress } from './lib/l
 import { getWeakSkills } from './lib/skillMasteryService'
 import { ReviewQueueService } from './lib/reviewQueueService'
 import { EngagementService } from './lib/engagementService'
+import { SoundEffectsService } from './lib/soundEffectsService'
+import { AssessmentRepository } from './lib/assessmentRepository'
 
 const desktopNav = [
   { id: 'home', label: 'Trang chủ', short: 'Home', icon: Home },
@@ -46,6 +51,7 @@ export default function App() {
   const [progress, setProgress] = useState(() => getAllProgress())
   const [dataTick, setDataTick] = useState(0)
   const [quickCheckSignal, setQuickCheckSignal] = useState(0)
+  const [assessmentOpen, setAssessmentOpen] = useState(false)
 
   useEffect(() => {
     const refreshProgress = () => setProgress(getAllProgress())
@@ -54,11 +60,13 @@ export default function App() {
     window.addEventListener('bunny-attempt-updated', refreshData)
     window.addEventListener('bunny-review-updated', refreshData)
     window.addEventListener('bunny-engagement-updated', refreshData)
+    window.addEventListener('bunny-assessment-updated', refreshData)
     return () => {
       window.removeEventListener('bunny-progress-updated', refreshProgress)
       window.removeEventListener('bunny-attempt-updated', refreshData)
       window.removeEventListener('bunny-review-updated', refreshData)
       window.removeEventListener('bunny-engagement-updated', refreshData)
+      window.removeEventListener('bunny-assessment-updated', refreshData)
     }
   }, [])
 
@@ -90,7 +98,7 @@ export default function App() {
             dataTick={dataTick}
           />
         )}
-        {active === 'learn' && <FoundationMap onOpenLesson={openLesson} quickCheckSignal={quickCheckSignal} />}
+        {active === 'learn' && <FoundationMap onOpenLesson={openLesson} quickCheckSignal={quickCheckSignal} onStartAssessment={() => setAssessmentOpen(true)} />}
         {active === 'practice' && <PracticePage onOpenLesson={openLesson} onOpenWriting={() => setActive('write')} />}
         {active === 'write' && <WritingPage onOpenLesson={openLesson} />}
         {active === 'profile' && (
@@ -98,13 +106,14 @@ export default function App() {
             completed={completed}
             dataTick={dataTick}
             onReset={() => {
-              if (confirm('Reset all Foundation progress, attempts, review, and motivation data?')) resetFoundationProgress()
+              if (confirm('Reset all A0 progress, attempts, review, and motivation data?')) resetFoundationProgress()
             }}
           />
         )}
       </main>
 
       <BottomNav active={active} setActive={setActive} />
+      {assessmentOpen && <LevelAssessment onClose={() => setAssessmentOpen(false)} />}
       {lesson && (
         <LessonEngine
           lesson={lesson}
@@ -144,7 +153,7 @@ function Sidebar({ active, setActive, completed }) {
         <div className="flex items-center gap-3">
           <Mascot size={54} mood="encouraging" />
           <div>
-            <p className="text-xs font-semibold text-muted">Foundation</p>
+            <p className="text-xs font-semibold text-muted">A0 · Starter</p>
             <p className="mt-0.5 text-xl font-extrabold text-strong">{completed}/{total}</p>
           </div>
         </div>
@@ -248,7 +257,7 @@ function HomePage({ completed, progress, current, onContinue, onLearn, onPractic
         <div className="welcome-bunny grid h-16 w-16 shrink-0 place-items-center rounded-[22px]"><Mascot size={64} mood="happy" withBook={false} /></div>
         <div className="min-w-0">
           <p className="text-sm font-semibold text-muted">{greeting} 👋</p>
-          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-strong sm:text-3xl">Hôm nay học một bước thôi.</h1>
+          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-strong sm:text-3xl">Mỗi ngày một bước rõ ràng.</h1>
           <p className="mt-1 hidden text-sm font-medium text-muted sm:block">Bunny sẽ đưa bạn đến đúng hoạt động tiếp theo.</p>
         </div>
       </section>
@@ -299,7 +308,7 @@ function HomePage({ completed, progress, current, onContinue, onLearn, onPractic
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs font-bold uppercase tracking-[.13em] text-primary">Lộ trình</p>
-              <h3 className="mt-1 text-xl font-bold text-strong">Foundation {completed}/{total}</h3>
+              <h3 className="mt-1 text-xl font-bold text-strong">A0 Starter {completed}/{total}</h3>
               <p className="mt-1 text-sm font-medium leading-5 text-muted">{percent}% hoàn thành · xem hành trình tiếp theo.</p>
             </div>
             <div className="action-orb"><BookOpen className="h-5 w-5" /></div>
@@ -330,16 +339,42 @@ function Momentum({ icon: Icon, value, label, tone }) {
   )
 }
 
+
+function SoundSettings() {
+  const [settings, setSettings] = useState(() => SoundEffectsService.getSettings())
+  useEffect(() => {
+    const refresh = () => setSettings(SoundEffectsService.getSettings())
+    window.addEventListener('bunny-sound-settings-updated', refresh)
+    return () => window.removeEventListener('bunny-sound-settings-updated', refresh)
+  }, [])
+  const toggle = () => SoundEffectsService.setEnabled(!settings.enabled)
+  const volume = value => { SoundEffectsService.setVolume(value); setTimeout(() => SoundEffectsService.correct(), 30) }
+  return (
+    <div className="surface-card rounded-[28px] p-5">
+      <div className="flex items-center gap-2">{settings.enabled ? <Volume2 className="h-5 w-5 text-primary"/> : <VolumeX className="h-5 w-5 text-muted"/>}<h2 className="text-xl font-bold text-strong">Âm thanh phản hồi</h2></div>
+      <p className="mt-2 text-sm font-medium leading-6 text-muted">Âm đúng/sai ngắn giúp bài học có nhịp và vui hơn. Âm sai được giữ nhẹ để không biến lỗi thành hình phạt.</p>
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <button onClick={toggle} className={`pressable min-h-11 rounded-2xl border px-4 text-sm font-bold ${settings.enabled ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white text-slate-600'}`}>{settings.enabled ? 'Đang bật' : 'Đang tắt'}</button>
+        <div className="grid flex-1 grid-cols-3 gap-2 sm:max-w-sm" aria-label="Âm lượng">
+          {[['low','Nhỏ'],['medium','Vừa'],['high','Lớn']].map(([value,label]) => <button key={value} disabled={!settings.enabled} onClick={() => volume(value)} className={`pressable min-h-11 rounded-xl border text-xs font-bold ${settings.volume === value ? 'border-blue-400 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white text-slate-600'} disabled:opacity-40`}>{label}</button>)}
+        </div>
+        <button disabled={!settings.enabled} onClick={() => SoundEffectsService.preview('correct')} className="pressable min-h-11 rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-xs font-bold text-emerald-700 disabled:opacity-40">Nghe thử ✓</button>
+      </div>
+    </div>
+  )
+}
+
 function Profile({ completed, onReset, dataTick }) {
   const total = foundationLessons.length
   const weak = useMemo(() => getWeakSkills(5), [dataTick])
   const engagement = useMemo(() => EngagementService.summary(), [dataTick, completed])
+  const latestA0 = useMemo(() => AssessmentRepository.latest('A0'), [dataTick])
   return (
     <div className="space-y-5 page-enter">
       <div className="surface-card rounded-[30px] p-6 sm:p-7">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
           <div className="mascot-tile grid h-24 w-24 place-items-center rounded-[28px]"><Mascot size={88} mood="proud" /></div>
-          <div><p className="eyebrow primary-eyebrow">Foundation learner</p><h1 className="mt-1 text-3xl font-extrabold text-strong">Tiến độ của bạn</h1><p className="mt-2 text-sm text-muted">{completed}/{total} bài đã hoàn thành hoặc test out · {engagement.xp} XP · {engagement.streak} ngày streak.</p></div>
+          <div><p className="eyebrow primary-eyebrow">A0 Starter learner</p><h1 className="mt-1 text-3xl font-extrabold text-strong">Tiến độ của bạn</h1><p className="mt-2 text-sm text-muted">{completed}/{total} bài đã hoàn thành hoặc test out · {engagement.xp} XP · {engagement.streak} ngày streak.</p></div>
         </div>
       </div>
 
@@ -347,6 +382,13 @@ function Profile({ completed, onReset, dataTick }) {
         <div className="flex items-center gap-2"><Palette className="h-5 w-5 text-primary" /><h2 className="text-xl font-bold text-strong">Giao diện</h2></div>
         <p className="mt-2 text-sm font-medium leading-6 text-muted">Chọn giao diện dễ chịu cho mắt. “Theo thiết bị” tự chuyển theo cài đặt hệ thống.</p>
         <div className="mt-4 max-w-xl"><ThemeSegmentedControl /></div>
+      </div>
+
+      <SoundSettings />
+
+      <div className="surface-card rounded-[28px] p-5">
+        <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.13em] text-primary">Level test</p><h2 className="mt-1 text-xl font-bold text-strong">Kết quả A0 gần nhất</h2></div>{latestA0&&<span className={`rounded-full px-3 py-1.5 text-sm font-extrabold ${latestA0.passed?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700'}`}>{latestA0.overall}%</span>}</div>
+        {latestA0 ? <p className="mt-2 text-sm font-medium leading-6 text-muted">{latestA0.passed ? 'Đã đạt A0 · sẵn sàng cho A1 khi level tiếp theo mở.' : 'Chưa đạt A0. Kết quả bên dưới cho biết phần nào nên ôn trước.'}</p> : <p className="mt-2 text-sm font-medium leading-6 text-muted">Chưa có kết quả. Bạn có thể mở Học → Kiểm tra trình độ A0.</p>}
       </div>
 
       <div className="surface-card rounded-[28px] p-5">

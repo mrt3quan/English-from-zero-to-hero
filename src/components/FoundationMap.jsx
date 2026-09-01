@@ -1,23 +1,28 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Check, ChevronDown, ChevronRight, Clock3, LockKeyhole, Map, Sparkles, X } from 'lucide-react'
+import { Check, ChevronDown, ChevronRight, Clock3, GraduationCap, LockKeyhole, Map, Sparkles, X } from 'lucide-react'
 import { foundationLessons, foundationUnits, foundationChapters, getChapterLessons } from '../data/foundationCurriculum'
 import { getAllProgress, isLessonPassed, markLessonsTestedOut } from '../lib/learningProgress'
 import Mascot from './Mascot'
+import { AssessmentRepository } from '../lib/assessmentRepository'
+import { levelRoadmap } from '../data/levelRoadmap'
 
 const chapters = foundationChapters
 
 const unitById = Object.fromEntries(foundationUnits.map(unit => [unit.id, unit]))
 
-export default function FoundationMap({ onOpenLesson, quickCheckSignal = 0 }) {
+export default function FoundationMap({ onOpenLesson, quickCheckSignal = 0, onStartAssessment }) {
   const [progress, setProgress] = useState(() => getAllProgress())
   const [quickCheck, setQuickCheck] = useState(false)
+  const [latestAssessment, setLatestAssessment] = useState(() => AssessmentRepository.latest('A0'))
 
   useEffect(() => { if (quickCheckSignal) setQuickCheck(true) }, [quickCheckSignal])
 
   useEffect(() => {
     const refresh = () => setProgress(getAllProgress())
+    const refreshAssessment = () => setLatestAssessment(AssessmentRepository.latest('A0'))
     window.addEventListener('bunny-progress-updated', refresh)
-    return () => window.removeEventListener('bunny-progress-updated', refresh)
+    window.addEventListener('bunny-assessment-updated', refreshAssessment)
+    return () => { window.removeEventListener('bunny-progress-updated', refresh); window.removeEventListener('bunny-assessment-updated', refreshAssessment) }
   }, [])
 
   const completed = foundationLessons.filter(lesson => isLessonPassed(progress[lesson.id])).length
@@ -44,14 +49,17 @@ export default function FoundationMap({ onOpenLesson, quickCheckSignal = 0 }) {
         <div className="flex items-center gap-4">
           <div className="journey-map-icon hidden h-14 w-14 shrink-0 place-items-center rounded-2xl sm:grid"><Map className="h-6 w-6" /></div>
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2"><span className="eyebrow primary-eyebrow">Foundation</span><span className="journey-status">{completed}/{foundationLessons.length}</span></div>
+            <div className="flex flex-wrap items-center gap-2"><span className="eyebrow primary-eyebrow">A0 · Starter</span><span className="journey-status">{completed}/{foundationLessons.length}</span></div>
             <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-strong sm:text-3xl">Mỗi chặng mở thêm một khả năng tiếng Anh.</h1>
             <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-muted">Chặng hiện tại: <strong className="text-strong">{currentChapter.titleVi}</strong>. Học theo khả năng bạn có thể làm, không phải danh sách thuật ngữ grammar.</p>
           </div>
-          <div className="hidden text-right md:block"><p className="text-3xl font-extrabold text-primary">{percent}%</p><p className="text-xs font-medium text-muted">Foundation</p></div>
+          <div className="hidden text-right md:block"><p className="text-3xl font-extrabold text-primary">{percent}%</p><p className="text-xs font-medium text-muted">A0</p></div>
         </div>
         <div className="progress-track mt-4 h-2.5 rounded-full"><div className="progress-motion progress-primary h-full rounded-full" style={{ width: `${percent}%` }} /></div>
-        <button onClick={() => setQuickCheck(true)} className="text-link mt-3 inline-flex min-h-10 items-center gap-2 text-xs font-bold">Đã biết alphabet và cách đọc chữ cơ bản? Quick Check để bỏ qua Khởi động <ChevronRight className="h-4 w-4" /></button>
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <button onClick={() => setQuickCheck(true)} className="text-link inline-flex min-h-10 items-center gap-2 text-xs font-bold">Đã biết bảng chữ cái và cách đọc chữ cơ bản? Kiểm tra nhanh để bỏ qua Khởi động <ChevronRight className="h-4 w-4" /></button>
+          <button onClick={onStartAssessment} className="pressable inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-violet-200 bg-violet-50 px-4 text-xs font-extrabold text-violet-700"><GraduationCap className="h-4 w-4"/>{latestAssessment?.passed ? `A0 đã đạt · ${latestAssessment.overall}%` : 'Kiểm tra trình độ A0'}</button>
+        </div>
       </section>
 
       <div className="space-y-3">
@@ -68,6 +76,11 @@ export default function FoundationMap({ onOpenLesson, quickCheckSignal = 0 }) {
           />
         ))}
       </div>
+
+      <section className="surface-card rounded-[26px] p-5 sm:p-6">
+        <div className="flex items-start gap-3"><div className="chapter-scene grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-xl">🛤️</div><div><p className="eyebrow primary-eyebrow">Sau A0</p><h2 className="mt-1 text-xl font-bold text-strong">Lộ trình sẽ đi tới C2 và college writing.</h2><p className="mt-1 text-sm font-medium leading-6 text-muted">Các level sau chưa mở trong bản này. Chúng dùng cùng engine và mỗi level sẽ có bài kiểm tra riêng.</p></div></div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-3">{levelRoadmap.slice(1).map(level => <div key={level.id} className="muted-row rounded-2xl p-3"><div className="flex items-center justify-between gap-2"><span className="text-sm font-extrabold text-strong">{level.id}</span><span className="text-[10px] font-bold text-muted">Sắp tới</span></div><p className="mt-1 text-xs font-bold text-primary">{level.titleVi}</p><p className="mt-1 line-clamp-2 text-[11px] font-medium leading-5 text-muted">{level.goalVi}</p></div>)}</div>
+      </section>
 
       {quickCheck && <QuickCheck onClose={() => setQuickCheck(false)} />}
     </div>
