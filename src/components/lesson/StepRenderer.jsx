@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from 'react'
 import { BookOpen, Brain, CheckCircle2, Circle, Eye, Languages, Lightbulb, Network, Volume2, Gauge, ChevronDown, Headphones, Mic, RotateCcw, Sparkles } from 'lucide-react'
 import ExerciseRenderer from './ExerciseRenderer'
 import Mascot from '../Mascot'
+import TeacherGuide from './TeacherGuide'
 import { AudioService } from '../../lib/audioService'
 import { SpeechService, scoreTranscript } from '../../lib/speechService'
 import { evaluateProduction, getRequirements, splitNonEmptyLines, wordCount } from '../../lib/productionValidator'
@@ -14,14 +15,20 @@ const kindMeta={
   compare:{label:'SO VỚI TIẾNG VIỆT',icon:Languages,cls:'text-amber-800 bg-amber-50 border-amber-100'},
 }
 
-export default function StepRenderer({step,stepState={},onStepStateChange,onExerciseResult,onReviewRating}){
+export default function StepRenderer({lesson,step,stepIndex=0,stepState={},onStepStateChange,onExerciseResult,onReviewRating}){
   const state={...stepState,stepKey:stepState.stepKey||step.id||step.promptVi||step.title}
-  if(step.type==='exercise') return <ExerciseRenderer step={step} initialState={state} onStateChange={onStepStateChange} onResult={onExerciseResult}/>
-  if(step.type==='listen') return <ListenStep step={step} state={state} onStateChange={onStepStateChange}/>
-  if(step.type==='speak') return <SpeakStep step={step} state={state} onStateChange={onStepStateChange} onResult={onExerciseResult}/>
-  if(step.type==='production') return <ProductionStep step={step} state={state} onStateChange={onStepStateChange}/>
-  if(step.type==='review') return <ReviewStep step={step} state={state} onStateChange={onStepStateChange} onReviewRating={onReviewRating}/>
-  return <ContentStep step={step}/>
+  const body=step.type==='exercise'
+    ? <ExerciseRenderer step={step} initialState={state} onStateChange={onStepStateChange} onResult={onExerciseResult}/>
+    : step.type==='listen'
+      ? <ListenStep step={step} state={state} onStateChange={onStepStateChange}/>
+      : step.type==='speak'
+        ? <SpeakStep step={step} state={state} onStateChange={onStepStateChange} onResult={onExerciseResult}/>
+        : step.type==='production'
+          ? <ProductionStep step={step} state={state} onStateChange={onStepStateChange}/>
+          : step.type==='review'
+            ? <ReviewStep step={step} state={state} onStateChange={onStepStateChange} onReviewRating={onReviewRating}/>
+            : <ContentStep step={step} state={state} onStateChange={onStepStateChange}/>
+  return <div className="teacher-led-step"><TeacherGuide lesson={lesson} step={step} stepIndex={stepIndex}/>{body}</div>
 }
 
 function AudioButtons({text,onPlayed}){
@@ -29,8 +36,11 @@ function AudioButtons({text,onPlayed}){
   return <div className="flex shrink-0 items-center gap-1.5"><button onClick={()=>play('normal')} className="pressable inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-blue-50 px-2.5 text-[11px] font-black text-blue-700" aria-label={`Nghe tốc độ bình thường: ${text}`}><Volume2 className="h-4 w-4"/> Nghe</button><button onClick={()=>play('slow')} className="pressable inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-slate-50 px-2.5 text-[11px] font-black text-slate-600" aria-label={`Nghe chậm: ${text}`}><Gauge className="h-4 w-4"/> Chậm</button></div>
 }
 
-function ContentStep({step}){
+function ContentStep({step,state,onStateChange}){
   const meta=kindMeta[step.kind]||kindMeta.understand;const Icon=meta.icon
+  const hasPreview=!!(step.examples?.length||step.chips?.length||step.tokenRoles?.length)
+  const guided=step.guidedReveal ?? ((step.kind==='discover'||step.kind==='notice')&&hasPreview)
+  const revealed=!guided||!!state.teacherRevealed
   const cue={
     discover:'Nhìn ví dụ trước. Chưa cần học quy tắc — bạn nhận ra điều gì?',
     notice:'So sánh hai ví dụ. Chi tiết nào thay đổi, và chi tiết nào giữ nguyên?',
@@ -39,17 +49,27 @@ function ContentStep({step}){
     compare:'So sánh để tránh dịch từng chữ từ tiếng Việt.',
   }[step.kind]
   const examples=<ExampleList examples={step.examples} speak={step.speak}/>
+  const reveal=()=>onStateChange?.({teacherRevealed:true,completed:true})
   return <div className="content-scene">
     <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-bold tracking-[.12em] ${meta.cls}`}><Icon className="h-3.5 w-3.5"/>{meta.label}</div>
     <h2 className="mt-4 text-[28px] font-extrabold tracking-tight text-slate-900 sm:text-3xl">{step.title}</h2>
     {cue&&<p className="scene-cue mt-3 text-sm font-semibold">{cue}</p>}
     {(step.kind==='discover'||step.kind==='notice')&&examples}
-    <p className="mt-4 max-w-3xl text-[15px] font-medium leading-7 text-slate-600">{step.bodyVi}</p>
-    {step.callout&&<div className="key-idea mt-5 rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm font-bold leading-6 text-blue-950"><span className="mr-2">💡</span>{step.callout}</div>}
-    {step.kind!=='discover'&&step.kind!=='notice'&&examples}
-    {step.chips&&<div className="mt-5 flex flex-wrap gap-2">{step.chips.map(chip=><span key={chip} className="lesson-chip rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700">{chip}</span>)}</div>}
-    {step.tokenRoles&&<div className="mt-5 flex flex-wrap gap-3">{step.tokenRoles.map((t,i)=><div key={i} className="token-role rounded-2xl border border-blue-100 bg-white px-4 py-3 text-center"><div className="english-example text-lg font-extrabold text-slate-900">{t.text}</div><div className="mt-1 text-[10px] font-bold uppercase tracking-wider text-blue-700">{t.role}</div></div>)}</div>}
-    {step.conceptMap&&<ConceptMap nodes={step.conceptMap}/>} 
+    {(step.kind==='discover'||step.kind==='notice')&&step.chips&&<div className="mt-5 flex flex-wrap gap-2">{step.chips.map(chip=><span key={chip} className="lesson-chip rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700">{chip}</span>)}</div>}
+    {(step.kind==='discover'||step.kind==='notice')&&step.tokenRoles&&<div className="mt-5 flex flex-wrap gap-3">{step.tokenRoles.map((t,i)=><div key={i} className="token-role rounded-2xl border border-blue-100 bg-white px-4 py-3 text-center"><div className="english-example text-lg font-extrabold text-slate-900">{t.text}</div><div className="mt-1 text-[10px] font-bold uppercase tracking-wider text-blue-700">{t.role}</div></div>)}</div>}
+    {guided&&!revealed&&<div className="teacher-pause mt-5 rounded-2xl border p-4">
+      <p className="text-sm font-semibold leading-6 text-strong">Dừng lại vài giây và tự trả lời trong đầu trước.</p>
+      <p className="mt-1 text-xs font-medium leading-5 text-muted">Không cần đúng ngay. Mục tiêu là để bạn tự nhìn thấy mẫu trước khi Bunny giải thích.</p>
+      <button onClick={reveal} className="pressable mt-3 min-h-11 rounded-xl bg-blue-600 px-4 text-sm font-bold text-white">Tôi đã quan sát · nghe Bunny giải thích</button>
+    </div>}
+    {revealed&&<>
+      <p className="mt-4 max-w-3xl text-[15px] font-medium leading-7 text-slate-600">{step.bodyVi}</p>
+      {step.callout&&<div className="key-idea mt-5 rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm font-bold leading-6 text-blue-950"><span className="mr-2">💡</span>{step.callout}</div>}
+      {step.kind!=='discover'&&step.kind!=='notice'&&examples}
+      {step.kind!=='discover'&&step.kind!=='notice'&&step.chips&&<div className="mt-5 flex flex-wrap gap-2">{step.chips.map(chip=><span key={chip} className="lesson-chip rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700">{chip}</span>)}</div>}
+      {step.kind!=='discover'&&step.kind!=='notice'&&step.tokenRoles&&<div className="mt-5 flex flex-wrap gap-3">{step.tokenRoles.map((t,i)=><div key={i} className="token-role rounded-2xl border border-blue-100 bg-white px-4 py-3 text-center"><div className="english-example text-lg font-extrabold text-slate-900">{t.text}</div><div className="mt-1 text-[10px] font-bold uppercase tracking-wider text-blue-700">{t.role}</div></div>)}</div>}
+      {step.conceptMap&&<ConceptMap nodes={step.conceptMap}/>}
+    </>}
   </div>
 }
 
