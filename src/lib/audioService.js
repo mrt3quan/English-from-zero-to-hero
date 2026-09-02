@@ -1,53 +1,247 @@
-// The Web Speech API exposes no real gender field, so picking a "female" voice
-// is a best-effort name match against common female system/browser voices.
-const FEMALE_VOICE_HINTS = [
-  'female', 'zira', 'eva', 'aria', 'jenny', 'michelle',
-  'samantha', 'victoria', 'karen', 'moira', 'tessa', 'susan', 'allison', 'ava', 'nicky',
-  'google us english', 'joanna', 'salli', 'kimberly', 'ivy', 'kendra',
-]
+const VOICE_SETTINGS_KEY = 'bunny_english_voice_settings_v2'
+const KOKORO_MODULE_URL = 'https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/+esm'
+const KOKORO_MODEL_ID = 'onnx-community/Kokoro-82M-v1.0-ONNX'
 
-function pickVoice(voices) {
-  const en = voices.filter(v => v.lang?.toLowerCase().startsWith('en'))
-  const enUS = en.filter(v => v.lang?.toLowerCase() === 'en-us')
-  const pool = enUS.length ? enUS : en.length ? en : voices
-  const female = pool.find(v => FEMALE_VOICE_HINTS.some(hint => v.name?.toLowerCase().includes(hint)))
-  return female || pool[0] || null
-}
+const DEFAULT_SETTINGS = Object.freeze({
+  provider: 'kokoro',
+  teacherVoice: 'af_heart',
+  listeningFemaleVoice: 'af_bella',
+  listeningMaleVoice: 'am_michael',
+  slowSpeed: 0.5,
+})
 
-// Curriculum text sometimes carries display-only notation that isn't meant to
-// be read aloud: checkmarks, arrows, a "|" separator, and IPA slashes like
-// "/m/ /æ/ /p/" (the browser voice would otherwise literally say "slash").
-// IPA slashes are unwrapped rather than dropped so the symbol inside is still
-// spoken (best-effort — TTS engines vary in how well they render IPA glyphs).
-function sanitizeForSpeech(text) {
-  return String(text)
+let kokoroPromise = null
+let kokoroInstance = null
+let audioContext = null
+let activeSource = null
+let loadState = 'idle'
+let lastError = null
+
+function canUseWindow(){ return typeof window !== 'undefined' }
+// Lesson text carries teaching marks that must never be read aloud: the ✓/✗/→ symbols,
+// the "|" used to separate parts of a sentence, and IPA written between slashes
+// ("/m/ /æ/ /p/") — which every TTS engine otherwise pronounces as the word "slash".
+export function cleanText(text){
+  return String(text || '')
     .replace(/[✓✗→|]/g, ' ')
     .replace(/\/([^/]+)\//g, '$1')
     .replace(/\s+/g, ' ')
     .trim()
 }
 
-// Chrome/Edge load the voice list asynchronously; without this, the very first
-// speak() call can run before any voices are available and silently skip the
-// female-voice preference.
-if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-  window.speechSynthesis.getVoices()
-  window.speechSynthesis.addEventListener?.('voiceschanged', () => window.speechSynthesis.getVoices())
+function emit(name, detail){
+  if(canUseWindow()) window.dispatchEvent(new CustomEvent(name, { detail }))
+}
+
+function safeReadSettings(){
+  if(!canUseWindow()) return { ...DEFAULT_SETTINGS }
+  try {
+    const raw = window.localStorage.getItem(VOICE_SETTINGS_KEY)
+    return raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_SETTINGS }
+  } catch {
+    return { ...DEFAULT_SETTINGS }
+  }
+}
+
+function safeWriteSettings(settings){
+  if(!canUseWindow()) return
+  try { window.localStorage.setItem(VOICE_SETTINGS_KEY, JSON.stringify(settings)) } catch {}
+  emit('bunny-voice-settings-updated', settings)
+}
+
+function stableParity(text){
+  let total=0
+  for(const char of String(text||'')) total=(total+char.charCodeAt(0))%997
+  return total%2
+}
+
+function chooseVoice(settings, voiceRole='teacher', explicitVoice, text=''){
+  if(explicitVoice) return explicitVoice
+  if(voiceRole === 'female') return settings.listeningFemaleVoice
+  if(voiceRole === 'male') return settings.listeningMaleVoice
+  if(voiceRole === 'listening') return stableParity(text) ? settings.listeningFemaleVoice : settings.listeningMaleVoice
+  return settings.teacherVoice
+}
+
+function ensureAudioContext(){
+  if(!canUseWindow()) return null
+  const Ctor = window.AudioContext || window.webkitAudioContext
+  if(!Ctor) return null
+  if(!audioContext) audioContext = new Ctor()
+  if(audioContext.state === 'suspended'){
+    // Calling resume while still inside the learner's click helps preserve playback permission
+    // even if model loading/generation takes several seconds.
+    try { audioContext.resume() } catch {}
+  }
+  return audioContext
+}
+
+function cleanupPlayer(){
+  if(activeSource){
+    try { activeSource.stop() } catch {}
+    try { activeSource.disconnect() } catch {}
+    activeSource = null
+  }
+}
+
+async function playBlob(blob){
+  const context = ensureAudioContext()
+  if(!context){
+    const url = URL.createObjectURL(blob)
+    const player = new Audio(url)
+    player.addEventListener('ended',()=>URL.revokeObjectURL(url),{once:true})
+    await player.play()
+    return true
+  }
+  if(context.state === 'suspended') await context.resume()
+  const buffer = await blob.arrayBuffer()
+  const decoded = await context.decodeAudioData(buffer.slice(0))
+  cleanupPlayer()
+  const source = context.createBufferSource()
+  activeSource = source
+  source.buffer = decoded
+  source.connect(context.destination)
+  source.onended = ()=>{ try{source.disconnect()}catch{};if(activeSource===source)activeSource=null }
+  source.start(0)
+  return true
+}
+
+const FEMALE_VOICE_HINTS = ['female','zira','eva','aria','jenny','michelle','samantha','victoria','karen',
+  'moira','tessa','susan','allison','ava','nicky','google us english','joanna','salli','kimberly','ivy','kendra']
+
+function browserTtsSupported(){ return canUseWindow() && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined' }
+
+function browserSpeak(text,{speed='normal',voiceRole='teacher'}={}){
+  if(!browserTtsSupported()) return false
+  cleanupPlayer()
+  window.speechSynthesis.cancel()
+  const utterance = new SpeechSynthesisUtterance(cleanText(text))
+  utterance.lang = 'en-US'
+  utterance.rate = speed === 'slow' ? 0.5 : 0.9
+  utterance.pitch = 1.05
+  const voices = window.speechSynthesis.getVoices?.() || []
+  const english = voices.filter(v => v.lang?.toLowerCase().startsWith('en'))
+  const preferred = voiceRole === 'male'
+    ? english.find(v => /male|david|mark|daniel|guy/i.test(v.name))
+    : english.find(v => FEMALE_VOICE_HINTS.some(hint => v.name?.toLowerCase().includes(hint)))
+  const enUS = preferred || english.find(v => v.lang?.toLowerCase() === 'en-us') || english[0]
+  if(enUS) utterance.voice = enUS
+  window.speechSynthesis.speak(utterance)
+  return true
+}
+
+async function loadKokoro(){
+  if(kokoroInstance) return kokoroInstance
+  if(kokoroPromise) return kokoroPromise
+  if(!canUseWindow()) throw new Error('browser-required')
+
+  loadState = 'loading'
+  lastError = null
+  emit('bunny-voice-status-updated', { state: loadState, provider: 'kokoro' })
+  kokoroPromise = (async()=>{
+    try {
+      // Runtime import keeps the initial app bundle small and pins the reviewed library version.
+      const mod = await import(/* @vite-ignore */ KOKORO_MODULE_URL)
+      const KokoroTTS = mod.KokoroTTS
+      if(!KokoroTTS) throw new Error('KokoroTTS export not found')
+      const tts = await KokoroTTS.from_pretrained(KOKORO_MODEL_ID, {
+        dtype: 'q8',
+        device: 'wasm',
+      })
+      kokoroInstance = tts
+      loadState = 'ready'
+      emit('bunny-voice-status-updated', { state: loadState, provider: 'kokoro' })
+      return tts
+    } catch(error) {
+      kokoroPromise = null
+      loadState = 'error'
+      lastError = error?.message || String(error)
+      emit('bunny-voice-status-updated', { state: loadState, provider: 'kokoro', error: lastError })
+      throw error
+    }
+  })()
+  return kokoroPromise
+}
+
+function rawAudioToBlob(audio){
+  if(!audio) throw new Error('No audio returned by Kokoro')
+  if(typeof audio.toBlob === 'function') return audio.toBlob()
+  if(typeof audio.toWav === 'function'){
+    const wav = audio.toWav()
+    if(wav instanceof Blob) return wav
+    return new Blob([wav], { type: 'audio/wav' })
+  }
+  if(audio.buffer) return new Blob([audio.buffer], { type: 'audio/wav' })
+  throw new Error('Unsupported Kokoro audio output')
+}
+
+async function playKokoro(text,{speed='normal',voiceRole='teacher',voice}={}){
+  const settings = safeReadSettings()
+  const tts = await loadKokoro()
+  const selectedVoice = chooseVoice(settings, voiceRole, voice, text)
+  const speechSpeed = speed === 'slow' ? Number(settings.slowSpeed || 0.5) : 1
+  const generated = await tts.generate(cleanText(text), { voice: selectedVoice, speed: speechSpeed })
+  const blob = rawAudioToBlob(generated)
+  cleanupPlayer()
+  if(browserTtsSupported()) window.speechSynthesis.cancel()
+  return playBlob(blob)
 }
 
 export const AudioService = {
-  supported(){ return typeof window !== 'undefined' && 'speechSynthesis' in window },
-  speak(text,{speed='normal'}={}){
-    if(!this.supported()) return false
-    window.speechSynthesis.cancel()
-    const utterance=new SpeechSynthesisUtterance(sanitizeForSpeech(text))
-    utterance.lang='en-US'
-    utterance.rate=speed==='slow' ? 0.5 : 0.9
-    utterance.pitch=1.05
-    const voice=pickVoice(window.speechSynthesis.getVoices?.() || [])
-    if(voice) utterance.voice=voice
-    window.speechSynthesis.speak(utterance)
-    return true
+  supported(){ return canUseWindow() && (browserTtsSupported() || !!(window.AudioContext || window.webkitAudioContext)) },
+  browserFallbackSupported: browserTtsSupported,
+  getSettings(){ return safeReadSettings() },
+  getStatus(){ return { state: loadState, provider: safeReadSettings().provider, error: lastError } },
+  setProvider(provider){
+    const current = safeReadSettings()
+    const next = { ...current, provider: provider === 'browser' ? 'browser' : 'kokoro' }
+    safeWriteSettings(next)
+    return next
   },
-  stop(){ if(this.supported()) window.speechSynthesis.cancel() }
+  setTeacherVoice(voice){ const next={...safeReadSettings(),teacherVoice:voice};safeWriteSettings(next);return next },
+  setListeningFemaleVoice(voice){ const next={...safeReadSettings(),listeningFemaleVoice:voice};safeWriteSettings(next);return next },
+  setListeningMaleVoice(voice){ const next={...safeReadSettings(),listeningMaleVoice:voice};safeWriteSettings(next);return next },
+  async prepare(){
+    const settings = safeReadSettings()
+    if(settings.provider === 'browser') return browserTtsSupported()
+    try { await loadKokoro(); return true } catch { return false }
+  },
+  async speak(text, options={}){
+    if(!canUseWindow()) return false
+    // Unlock Web Audio immediately while this function is still running from a click/tap.
+    ensureAudioContext()
+    const settings = safeReadSettings()
+    if(settings.provider === 'browser') return browserSpeak(text, options)
+    try {
+      return await playKokoro(text, options)
+    } catch(error) {
+      // High-quality voice is optional: never block a lesson if the model/CDN/device fails.
+      console.warn('[Bunny English] Kokoro voice unavailable, using browser fallback.', error)
+      return browserSpeak(text, options)
+    }
+  },
+  async preview(voice){ return this.speak('Hello! I am Bunny. Let us learn English together.', { voice, speed:'normal' }) },
+  stop(){
+    cleanupPlayer()
+    if(browserTtsSupported()) window.speechSynthesis.cancel()
+  },
+  resetHighQualityVoice(){ kokoroPromise=null;kokoroInstance=null;loadState='idle';lastError=null },
+  voices: {
+    teacher: [
+      { id:'af_heart', label:'Heart · US female' },
+      { id:'af_bella', label:'Bella · US female' },
+      { id:'af_jessica', label:'Jessica · US female' },
+      { id:'am_michael', label:'Michael · US male' },
+    ],
+    listeningFemale: [
+      { id:'af_bella', label:'Bella · US female' },
+      { id:'af_sarah', label:'Sarah · US female' },
+      { id:'af_sky', label:'Sky · US female' },
+    ],
+    listeningMale: [
+      { id:'am_michael', label:'Michael · US male' },
+      { id:'am_eric', label:'Eric · US male' },
+      { id:'am_liam', label:'Liam · US male' },
+    ],
+  },
 }

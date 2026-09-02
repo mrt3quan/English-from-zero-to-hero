@@ -32,6 +32,7 @@ import { getWeakSkills } from './lib/skillMasteryService'
 import { ReviewQueueService } from './lib/reviewQueueService'
 import { EngagementService } from './lib/engagementService'
 import { SoundEffectsService } from './lib/soundEffectsService'
+import { AudioService } from './lib/audioService'
 import { AssessmentRepository } from './lib/assessmentRepository'
 
 const desktopNav = [
@@ -275,9 +276,9 @@ function HomePage({ completed, progress, current, onContinue, onLearn, onPractic
               <button onClick={onContinue} className="primary-button pressable inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-base font-bold sm:w-auto">
                 {!hasStarted ? 'Tôi hoàn toàn mới — bắt đầu' : 'Tiếp tục học'} <ArrowRight className="h-5 w-5" />
               </button>
-              {!hasStarted && <button onClick={onQuickCheck} className="pressable inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 sm:w-auto">Tôi biết alphabet rồi · Quick Check</button>}
+              {!hasStarted && <button onClick={onQuickCheck} className="pressable inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 sm:w-auto">Tôi đã biết bảng chữ cái · Kiểm tra nhanh</button>}
             </div>
-            {!hasStarted && <p className="mt-3 text-xs font-medium leading-5 text-muted">Tiếng Việt đã dùng bảng chữ cái Latin, nên người lớn có thể Quick Check và bắt đầu gần phần câu nếu đã biết chữ/âm cơ bản.</p>}
+            {!hasStarted && <p className="mt-3 text-xs font-medium leading-5 text-muted">Nếu bạn đã biết bảng chữ cái và cách đọc chữ cơ bản, hãy làm Kiểm tra nhanh để đi thẳng tới phần phù hợp.</p>}
           </div>
           <div className="continue-mascot relative hidden min-h-52 place-items-center md:grid">
             <Mascot size={160} mood="encouraging" />
@@ -364,6 +365,37 @@ function SoundSettings() {
   )
 }
 
+
+function VoiceSettings() {
+  const [settings,setSettings]=useState(()=>AudioService.getSettings())
+  const [status,setStatus]=useState(()=>AudioService.getStatus())
+  const [previewing,setPreviewing]=useState(null)
+  useEffect(()=>{
+    const refresh=()=>setSettings(AudioService.getSettings())
+    const refreshStatus=e=>setStatus(e?.detail||AudioService.getStatus())
+    window.addEventListener('bunny-voice-settings-updated',refresh)
+    window.addEventListener('bunny-voice-status-updated',refreshStatus)
+    return()=>{window.removeEventListener('bunny-voice-settings-updated',refresh);window.removeEventListener('bunny-voice-status-updated',refreshStatus)}
+  },[])
+  const chooseProvider=value=>{AudioService.stop();AudioService.setProvider(value);setSettings(AudioService.getSettings())}
+  const chooseVoice=voice=>{AudioService.setTeacherVoice(voice);setSettings(AudioService.getSettings())}
+  const preview=async voice=>{if(previewing)return;setPreviewing(voice);await AudioService.preview(voice);setPreviewing(null);setStatus(AudioService.getStatus())}
+  const statusText=status.state==='loading'?'Đang tải giọng chất lượng cao lần đầu…':status.state==='ready'?'Giọng Kokoro đã sẵn sàng trên thiết bị này.':status.state==='error'?'Không tải được Kokoro; Bunny sẽ tự dùng giọng trình duyệt để bài học không bị chặn.':'Kokoro sẽ được tải khi bạn nghe lần đầu.'
+  return <div className="surface-card rounded-[28px] p-5">
+    <div className="flex items-center gap-2"><Volume2 className="h-5 w-5 text-primary"/><h2 className="text-xl font-bold text-strong">Giọng đọc bài học</h2></div>
+    <p className="mt-2 text-sm font-medium leading-6 text-muted">Kokoro cho giọng tự nhiên hơn và chạy ngay trong trình duyệt. Lần đầu dùng cần tải mô hình khoảng 90–100 MB; sau đó trình duyệt có thể dùng lại từ bộ nhớ đệm.</p>
+    <div className="mt-4 grid gap-2 sm:grid-cols-2">
+      <button onClick={()=>chooseProvider('kokoro')} className={`pressable min-h-12 rounded-2xl border px-4 text-left text-sm font-bold ${settings.provider==='kokoro'?'border-blue-400 bg-blue-50 text-blue-800':'border-slate-200 bg-white text-slate-700'}`}><span className="block">✨ Giọng tự nhiên · Kokoro</span><span className="mt-1 block text-[11px] font-medium opacity-70">Mặc định · chất lượng cao</span></button>
+      <button onClick={()=>chooseProvider('browser')} className={`pressable min-h-12 rounded-2xl border px-4 text-left text-sm font-bold ${settings.provider==='browser'?'border-blue-400 bg-blue-50 text-blue-800':'border-slate-200 bg-white text-slate-700'}`}><span className="block">🔊 Giọng trình duyệt</span><span className="mt-1 block text-[11px] font-medium opacity-70">Nhanh hơn · dùng khi thiết bị yếu</span></button>
+    </div>
+    {settings.provider==='kokoro'&&<>
+      <p className="mt-5 text-xs font-black uppercase tracking-[.12em] text-muted">Giọng Bunny giáo viên</p>
+      <div className="mt-2 grid gap-2 sm:grid-cols-2">{AudioService.voices.teacher.map(item=><div key={item.id} className={`flex items-center gap-2 rounded-2xl border p-2 ${settings.teacherVoice===item.id?'border-blue-300 bg-blue-50':'border-slate-200 bg-white'}`}><button onClick={()=>chooseVoice(item.id)} className="min-h-10 flex-1 rounded-xl px-2 text-left text-xs font-bold text-strong">{item.label}</button><button onClick={()=>preview(item.id)} disabled={!!previewing} className="pressable min-h-10 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-bold text-blue-700 disabled:opacity-50">{previewing===item.id?'Đang tải…':'Nghe thử'}</button></div>)}</div>
+      <div className={`mt-4 rounded-2xl border p-3 text-xs font-semibold leading-5 ${status.state==='error'?'border-amber-200 bg-amber-50 text-amber-900':'border-blue-100 bg-blue-50 text-blue-900'}`}>{statusText}<span className="mt-1 block font-medium opacity-75">Bài nghe dùng thêm Bella và Michael để người học không quen chỉ một giọng.</span></div>
+    </>}
+  </div>
+}
+
 function Profile({ completed, onReset, dataTick }) {
   const total = foundationLessons.length
   const weak = useMemo(() => getWeakSkills(5), [dataTick])
@@ -385,6 +417,8 @@ function Profile({ completed, onReset, dataTick }) {
       </div>
 
       <SoundSettings />
+
+      <VoiceSettings />
 
       <div className="surface-card rounded-[28px] p-5">
         <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.13em] text-primary">Level test</p><h2 className="mt-1 text-xl font-bold text-strong">Kết quả A0 gần nhất</h2></div>{latestA0&&<span className={`rounded-full px-3 py-1.5 text-sm font-extrabold ${latestA0.passed?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700'}`}>{latestA0.overall}%</span>}</div>

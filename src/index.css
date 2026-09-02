@@ -454,3 +454,47 @@ html[data-theme="dark"] .teacher-badge { background: color-mix(in srgb, var(--su
   .teacher-guide .teacher-why { display: none; }
   .teacher-led-step .content-scene > h2 { font-size: 1.55rem; line-height: 1.2; }
 }
+
+/* v1.8 — cleaner level → unit → lesson hierarchy inspired by modern learning-path IA */
+.clean-learn { max-width: 980px; margin-inline:auto; }
+.clean-learn-intro { padding: 6px 2px 2px; }
+.level-card-active { background:linear-gradient(135deg, color-mix(in srgb, var(--primary-soft) 58%, var(--surface-elevated)), var(--surface-elevated)); border:1px solid var(--primary-border); box-shadow:var(--shadow-card); }
+.level-pill { display:inline-flex; align-items:center; min-height:28px; border-radius:999px; padding:4px 10px; background:var(--surface-elevated); border:1px solid var(--primary-border); color:var(--primary); font-size:11px; font-weight:800; }
+.future-level-row { background:var(--surface-elevated); }
+.future-level-row:hover { background:var(--surface-soft); }
+.level-index { background:var(--surface-muted); color:var(--text-secondary); border:1px solid var(--border-soft); }
+.clean-unit { overflow:hidden; background:var(--surface-elevated); border:1px solid var(--border); box-shadow:0 1px 2px rgba(16,24,40,.025); }
+.clean-unit.is-current { border-color:var(--primary-border); box-shadow:0 7px 22px color-mix(in srgb, var(--primary) 6%, transparent); }
+.clean-unit.is-complete { border-color:var(--success-border); }
+.clean-unit-body { border-color:var(--border-soft); background:color-mix(in srgb, var(--surface-soft) 56%, var(--surface-elevated)); }
+.unit-number { background:var(--surface-muted); color:var(--text-secondary); border:1px solid var(--border-soft); }
+.clean-unit.is-current .unit-number { background:var(--primary-soft); color:var(--primary); border-color:var(--primary-border); }
+.up-next-badge,.complete-badge { display:inline-flex; align-items:center; gap:4px; min-height:22px; border-radius:999px; padding:3px 8px; font-size:9px; font-weight:800; }
+.up-next-badge { background:var(--primary-soft); color:var(--primary); border:1px solid var(--primary-border); }
+.complete-badge { background:var(--success-soft); color:var(--success); border:1px solid var(--success-border); }
+.clean-lesson-row { min-height:76px; padding-inline:4px; }
+.clean-lesson-row:hover:not(.is-locked) { background:color-mix(in srgb, var(--primary-soft) 28%, transparent); }
+.clean-lesson-row.is-locked { opacity:.55; cursor:not-allowed; }
+.clean-lesson-row.is-up-next { background:color-mix(in srgb, var(--primary-soft) 38%, transparent); }
+.lesson-status-icon { border:1px solid var(--border); color:var(--text-secondary); background:var(--surface-elevated); }
+.lesson-status-icon.is-passed { background:var(--success); color:white; border-color:var(--success); }
+.lesson-status-icon.is-next { background:var(--primary); color:white; border-color:var(--primary); box-shadow:0 0 0 4px var(--primary-soft); }
+.lesson-status-icon.is-open { color:var(--primary); border-color:var(--primary-border); }
+.lesson-status-icon.is-locked { background:var(--surface-muted); color:var(--text-subtle); }
+.finish-note { background:var(--primary-soft); border:1px solid var(--primary-border); }
+
+/* v1.8 — assessment is calm, resumable, and writing is guided rather than one giant textarea */
+.assessment-header,.assessment-actions { background:color-mix(in srgb, var(--surface-elevated) 94%, transparent); border-color:var(--border); backdrop-filter:blur(18px); }
+.assessment-actions { padding-bottom:max(.75rem, env(safe-area-inset-bottom)); box-shadow:0 -10px 30px color-mix(in srgb, var(--app-bg) 72%, transparent); }
+.assessment-teacher { background:color-mix(in srgb, var(--primary-soft) 62%, var(--surface-elevated)); border:1px solid var(--primary-border); }
+.assessment-question { background:var(--surface-elevated); border:1px solid var(--border); box-shadow:0 1px 2px rgba(16,24,40,.02); }
+.guided-writing-card { background:linear-gradient(135deg, color-mix(in srgb, var(--warning-soft) 58%, var(--surface-elevated)), var(--surface-elevated)); border:1px solid var(--warning-border); }
+html[data-theme="dark"] .guided-writing-card { background:linear-gradient(135deg, color-mix(in srgb, var(--warning-soft) 58%, var(--surface-elevated)), var(--surface-elevated)); }
+
+@media (max-width: 639px) {
+  .clean-learn-intro h1 { font-size:29px; line-height:1.16; }
+  .level-card-active { border-radius:24px; }
+  .clean-unit { border-radius:22px; }
+  .clean-lesson-row { min-height:72px; }
+  .assessment-actions .text-right { max-width:68%; }
+}
