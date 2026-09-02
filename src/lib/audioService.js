@@ -1,3 +1,5 @@
+import speechClips from '../data/speechClips.js'
+
 const VOICE_SETTINGS_KEY = 'bunny_english_voice_settings_v2'
 const KOKORO_MODULE_URL = 'https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/+esm'
 const KOKORO_MODEL_ID = 'onnx-community/Kokoro-82M-v1.0-ONNX'
@@ -109,6 +111,46 @@ async function playBlob(blob){
 const FEMALE_VOICE_HINTS = ['female','zira','eva','aria','jenny','michelle','samantha','victoria','karen',
   'moira','tessa','susan','allison','ava','nicky','google us english','joanna','salli','kimberly','ivy','kendra']
 
+// Pre-rendered Kokoro clips.
+//
+// The course speaks a fixed set of phrases, so every one of them is synthesised
+// at build time (scripts/generate-speech.mjs) and served as a small MP3 from our
+// own origin. This is the normal path: it plays immediately, needs no model
+// download, and works on networks that block jsDelivr/Hugging Face.
+const CLIP_BASE = `${import.meta.env?.BASE_URL ?? '/'}voice/`
+
+function clipKey(voice, speed, text){
+  return `${voice}|${speed}|${cleanText(text)}`
+}
+
+function findClip(settings, { speed = 'normal', voiceRole = 'teacher', voice } = {}, text){
+  const selectedVoice = chooseVoice(settings, voiceRole, voice, text)
+  const rate = speed === 'slow' ? Number(settings.slowSpeed || 0.5) : 1
+  const id = speechClips.clips?.[clipKey(selectedVoice, rate, text)]
+  return id ? `${CLIP_BASE}${id}.mp3` : null
+}
+
+async function playClip(url){
+  const context = ensureAudioContext()
+  if(!context){
+    const player = new Audio(url)
+    await player.play()
+    return true
+  }
+  if(context.state === 'suspended') await context.resume()
+  const response = await fetch(url)
+  if(!response.ok) throw new Error(`clip ${response.status}`)
+  const decoded = await context.decodeAudioData(await response.arrayBuffer())
+  cleanupPlayer()
+  const source = context.createBufferSource()
+  activeSource = source
+  source.buffer = decoded
+  source.connect(context.destination)
+  source.onended = ()=>{ try{source.disconnect()}catch{};if(activeSource===source)activeSource=null }
+  source.start(0)
+  return true
+}
+
 function browserTtsSupported(){ return canUseWindow() && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined' }
 
 function browserSpeak(text,{speed='normal',voiceRole='teacher'}={}){
@@ -201,6 +243,7 @@ export const AudioService = {
   setTeacherVoice(voice){ const next={...safeReadSettings(),teacherVoice:voice};safeWriteSettings(next);return next },
   setListeningFemaleVoice(voice){ const next={...safeReadSettings(),listeningFemaleVoice:voice};safeWriteSettings(next);return next },
   setListeningMaleVoice(voice){ const next={...safeReadSettings(),listeningMaleVoice:voice};safeWriteSettings(next);return next },
+  hasClip(text, options={}){ return !!findClip(safeReadSettings(), options, text) },
   async prepare(){
     const settings = safeReadSettings()
     if(settings.provider === 'browser') return browserTtsSupported()
@@ -211,6 +254,15 @@ export const AudioService = {
     // Unlock Web Audio immediately while this function is still running from a click/tap.
     ensureAudioContext()
     const settings = safeReadSettings()
+    const clip = findClip(settings, options, text)
+    if(clip){
+      try {
+        if(browserTtsSupported()) window.speechSynthesis.cancel()
+        return await playClip(clip)
+      } catch(error) {
+        console.warn('[Bunny English] Pre-rendered clip unavailable, falling back.', error)
+      }
+    }
     if(settings.provider === 'browser') return browserSpeak(text, options)
     try {
       return await playKokoro(text, options)

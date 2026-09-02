@@ -1,0 +1,59 @@
+name: Generate lesson voice clips
+
+# The A0 course speaks a fixed set of phrases, so we synthesise them once here
+# and commit the audio. Learners then get instant playback from our own origin
+# instead of downloading a ~90MB speech model in the browser.
+#
+# Run manually after changing curriculum text, or let the path filter catch it.
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Re-render every clip, even ones that already exist
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+    paths:
+      - src/data/foundationCurriculum.js
+      - src/data/a0Assessment.js
+      - scripts/speechManifest.mjs
+      - scripts/generate-speech.mjs
+
+permissions:
+  contents: write
+
+concurrency:
+  group: generate-voice
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Install Kokoro (build-time only, not an app dependency)
+        run: npm install --no-save kokoro-js@1.2.1
+      - name: Render clips
+        run: node scripts/generate-speech.mjs ${{ inputs.force && '--force' || '' }}
+      - name: Verify the app still builds against the new manifest
+        run: npm test && npm run build
+      - name: Commit generated audio
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/voice src/data/speechClips.js
+          if git diff --staged --quiet; then
+            echo "No clip changes."
+          else
+            git commit -m "Regenerate lesson voice clips"
+            git push
+          fi
