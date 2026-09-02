@@ -1,57 +1,41 @@
-# Bunny English v1.9
+# Bunny English v2.3 — Static Lesson Quality Pass
 
-Vietnamese-first English learning from A0 foundation toward advanced speaking and college-level writing.
+Bunny English is a Vietnamese-first English learning app designed to grow from first sentences toward advanced speaking and academic/college writing.
 
-## Current release
+## Current release focus
+
+v2.3 improves the **actual A0 lesson teaching quality** without requiring an AI API.
 
 - 42 A0 lessons
-- teacher-led lesson experience
-- multisensory learning loop
-- personalized review/mastery
-- listening + browser speech-recognition practice
-- sound feedback
-- A0 final level assessment
-- guided A0 writing assessment
-- clean Level → Chapter → Lesson Learn UI
-- light/dark/system themes
-- responsive mobile/desktop UI
+- teacher-led Bunny guidance in every lesson
+- natural Vietnamese explanations written for Vietnamese learners
+- meaning before grammar terminology
+- Listen → optional Say → Build → Write → Review learning loop
+- Kokoro natural TTS with browser fallback
+- optional pronunciation assessment backend + browser speech fallback
+- “Tôi không thể nói lúc này” speaking skip/pause
+- personalized review and skill mastery
+- A0 multi-skill final assessment
+- correct/wrong learning sound feedback
+- clean Level → Chapter → Lesson navigation
 
-## Learning philosophy
+## No OpenAI dependency in v2.3
 
-Meaning first. Grammar terminology later.
+OpenAI/API tutoring is intentionally postponed. The app does not need an OpenAI key for this release.
 
-The learner should repeatedly:
-
-**Discover → Notice → Understand → Hear → Say → Build → Write → Review**
-
-## Run locally
+## Development
 
 ```bash
-npm install
+npm ci
 npm test
-npm run validate:curriculum
+npm run audit:copy
 npm run dev
 ```
 
-Production validation:
+Build:
 
 ```bash
 npm run build
 ```
 
-## Important files
-
-- `src/data/foundationCurriculum.js` — 42 A0 lessons
-- `src/data/teacherGuides.js` — lesson-specific Bunny teacher guidance
-- `src/components/lesson/` — lesson engine/renderers
-- `src/components/FoundationMap.jsx` — clean learning-path UI
-- `src/components/LevelAssessment.jsx` — reusable assessment UI
-- `src/data/a0Assessment.js` — A0 assessment definition
-- `src/lib/writingAssessment.js` — transparent A0 writing analysis
-- `src/lib/soundEffectsService.js` — correct/wrong/completion sounds
-- `src/lib/audioService.js` — provider-independent TTS (Kokoro + browser fallback)
-- `scripts/validate-curriculum.mjs` — checks every production placeholder satisfies its own requirements
-
-## Natural English voice (v1.9)
-
-Bunny English now defaults to Kokoro-based in-browser TTS for a more natural American English teacher voice. The model is lazy-loaded only when audio is requested. Learners can switch back to browser TTS under Profile → Giọng đọc bài học. See `VOICE_SYSTEM.md` for architecture and fallback details.
+See `LESSON_QUALITY_GUIDE_VI.md` for the teaching/copy standard and `MERGE_GUIDE_V2.3.md` for merge instructions.

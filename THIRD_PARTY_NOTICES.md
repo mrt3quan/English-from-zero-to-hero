@@ -1,10 +1,21 @@
-# Third-Party Notices — Voice System
+# Third-Party Notices
 
-Bunny English v1.9 can optionally use Kokoro for local-in-browser text-to-speech.
+## Kokoro voice system
 
-- Kokoro project / model: https://github.com/hexgrad/kokoro
+Bunny English can optionally use Kokoro for local-in-browser text-to-speech.
+
+- Project/model: https://github.com/hexgrad/kokoro
 - Browser library: https://www.npmjs.com/package/kokoro-js
 - ONNX model: https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX
-- License reported by the upstream project/model: Apache-2.0
+- Upstream license: Apache-2.0
 
-The runtime and model are not bundled into this repository. They are fetched on demand when the high-quality voice option is used.
+The runtime/model are fetched on demand and are not bundled in this repository.
+
+## PronounceAI pronunciation backend
+
+Bunny English v2.0 can connect to the open-source PronounceAI project:
+
+- Project: https://github.com/vikranthreddimasu/PronounceAI
+- Upstream license: MIT
+
+The upstream source and ML models are not copied into the Bunny English repository. `npm run pronunciation:setup` clones the upstream project on the developer's machine. Bunny English uses only the documented pronunciation scoring/prewarm/health API surface; voice cloning is not enabled.

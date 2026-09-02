@@ -79,6 +79,19 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
       errorTags,
       hintUsed: false,
       responseTimeMs: result.responseTimeMs || null,
+      pronunciation: result.pronunciation ? {
+        provider: result.pronunciation.provider || 'pronounce-ai',
+        overall: result.pronunciation.overall ?? null,
+        phraseMatchStatus: result.pronunciation.phraseMatchStatus || '',
+        scores: result.pronunciation.scores || {},
+        needsWork: (result.pronunciation.needsWork || []).slice(0, 6).map(phone => ({
+          phoneme: phone.phoneme || '',
+          expected: phone.expected || '',
+          heard: phone.heard || null,
+          correct: !!phone.correct,
+          score: phone.score ?? null,
+        })),
+      } : null,
     })
 
     updateStepState({
@@ -163,7 +176,7 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
           <Mascot size={160} mood="celebrating" withBook={false} className="mx-auto success-pop" />
           <p className="mt-3 text-xs font-black uppercase tracking-[.16em] text-emerald-700">Lesson complete</p>
           <h2 className="mt-2 text-3xl font-black">Bạn đã hoàn thành bài học!</h2>
-          <p className="mt-3 text-sm font-semibold leading-6 text-muted">Bunny đã lưu tiến độ, lỗi cần ôn và lịch review tiếp theo.</p>{rewardedXp > 0 && <div className="xp-reward mx-auto mt-4 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-extrabold">+{rewardedXp} XP · Bài mới hoàn thành</div>}
+          <p className="mt-3 text-sm font-semibold leading-6 text-muted">Bunny đã lưu tiến độ, những chỗ cần ôn lại và lịch ôn tiếp theo.</p>{rewardedXp > 0 && <div className="xp-reward mx-auto mt-4 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-extrabold">+{rewardedXp} XP · Bài mới hoàn thành</div>}
           <button onClick={() => onComplete?.(lesson.id)} className="pressable mt-6 min-h-[52px] w-full rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white">Đi tới bài tiếp theo</button>
         </div>
       </div>
@@ -245,7 +258,7 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
               {!atEnd && !currentComplete && <div className="mt-3 rounded-2xl border border-amber-100 bg-amber-50 p-3 text-xs font-semibold leading-5 text-amber-950">{blockMessage}</div>}
               {atEnd && !canFinish && (
                 <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-xs font-semibold leading-5 text-amber-950">
-                  Để hoàn thành bài: thử tất cả bài tập, đạt ít nhất {Math.round(lesson.mastery.minAccuracy * 100)}%, hoàn thành phần tự viết và đánh giá thẻ ôn tập. Hiện tại: {answered.length}/{exerciseIndexes.length} bài đã thử · {Math.round(accuracy * 100)}% mastery credit · production {allProductionDone ? '✓' : 'chưa xong'} · review {allReviewsDone ? '✓' : 'chưa xong'}.
+                  Để hoàn thành bài: thử tất cả bài tập, đạt ít nhất {Math.round(lesson.mastery.minAccuracy * 100)}%, hoàn thành phần tự viết và đánh giá thẻ ôn tập. Hiện tại: {answered.length}/{exerciseIndexes.length} bài đã thử · {Math.round(accuracy * 100)}% độ chính xác · phần tự viết {allProductionDone ? '✓' : 'chưa xong'} · phần ôn lại {allReviewsDone ? '✓' : 'chưa xong'}.
                 </div>
               )}
             </div>
@@ -276,7 +289,7 @@ function getBlockMessage(step) {
   if (step.type === 'content' && needsContentReveal(step)) return 'Hãy nhìn ví dụ, tự đoán một chút, rồi chạm “nghe Bunny giải thích” trước khi tiếp tục.'
   if (step.type === 'exercise') return 'Kiểm tra câu trả lời trước khi tiếp tục. Sai vẫn có thể đi tiếp — mục tiêu là thử và học từ phản hồi.'
   if (step.type === 'listen') return 'Hãy nghe ít nhất một lần trước khi tiếp tục.'
-  if (step.type === 'speak') return 'Hãy thử nói câu thành tiếng. Nếu trình duyệt không hỗ trợ microphone, bạn có thể tự xác nhận đã luyện nói.'
+  if (step.type === 'speak') return 'Hãy thử nói câu thành tiếng. Nếu lúc này bạn không thể nói hoặc trình duyệt không dùng được micro, bạn có thể bỏ qua phần nói mà không bị trừ điểm.'
   if (step.type === 'production') return 'Hãy hoàn thành phần tự viết và các tiêu chí trước khi tiếp tục.'
   if (step.type === 'review') return 'Hãy mở đáp án và đánh giá mức độ nhớ của từng thẻ.'
   return ''

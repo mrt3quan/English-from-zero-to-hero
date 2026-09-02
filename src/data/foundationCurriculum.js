@@ -1,3 +1,4 @@
+import { applyLessonTeachingCopy } from './teachingCopyOverlay.js'
 const content = (kind, title, bodyVi, extra = {}) => ({ type: 'content', kind, title, bodyVi, ...extra })
 const choice = (promptVi, options, answer, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'choice', promptVi, options, answer, explainVi, ...extra })
 const order = (promptVi, tokens, answer, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'wordOrder', punctuationRequired: false, promptVi, tokens, answer, explainVi, ...extra })
@@ -24,7 +25,7 @@ export const foundationUnits = [
   { id: 9, titleEn: 'Adverbs', titleVi: 'Trạng từ', descriptionVi: 'Nói hành động xảy ra như thế nào và thường xuyên ra sao.' },
   { id: 10, titleEn: 'Prepositions', titleVi: 'Giới từ', descriptionVi: 'Nói vị trí và mối quan hệ: in, on, at, under…' },
   { id: 11, titleEn: 'Conjunctions', titleVi: 'Liên từ', descriptionVi: 'Nối từ và nối ý bằng and, but, or, because, so.' },
-  { id: 12, titleEn: 'Core Word Jobs Map', titleVi: 'Bản đồ 9 nhóm từ cốt lõi', descriptionVi: 'Ghép các mảnh đã học thành một hệ thống dễ nhìn.' },
+  { id: 12, titleEn: 'Core Word Jobs Map', titleVi: 'Bản đồ các nhóm từ cốt lõi', descriptionVi: 'Ghép các mảnh đã học thành một hệ thống dễ nhìn.' },
   { id: 13, titleEn: 'Sentence Shapes', titleVi: 'Hình dạng câu', descriptionVi: 'Từ câu hỏi trực giác đến S/V/O/C và ba hình dạng cốt lõi.' },
   { id: 14, titleEn: 'S + V + O', titleVi: 'Mẫu câu S + V + O', descriptionVi: 'Thêm tân ngữ để nói hành động tác động lên ai/cái gì.' },
   { id: 15, titleEn: 'S + V + C', titleVi: 'Mẫu câu S + V + C', descriptionVi: 'Dùng bổ ngữ để mô tả hoặc gọi tên chủ ngữ.' },
@@ -78,10 +79,10 @@ const rawFoundationLessons = [
   lesson({
     id: 'f03-what-is-a-word', unit: 1, order: 3, titleEn: 'What Is a Word?', titleVi: 'Một “từ” là gì?', minutes: 9,
     focus: ['literacy', 'vocabulary'], standards: ['CCSS RF.K.1b', 'CCSS L.K.1b'],
-    objectiveVi: 'Nhận biết ranh giới từ bằng khoảng trắng và hiểu mỗi từ mang một công việc/ý nghĩa trong câu.',
+    objectiveVi: 'Nhận ra câu được chia thành các từ bằng khoảng trắng và hiểu mỗi từ góp một phần ý nghĩa vào câu.',
     steps: [
       content('discover', 'Khoảng trắng chia câu thành từ', 'Trong “I like apples.” có ba từ: I | like | apples. Dấu chấm không phải là một từ.', { tokenRoles: [{ text: 'I', role: 'word 1' }, { text: 'like', role: 'word 2' }, { text: 'apples', role: 'word 3' }, { text: '.', role: 'punctuation' }] }),
-      content('understand', 'Hiểu câu trước, tên ngữ pháp để sau', 'I = tôi. like = thích. apples = táo. Ghép lại: “I like apples.” = “Tôi thích táo.” Trước mắt chỉ cần hiểu câu đang nói gì. Tên ngữ pháp mình sẽ học khi bạn đã quen với ý nghĩa.', { tokenRoles: [{ text: 'I', role: 'ai?' }, { text: 'like', role: 'thích gì?' }, { text: 'apples', role: 'cái gì?' }] }),
+      content('understand', 'Hiểu câu trước, tên ngữ pháp để sau', 'I = tôi. like = thích. apples = táo. Ghép lại: “I like apples.” = “Tôi thích táo.” Trước mắt chỉ cần hiểu câu đang nói gì. Tên ngữ pháp mình sẽ học khi bạn đã quen với ý nghĩa.'),
       identify('Chọn tất cả các TỪ trong câu.', ['She', 'reads', 'books', '.'], [0, 1, 2], 'Dấu chấm là punctuation, không phải từ.', { multi: true }),
       choice('“I like apples.” có bao nhiêu từ?', ['2', '3', '4', '5'], '3', 'I, like, apples = 3 từ.'),
       produce('Viết 3 từ tiếng Anh bạn đã biết. Ngăn cách chúng bằng dấu phẩy.', 'apple, school, happy', ['Có ít nhất 3 mục'], { minWords: 3 }),
@@ -117,14 +118,14 @@ const rawFoundationLessons = [
   lesson({
     id: 'f06-subject-who-what', unit: 2, order: 6, titleEn: 'Subject: Who or What?', titleVi: 'Chủ ngữ: câu nói về ai/cái gì?', minutes: 10,
     focus: ['grammar', 'sentence structure'], standards: ['CCSS L.K.1f', 'CCSS L.1.1c'],
-    objectiveVi: 'Tìm phần cho biết câu đang nói về ai hoặc cái gì; sau đó mới học tên “subject / chủ ngữ”.',
+    objectiveVi: 'Tìm người hoặc vật mà câu đang nói tới; sau khi hiểu ý này mới làm quen với tên “chủ ngữ (subject)”.',
     steps: [
-      content('discover', 'Câu đang nói về ai hoặc cái gì?', 'Nhìn “The cat sleeps.” trước. Câu này đang nói về “the cat”. Khi bạn đã thấy được phần đó, Bunny mới cho bạn tên ngữ pháp: subject — chủ ngữ.', { examples: ['The cat sleeps.'], tokenRoles: [{ text: 'The cat', role: 'câu nói về ai/cái gì?' }, { text: 'sleeps', role: 'điều gì xảy ra?' }] }),
+      content('discover', 'Câu đang nói về ai hoặc cái gì?', 'Nhìn câu “The cat sleeps.” trước. Câu này đang nói về “the cat”. Phần đó được gọi là chủ ngữ (subject). Chỉ cần hiểu ý trước, chưa cần học thuộc tên ngay.', { examples: ['The cat sleeps.'], tokenRoles: [{ text: 'The cat', role: 'câu nói về ai/cái gì?' }, { text: 'sleeps', role: 'điều gì xảy ra?' }] }),
       content('compare', 'Tiếng Anh thường cần chủ ngữ hiện rõ', 'Người Việt đôi khi bỏ chủ ngữ khi ngữ cảnh đã rõ. Tiếng Anh thường không cho phép điều đó: “Is raining.” ✗ → “It is raining.” ✓'),
-      identify('Chọn subject.', ['My', 'sister', 'reads', 'books', '.'], [0, 1], 'Subject đầy đủ là “My sister”.', { multi: true }),
+      identify('Chọn phần cho biết câu đang nói về ai.', ['My', 'sister', 'reads', 'books', '.'], [0, 1], 'Câu đang nói về “My sister”, nên cả cụm này là chủ ngữ.', { multi: true }),
       choice('Subject trong “The children play outside.” là gì?', ['The children', 'play', 'outside', 'play outside'], 'The children', 'Hỏi: Ai đang chơi? → The children.'),
-      produce('Viết một subject có 1–3 từ. Chưa cần viết cả câu.', 'My teacher', ['Gọi tên một người/vật/nhóm'], { minWords: 1 }),
-      review([['Câu hỏi tìm subject?', 'Who or what is the sentence about?'], ['Subject luôn chỉ là 1 từ?', 'Không. Có thể là một cụm từ.'], ['“It” trong “It is raining” làm gì?', 'Làm subject.']]),
+      produce('Viết một người hoặc vật mà bạn muốn đặt ở đầu câu. Chưa cần viết cả câu.', 'My teacher', ['Gọi tên một người/vật/nhóm'], { minWords: 1 }),
+      review([['Muốn tìm chủ ngữ, mình hỏi gì?', 'Câu đang nói về ai hoặc cái gì?'], ['Chủ ngữ luôn chỉ có một từ không?', 'Không. Có thể là cả một cụm từ.'], ['Trong “It is raining”, “It” làm gì?', 'Làm chủ ngữ.']]),
     ],
   }),
   lesson({
@@ -132,39 +133,38 @@ const rawFoundationLessons = [
     focus: ['grammar', 'sentence structure'], standards: ['CCSS L.K.1b', 'CCSS L.1.1e'],
     objectiveVi: 'Nhận ra động từ hành động và động từ trạng thái; hiểu câu tiếng Anh thường cần động từ.',
     steps: [
-      content('discover', 'Tìm phần nói điều gì xảy ra', 'Nhìn ba câu: “Birds fly.” “I like music.” “She is tired.” Trong mỗi câu có một phần cho biết hành động hoặc trạng thái. Sau khi bạn nhận ra phần đó, Bunny mới gọi tên nó là verb — động từ.', { examples: ['Birds fly.', 'I like music.', 'She is tired.'] }),
-      content('compare', 'Lỗi người Việt: thiếu be', '“She very tired.” nghe có thể gần nghĩa tiếng Việt, nhưng tiếng Anh cần động từ: “She is very tired.”'),
-      identify('Chọn verb.', ['They', 'study', 'English', '.'], [1], '“study” nói điều họ làm.'),
-      choice('Câu nào THIẾU verb?', ['I work here.', 'She happy.', 'They study.', 'We like rice.'], 'She happy.', 'Cần “She is happy.”'),
+      content('discover', 'Tìm phần nói điều gì xảy ra', 'Nhìn ba câu: “Birds fly.” “I like music.” “She is tired.” Mỗi câu đều có một phần cho biết hành động hoặc trạng thái. Phần đó được gọi là động từ (verb).', { examples: ['Birds fly.', 'I like music.', 'She is tired.'] }),
+      content('compare', 'Điểm dễ nhầm khi dịch từ tiếng Việt', '“She very tired.” nghe có thể gần nghĩa tiếng Việt, nhưng tiếng Anh cần động từ: “She is very tired.”'),
+      identify('Chọn từ cho biết họ làm gì.', ['They', 'study', 'English', '.'], [1], '“study” cho biết hành động của họ, nên đây là động từ.'),
+      choice('Câu nào đang thiếu động từ?', ['I work here.', 'She happy.', 'They study.', 'We like rice.'], 'She happy.', 'Cần “She is happy.”'),
       produce('Viết 3 động từ bạn thường dùng.', 'work, study, eat', ['Có 3 động từ'], { minWords: 3 }),
-      review([['Verb có thể nói gì?', 'Hành động hoặc trạng thái'], ['“happy” là verb không?', 'Không. Thường là adjective.'], ['“is” có phải verb?', 'Có.']]),
+      review([['Động từ có thể nói về gì?', 'Hành động hoặc trạng thái.'], ['“happy” có phải động từ không?', 'Không. “happy” thường là tính từ.'], ['“is” có phải động từ không?', 'Có.']]),
     ],
   }),
   lesson({
     id: 'f08-first-sv-sentences', unit: 2, order: 8, titleEn: 'Build Your First Sentences', titleVi: 'Ghép Subject + Verb', minutes: 12,
     focus: ['sentence construction', 'writing'], standards: ['CCSS L.K.1f', 'WIDA ELD-SI.K-3.Inform'],
-    objectiveVi: 'Tự ghép “ai/cái gì?” + “điều gì xảy ra?” thành câu ngắn; sau đó mới nối chúng với tên Subject + Verb.',
+    objectiveVi: 'Ghép “ai/cái gì?” với “điều gì xảy ra?” để tạo câu ngắn, rồi mới làm quen với ký hiệu S + V.',
     steps: [
-      content('discover', 'Ghép hai phần lại', '“Birds fly.” “Babies cry.” Ai/cái gì đang được nói tới? Điều gì đang xảy ra? Ghép hai phần đó lại là bạn có một câu.', { examples: ['Birds fly.', 'Babies cry.', 'Babies sleep.'] }),
-      content('visualize', 'Ai/cái gì? + Điều gì xảy ra?', 'Bắt đầu bằng ý nghĩa: “Birds” trả lời ai/cái gì; “fly” trả lời điều gì xảy ra. Khi đã hiểu, mình mới viết ngắn gọn là Subject + Verb, hay S + V.', { tokenRoles: [{ text: 'Birds', role: 'ai/cái gì?' }, { text: 'fly', role: 'điều gì xảy ra?' }] }),
+      content('visualize', 'Ai/cái gì? + Điều gì xảy ra?', 'Bắt đầu bằng ý nghĩa: “Birds” trả lời ai/cái gì; “fly” trả lời điều gì xảy ra. Khi đã hiểu, mình mới viết ngắn gọn là Subject + Verb, hay S + V.', { examples: ['Birds fly.', 'Babies cry.'], tokenRoles: [{ text: 'Birds', role: 'ai/cái gì?' }, { text: 'fly', role: 'điều gì xảy ra?' }] }),
       content('understand', 'Ý nghĩa trước, công thức sau', 'Đừng đọc S + V như công thức toán. Hãy nghĩ: “Ai/cái gì?” + “Điều gì xảy ra?”'),
-      order('Ghép câu.', ['sleep', 'Babies', '.'], 'Babies sleep .', 'Babies = subject; sleep = verb.'),
+      order('Ghép câu.', ['sleep', 'Babies', '.'], 'Babies sleep .', 'Babies là phần câu đang nói tới; sleep cho biết điều gì xảy ra.'),
       choice('Câu nào có đúng mẫu S + V?', ['The dog.', 'Runs fast.', 'Birds fly.', 'Very cold.'], 'Birds fly.', 'Birds = S, fly = V.'),
-      produce('Viết 2 câu theo mẫu S + V. Mỗi câu trên một dòng.', 'Birds fly.\nChildren laugh.', ['Có 2 dòng câu', 'Mỗi câu có subject + verb'], { minLines: 2, minWords: 4 }),
+      produce('Viết 2 câu ngắn theo mẫu “ai/cái gì + làm gì”. Mỗi câu trên một dòng.', 'Birds fly.\nChildren laugh.', ['Có 2 dòng câu', 'Mỗi câu có chủ ngữ và động từ'], { minLines: 2, minWords: 4 }),
       review([['S nghĩa là?', 'Subject'], ['V nghĩa là?', 'Verb'], ['Mẫu S+V giúp trả lời hai câu hỏi nào?', 'Ai/cái gì? + Điều gì xảy ra?']]),
     ],
   }),
   lesson({
     id: 'f09-nouns-name-the-world', unit: 3, order: 9, titleEn: 'Nouns Name the World', titleVi: 'Danh từ gọi tên thế giới', minutes: 10,
     focus: ['grammar', 'vocabulary'], standards: ['CCSS L.K.1b', 'CCSS L.1.1b'],
-    objectiveVi: 'Nhận ra noun là từ gọi tên người, nơi, vật hoặc ý tưởng.',
+    objectiveVi: 'Nhận ra những từ dùng để gọi tên người, nơi chốn, đồ vật hoặc ý tưởng; sau đó mới gắn tên “danh từ (noun)”.',
     steps: [
-      content('discover', 'Những từ dùng để gọi tên', 'teacher gọi tên một người; school gọi tên một nơi; apple gọi tên một vật; love gọi tên một ý tưởng. Sau khi bạn hiểu điểm chung, Bunny mới cho tên ngữ pháp: noun — danh từ.', { chips: ['người: teacher', 'nơi: school', 'vật: apple', 'ý tưởng: love'] }),
-      content('understand', 'Tên của từ và vị trí trong câu là hai chuyện khác nhau', '“student” là từ dùng để gọi tên một người, nên nó thuộc nhóm noun. Trong “Students learn.”, “Students” đồng thời là phần câu đang nói tới. Chưa cần thuộc hai tên này cùng lúc — trước tiên chỉ cần phân biệt ý nghĩa.'),
-      identify('Chọn tất cả nouns.', ['teacher', 'quickly', 'city', 'happy', 'book'], [0, 2, 4], 'teacher, city, book gọi tên người/nơi/vật.', { multi: true }),
-      choice('Từ nào là noun chỉ ý tưởng?', ['run', 'freedom', 'blue', 'slowly'], 'freedom', '“freedom” gọi tên một khái niệm/ý tưởng.'),
-      produce('Viết 4 nouns: 1 người, 1 nơi, 1 vật, 1 ý tưởng.', 'student, park, phone, hope', ['Có 4 danh từ'], { minWords: 4 }),
-      review([['Noun gọi tên những gì?', 'Người, nơi, vật, ý tưởng'], ['Noun có luôn là subject không?', 'Không'], ['“school” là loại từ gì?', 'Noun']]),
+      content('discover', 'Những từ dùng để gọi tên', 'teacher gọi tên một người; school gọi tên một nơi; apple gọi tên một vật; love gọi tên một ý tưởng. Những từ như vậy được gọi là danh từ (noun).', { chips: ['người: teacher', 'nơi: school', 'vật: apple', 'ý tưởng: love'] }),
+      content('understand', 'Một từ có thể vừa có “nhóm từ” vừa có vai trò trong câu', '“student” dùng để gọi tên một người, nên nó là danh từ. Trong “Students learn.”, “Students” cũng là phần mà câu đang nói tới. Trước mắt chỉ cần hiểu hai ý này, chưa cần học thuộc nhiều tên ngữ pháp cùng lúc.'),
+      identify('Chọn tất cả từ dùng để gọi tên người, nơi hoặc vật.', ['teacher', 'quickly', 'city', 'happy', 'book'], [0, 2, 4], 'teacher, city và book đều dùng để gọi tên người, nơi hoặc vật.', { multi: true }),
+      choice('Từ nào dùng để gọi tên một ý tưởng?', ['run', 'freedom', 'blue', 'slowly'], 'freedom', '“freedom” gọi tên một khái niệm/ý tưởng.'),
+      produce('Viết 4 danh từ: một người, một nơi, một vật và một ý tưởng.', 'student, park, phone, hope', ['Có 4 danh từ'], { minWords: 4 }),
+      review([['Danh từ dùng để gọi tên những gì?', 'Người, nơi, vật hoặc ý tưởng.'], ['Danh từ có luôn là chủ ngữ không?', 'Không.'], ['“school” thuộc nhóm từ nào?', 'Danh từ (noun).']]),
     ],
   }),
   lesson({
@@ -185,11 +185,11 @@ const rawFoundationLessons = [
     focus: ['grammar', 'speaking'], standards: ['CCSS L.1.1d', 'WIDA ELD-LA.1.Inform'],
     objectiveVi: 'Dùng I/you/he/she/it/we/they để nhắc lại người hoặc vật mà không phải lặp tên nhiều lần.',
     steps: [
-      content('discover', 'Đừng lặp tên quá nhiều', 'Đọc hai câu: “Lan is my friend. Lan is kind.” Sau khi người nghe đã biết Lan là ai, tiếng Anh thường đổi lần nhắc thứ hai thành “She”: “Lan is my friend. She is kind.”', { examples: ['Lan is my friend.', 'She is kind.'] }),
-      content('visualize', '7 từ thay tên rất thường gặp', 'I = tôi/người đang nói; you = bạn/người nghe; he/she = một người; it = một vật/sự việc; we = tôi + người khác; they = nhiều người/vật. Nhóm từ này sau đó được gọi là pronouns — đại từ.', { chips: ['I = tôi', 'you = bạn', 'he = anh ấy', 'she = cô ấy', 'it = nó', 'we = chúng tôi/chúng ta', 'they = họ/chúng'] }),
+      content('discover', 'Đừng lặp tên quá nhiều', 'Đọc hai câu: “Lan is my friend. Lan is kind.” Sau khi người nghe đã biết Lan là ai, tiếng Anh thường đổi lần nhắc thứ hai thành “She”: “Lan is my friend. She is kind.”'),
+      content('visualize', '7 từ thay tên rất thường gặp', 'I = tôi/người đang nói; you = bạn/người nghe; he/she = một người; it = một vật/sự việc; we = tôi + người khác; they = nhiều người/vật. Những từ dùng để thay cho tên như vậy được gọi là đại từ (pronouns).', { chips: ['I = tôi', 'you = bạn', 'he = anh ấy', 'she = cô ấy', 'it = nó', 'we = chúng tôi/chúng ta', 'they = họ/chúng'] }),
       choice('“Tom and Mai” có thể thay bằng gì?', ['he', 'she', 'it', 'they'], 'they', 'Hai người → they.'),
       choice('“my phone” có thể thay bằng gì?', ['he', 'she', 'it', 'we'], 'it', 'Một đồ vật số ít → it.'),
-      produce('Viết 4 cặp noun → pronoun.', 'Lan → she\nmy parents → they\nmy car → it\nTom → he', ['Có 4 dòng'], { minLines: 4, minWords: 8 }),
+      produce('Viết 4 cặp “tên người/vật → từ thay thế”.', 'Lan → she\nmy parents → they\nmy car → it\nTom → he', ['Có 4 dòng'], { minLines: 4, minWords: 8 }),
       review([['Lan → ?', 'she'], ['Tom and Mai → ?', 'they'], ['my sister and I → ?', 'we']]),
     ],
   }),
@@ -212,26 +212,26 @@ const rawFoundationLessons = [
     focus: ['grammar', 'questions'], standards: ['CCSS L.1.1j'],
     objectiveVi: 'Biến câu với be thành phủ định và câu hỏi mà không dùng do/does.',
     steps: [
-      content('visualize', 'Statement → Negative → Question', 'She is tired. → She is not tired. → Is she tired?', { examples: ['They are ready.', 'They are not ready.', 'Are they ready?'] }),
-      content('understand', 'be tự lo hết, không cần thêm gì', 'Khi câu đã có be, chỉ cần thêm not để phủ định, hoặc đưa be lên trước chủ ngữ để hỏi. Không cần thêm “do”.'),
+      content('visualize', 'Khẳng định → Phủ định → Câu hỏi', 'She is tired. → She is not tired. → Is she tired?', { examples: ['They are ready.', 'They are not ready.', 'Are they ready?'] }),
+      content('understand', 'Với be, không cần do/does', 'Khi câu dùng am/is/are, chỉ cần thêm not để phủ định hoặc đưa am/is/are lên trước chủ ngữ để hỏi. Không dùng do/does trong mẫu này.'),
       choice('Phủ định đúng của “He is busy.”?', ['He does not busy.', 'He is not busy.', 'He not is busy.', 'He do not be busy.'], 'He is not busy.', 'be + not.'),
-      order('Sắp xếp thành câu hỏi.', ['you', 'ready', 'Are', '?'], 'Are you ready?', 'Đưa are lên trước subject “you”. Dấu ? là một phần của câu hỏi.', { punctuationRequired: true }),
+      order('Sắp xếp thành câu hỏi.', ['you', 'ready', 'Are', '?'], 'Are you ready?', 'Đưa are lên trước “you”. Nhớ dấu ? ở cuối câu.', { punctuationRequired: true }),
       fix('Sửa lỗi.', 'Do you are tired?', ['Are you tired?'], 'Với be, không thêm do.', { flexible: false }),
       produce('Viết 1 câu với be, rồi biến nó thành câu hỏi ở dòng 2.', 'She is happy.\nIs she happy?', ['Có 2 dòng', 'Dòng 2 là câu hỏi'], { minLines: 2, minWords: 4, requirements: [{ id:'lines', type:'minLines', value:2, labelVi:'Có ít nhất 2 dòng' }, { id:'question_line', type:'lineIsQuestion', line:2, labelVi:'Dòng 2 là câu hỏi đúng dạng' }] }),
-      review([['Phủ định với be?', 'be + not'], ['Câu hỏi với be?', 'Be + subject + ...?'], ['Có dùng do với “Are you…?” không?', 'Không.']]),
+      review([['Phủ định với be làm thế nào?', 'Thêm not sau am/is/are.'], ['Câu hỏi với be làm thế nào?', 'Đưa am/is/are lên trước chủ ngữ.'], ['Có dùng do trong “Are you…?” không?', 'Không.']]),
     ],
   }),
   lesson({
     id: 'f14-action-verbs', unit: 6, order: 14, titleEn: 'Action & State Verbs', titleVi: 'Động từ hành động và trạng thái', minutes: 11,
     focus: ['grammar', 'vocabulary'], standards: ['CCSS L.K.1b', 'CCSS L.1.1e'],
-    objectiveVi: 'Phân biệt động từ hành động và một số động từ trạng thái cơ bản để hiểu verb không chỉ là “hành động”.',
+    objectiveVi: 'Hiểu rằng động từ không chỉ nói hành động; những từ như like, know, need và be cũng có thể là động từ.',
     steps: [
-      content('discover', 'Verbs tell action OR state', 'run, eat, write = action. like, know, need = state/mental relation. be cũng là verb.'),
-      content('understand', 'Tại sao điều này quan trọng?', 'Nếu nghĩ verb chỉ là “hành động”, bạn dễ bỏ quên be, like, know và tạo câu thiếu động từ.'),
-      identify('Chọn tất cả verbs.', ['eat', 'happy', 'know', 'book', 'is'], [0, 2, 4], 'eat, know, is đều là verbs.', { multi: true }),
-      choice('Từ nào là state verb?', ['jump', 'know', 'write', 'walk'], 'know', 'know diễn tả trạng thái nhận thức.'),
-      produce('Viết 2 action verbs và 2 state verbs.', 'run, cook; like, know', ['Có 4 verbs'], { minWords: 4 }),
-      review([['Verb chỉ hành động thôi?', 'Không. Có cả trạng thái.'], ['Ví dụ state verb?', 'like/know/need/be'], ['“is” là verb?', 'Có.']]),
+      content('discover', 'Động từ có thể nói hành động hoặc trạng thái', 'run, eat, write nói hành động. like, know, need nói cảm xúc, suy nghĩ hoặc trạng thái. be cũng là một động từ.'),
+      content('understand', 'Tại sao điều này quan trọng?', 'Nếu chỉ nghĩ động từ là “hành động nhìn thấy được”, bạn rất dễ bỏ quên be, like hoặc know và tạo câu thiếu động từ.'),
+      identify('Chọn tất cả động từ.', ['eat', 'happy', 'know', 'book', 'is'], [0, 2, 4], 'eat, know và is đều là động từ.', { multi: true }),
+      choice('Từ nào nói về trạng thái hoặc suy nghĩ?', ['jump', 'know', 'write', 'walk'], 'know', 'know diễn tả trạng thái nhận thức.'),
+      produce('Viết 2 động từ nói hành động và 2 động từ nói trạng thái/suy nghĩ.', 'run, cook; like, know', ['Có 4 động từ'], { minWords: 4 }),
+      review([['Động từ chỉ nói về hành động thôi?', 'Không. Động từ còn có thể nói về trạng thái, cảm xúc hoặc suy nghĩ.'], ['Ví dụ động từ nói trạng thái/suy nghĩ?', 'like / know / need / be'], ['“is” có phải động từ không?', 'Có.']]),
     ],
   }),
   lesson({
@@ -241,11 +241,11 @@ const rawFoundationLessons = [
     steps: [
       content('discover', 'So sánh: I work → He works', 'Đọc chậm hai câu: “I work every day.” và “He works every day.” Ý vẫn là thói quen, nhưng khi chủ thể là he/she/it, động từ thường có thêm -s/-es.'),
       content('compare', 'Lỗi rất phổ biến với người Việt', 'Tiếng Việt không đổi động từ theo chủ ngữ. Vì vậy “He work every day.” rất dễ xuất hiện. Tiếng Anh cần “He works every day.”'),
-      content('visualize', 'I/you/we/they → base verb · he/she/it → V-s/es', 'Hãy kiểm tra subject trước khi chọn dạng verb.', { chips: ['I work', 'you work', 'we work', 'they work', 'he works', 'she works', 'it works'] }),
+      content('visualize', 'I/you/we/they → động từ dạng gốc · he/she/it → V-s/es', 'Hãy kiểm tra subject trước khi chọn dạng verb.', { chips: ['I work', 'you work', 'we work', 'they work', 'he works', 'she works', 'it works'] }),
       fill('Điền verb đúng.', 'She ___ English every day. (study)', 'studies', 'Phụ âm + y: study → studies.'),
       choice('Câu nào đúng?', ['He watch TV.', 'He watches TV.', 'He watching TV.', 'He watchs TV.'], 'He watches TV.', 'watch → watches với he.'),
       fix('Sửa lỗi.', 'My brother work at a hospital.', ['My brother works at a hospital.'], 'My brother = he → works.'),
-      produce('Viết 2 câu với he/she/it ở Present Simple.', 'She reads every night.\nMy phone works well.', ['Có 2 dòng', 'Có verb -s/-es phù hợp'], { minLines: 2, minWords: 6, requirements: [{ id:'lines', type:'minLines', value:2, labelVi:'Có ít nhất 2 dòng' }, { id:'third_s', type:'containsThirdPersonS', count:1, labelVi:'Có ít nhất một verb -s/-es với he/she/it' }] }),
+      produce('Viết 2 câu với he/she/it ở Present Simple.', 'She reads every night.\nMy phone works well.', ['Có 2 dòng', 'Có động từ thêm -s/-es phù hợp'], { minLines: 2, minWords: 6, requirements: [{ id:'lines', type:'minLines', value:2, labelVi:'Có ít nhất 2 dòng' }, { id:'third_s', type:'containsThirdPersonS', count:1, labelVi:'Có ít nhất một động từ thêm -s/-es với he/she/it' }] }),
       review([['He work hay he works?', 'He works'], ['study với she?', 'studies'], ['Vì sao người Việt hay quên -s?', 'Tiếng Việt không chia động từ theo chủ ngữ theo cách này.']]),
     ],
   }),
@@ -260,7 +260,7 @@ const rawFoundationLessons = [
       fill('Điền a hoặc an.', '___ apple', 'an', 'apple bắt đầu bằng âm nguyên âm.'),
       fix('Sửa lỗi.', 'She is teacher.', ['She is a teacher.'], 'Nghề nghiệp số ít thường cần a/an.'),
       produce('Viết 4 cụm: 2 với a và 2 với an.', 'a car, a student, an apple, an engineer', ['Có a và an', 'Có ít nhất 4 cụm'], { minWords: 8 }),
-      review([['a/an dùng với loại noun nào?', 'Danh từ đếm được số ít'], ['Chọn a/an theo chữ hay âm?', 'Theo âm'], ['hour dùng a hay an?', 'an hour']]),
+      review([['a/an thường đứng trước loại danh từ nào?', 'Danh từ đếm được số ít'], ['Chọn a/an theo chữ hay âm?', 'Theo âm'], ['hour dùng a hay an?', 'an hour']]),
     ],
   }),
   lesson({
@@ -296,12 +296,12 @@ const rawFoundationLessons = [
     focus: ['grammar', 'meaning'], standards: ['CCSS L.2.1e', 'CCSS L.2.6'],
     objectiveVi: 'Phân biệt adjective và adverb cơ bản; dùng adverb để mô tả verb.',
     steps: [
-      content('discover', 'She speaks slowly.', 'slowly mô tả cách hành động speaks xảy ra. Adverb thường trả lời How? When? How often?'),
+      content('discover', 'She speaks slowly.', '“slowly” cho biết cô ấy nói như thế nào. Trạng từ thường bổ sung thông tin về cách, thời gian hoặc mức độ thường xuyên của hành động.'),
       content('compare', 'good vs well', 'She is a good singer. (good mô tả singer) · She sings well. (well mô tả sings).'),
       identify('Chọn adverb.', ['She', 'speaks', 'slowly', '.'], [2], 'slowly mô tả cách cô ấy nói.'),
       choice('Câu nào đúng?', ['He drives careful.', 'He drives carefully.', 'He careful drives.', 'He is drives carefully.'], 'He drives carefully.', 'carefully là adverb mô tả drives.'),
-      produce('Viết 2 câu có adverb: một câu “how”, một câu “how often”.', 'She speaks softly.\nI usually study at night.', ['Có 2 câu', 'Có adverb'], { minLines: 2, minWords: 6 }),
-      review([['Adjective thường mô tả gì?', 'Noun'], ['Adverb thường mô tả gì?', 'Verb/adjective/adverb/cả câu'], ['good singer / sings well?', 'Cả hai đúng, nhưng vai trò khác nhau.']]),
+      produce('Viết 2 câu: một câu nói hành động xảy ra như thế nào, một câu nói việc xảy ra thường xuyên ra sao.', 'She speaks softly.\nI usually study at night.', ['Có 2 câu', 'Có trạng từ'], { minLines: 2, minWords: 6 }),
+      review([['Tính từ thường mô tả gì?', 'Danh từ hoặc đại từ'], ['Trạng từ thường bổ sung ý cho gì?', 'Động từ, tính từ, trạng từ khác hoặc cả câu'], ['good singer / sings well?', 'Cả hai đều đúng, nhưng “good” mô tả singer còn “well” mô tả cách sings xảy ra.']]),
     ],
   }),
   lesson({
@@ -322,8 +322,8 @@ const rawFoundationLessons = [
     focus: ['grammar', 'sentence connection'], standards: ['CCSS L.1.1g', 'CCSS L.1.6'],
     objectiveVi: 'Dùng and/but/or/because/so theo ý nghĩa và tránh “because…so…” cùng lúc trong một cấu trúc cơ bản.',
     steps: [
-      content('discover', 'Conjunctions are bridges', 'and = thêm; but = tương phản; or = lựa chọn; because = lý do; so = kết quả.', { chips: ['and +', 'but ↔', 'or ?', 'because ← reason', 'so → result'] }),
-      content('compare', 'Lỗi người Việt: Because…, so…', 'Tiếng Việt thường dùng cặp “vì… nên…”. Trong tiếng Anh chuẩn cơ bản, chọn một hướng: “Because I was tired, I went home.” HOẶC “I was tired, so I went home.”'),
+      content('discover', 'Từ nối giống như chiếc cầu', 'and dùng để thêm ý; but để đối lập; or để đưa ra lựa chọn; because để nêu lý do; so để nói kết quả.', { chips: ['and +', 'but ↔', 'or ?', 'because ← reason', 'so → result'] }),
+      content('compare', 'Một điểm dễ nhầm khi dịch từ tiếng Việt', 'Tiếng Việt thường dùng cặp “vì… nên…”. Trong tiếng Anh, ở mẫu cơ bản này mình thường chọn một trong hai cách: “Because I was tired, I went home.” hoặc “I was tired, so I went home.”'),
       choice('Chọn từ nối: “I was hungry, ___ I ate.”', ['because', 'so', 'but', 'or'], 'so', 'Đói là nguyên nhân; ăn là kết quả → so.'),
       choice('Chọn từ nối: “I stayed home ___ I was sick.”', ['because', 'so', 'or', 'and'], 'because', 'because mở phần lý do.'),
       fix('Sửa câu.', 'Because I was tired, so I went home.', ['Because I was tired, I went home.', 'I was tired, so I went home.'], 'Không cần dùng cả because và so trong mẫu này.', { flexible: true }),
@@ -334,17 +334,17 @@ const rawFoundationLessons = [
   lesson({
     id: 'f22-parts-of-speech-map', unit: 12, order: 22, titleEn: '9 Core Word Jobs', titleVi: '9 nhóm từ cốt lõi', minutes: 15,
     focus: ['concept map', 'grammar'], standards: ['CCSS L.3.1a', 'WIDA language features'],
-    objectiveVi: 'Kết nối noun, pronoun, verb, adjective, adverb, article/determiner, preposition, conjunction, quantifier trong một ví dụ chung.',
+    objectiveVi: 'Nhìn lại 9 nhóm từ đã gặp và hiểu mỗi nhóm giúp câu làm gì, thay vì học thuộc các tên rời rạc.',
     steps: [
-      content('discover', 'Một quả táo, nhiều “công việc”', 'Thay vì học 9 định nghĩa rời rạc, ta xoay quanh một đối tượng: apple.', { examples: ['apple', 'an apple', 'a red apple', 'eat an apple', 'eat quickly', 'six apples', 'in the box', 'it is red', 'an apple and a banana'] }),
-      content('visualize', 'Một apple, chín công việc của từ', 'Apple là vật liệu học ở trung tâm; Bunny đứng bên cạnh để hướng dẫn. Mỗi nhánh cho thấy một nhóm từ thay đổi hoặc mở rộng ý nghĩa.', { conceptMap: [
+      content('discover', 'Một quả táo, nhiều cách dùng', 'Thay vì học thuộc 9 định nghĩa, mình dùng cùng một ví dụ là “apple” để xem các nhóm từ thay đổi ý nghĩa của câu như thế nào.', { examples: ['apple', 'an apple', 'a red apple', 'eat an apple', 'eat quickly', 'six apples', 'in the box', 'it is red', 'an apple and a banana'] }),
+      content('visualize', 'Một quả táo, chín nhóm từ', '“apple” nằm ở giữa. Mỗi nhánh cho bạn thấy một nhóm từ có thể gọi tên, mô tả, nối ý hoặc bổ sung thông tin như thế nào.', { conceptMap: [
         { label: 'Noun', labelVi: 'Danh từ', example: 'apple' }, { label: 'Article', labelVi: 'Mạo từ', example: 'an apple' }, { label: 'Adjective', labelVi: 'Tính từ', example: 'a red apple' }, { label: 'Quantifier', labelVi: 'Từ chỉ lượng', example: 'six apples' }, { label: 'Pronoun', labelVi: 'Đại từ', example: 'it' }, { label: 'Verb', labelVi: 'Động từ', example: 'eat an apple' }, { label: 'Adverb', labelVi: 'Trạng từ', example: 'eat quickly' }, { label: 'Preposition', labelVi: 'Giới từ', example: 'in the box' }, { label: 'Conjunction', labelVi: 'Liên từ', example: 'an apple and a banana' },
       ] }),
-      identify('Chọn adjective trong cụm.', ['a', 'red', 'apple'], [1], 'red mô tả apple.'),
-      identify('Chọn verb trong câu.', ['They', 'eat', 'apples', 'quickly', '.'], [1], 'eat nói hành động.'),
-      choice('“quickly” đang làm công việc gì?', ['Noun', 'Adverb', 'Article', 'Pronoun'], 'Adverb', 'Nó mô tả cách “eat” xảy ra.'),
+      identify('Chọn từ mô tả trong cụm.', ['a', 'red', 'apple'], [1], 'red mô tả apple.'),
+      identify('Chọn động từ trong câu.', ['They', 'eat', 'apples', 'quickly', '.'], [1], 'eat nói hành động.'),
+      choice('Trong câu này, “quickly” thuộc nhóm nào?', ['Danh từ (noun)', 'Trạng từ (adverb)', 'Mạo từ (article)', 'Đại từ (pronoun)'], 'Trạng từ (adverb)', '“quickly” cho biết hành động “eat” diễn ra như thế nào.'),
       produce('Tạo một “mini map” với noun khác. Viết ít nhất 4 biến thể.', 'book\na book\na useful book\nread a book\nread quietly', ['Có ít nhất 4 dòng'], { minLines: 4, minWords: 8 }),
-      review([['Noun hỏi gì?', 'Who or what?'], ['Adjective hỏi gì?', 'What is it like?'], ['Adverb thường hỏi gì?', 'How/when/how often?'], ['Conjunction làm gì?', 'Nối từ/cụm/ý.']]),
+      review([['Danh từ thường gọi tên gì?', 'Người, nơi, vật hoặc ý tưởng'], ['Tính từ thường giúp trả lời câu hỏi nào?', 'Người/vật đó như thế nào?'], ['Trạng từ thường cho biết điều gì?', 'Như thế nào, khi nào hoặc thường xuyên ra sao'], ['Liên từ dùng để làm gì?', 'Nối từ, cụm từ hoặc ý.']]),
     ],
   }),
   lesson({
@@ -364,84 +364,84 @@ const rawFoundationLessons = [
   lesson({
     id: 'f24-svo-pattern', unit: 14, order: 24, titleEn: 'Core Pattern: S + V + O', titleVi: 'Mẫu cốt lõi S + V + O', minutes: 13,
     focus: ['sentence pattern', 'writing'], standards: ['CCSS L.1.1j', 'WIDA ELD-LA.1.Inform'],
-    objectiveVi: 'Tìm object bằng câu hỏi “verb tác động lên ai/cái gì?” và tạo câu SVO.',
+    objectiveVi: 'Tìm phần nhận hành động bằng câu hỏi “làm gì với ai/cái gì?” rồi tự tạo câu theo mẫu S + V + O.',
     steps: [
-      content('discover', 'I read books.', 'I = subject; read = verb; books = object. Object nhận/hoàn tất ý của action verb.'),
+      content('discover', 'I read books.', 'Câu này có ba phần: I là người làm, read là hành động, books là thứ được đọc. Sau khi hiểu ý này, mình mới gọi chúng là S, V và O.'),
       content('visualize', 'S → V → O', 'Hãy hình dung mũi tên từ người làm hành động đến thứ nhận hành động.', { tokenRoles: [{ text: 'She', role: 'S' }, { text: 'likes', role: 'V' }, { text: 'coffee', role: 'O' }] }),
-      content('compare', 'Word order quan trọng', 'English thường dựa mạnh vào vị trí. “The dog bites the man” và “The man bites the dog” có cùng từ nhưng đổi nghĩa hoàn toàn.'),
-      identify('Chọn object.', ['My', 'brother', 'plays', 'soccer', '.'], [3], 'plays what? → soccer.'),
-      order('Ghép S + V + O.', ['music', 'likes', 'She', '.'], 'She likes music .', 'Subject trước, verb sau, object sau verb.'),
+      content('compare', 'Thứ tự từ làm đổi nghĩa', 'Tiếng Anh dựa nhiều vào vị trí của từ. “The dog bites the man” và “The man bites the dog” dùng gần như cùng từ, nhưng người làm và người nhận hành động đã đổi chỗ.'),
+      identify('Chọn phần nhận hành động.', ['My', 'brother', 'plays', 'soccer', '.'], [3], 'Hỏi “plays what?” — chơi gì? → soccer.'),
+      order('Ghép câu theo mẫu S + V + O.', ['music', 'likes', 'She', '.'], 'She likes music .', 'Người/vật chính đứng trước, rồi đến động từ và phần nhận hành động.'),
       produce('Viết 3 câu S + V + O về điều bạn thích/làm.', 'I like coffee.\nI study English.\nI play games.', ['Có 3 dòng', 'Mỗi câu có object'], { minLines: 3, minWords: 9 }),
-      review([['O nghĩa là?', 'Object'], ['Câu hỏi tìm object?', 'Verb tác động lên ai/cái gì?'], ['I like coffee: object?', 'coffee']]),
+      review([['O là viết tắt của gì?', 'Object — tân ngữ'], ['Tìm tân ngữ bằng câu hỏi nào?', 'Làm gì với ai/cái gì?'], ['Trong “I like coffee”, tân ngữ là gì?', 'coffee']]),
     ],
   }),
   lesson({
     id: 'f25-svc-pattern', unit: 15, order: 25, titleEn: 'Core Pattern: S + V + C', titleVi: 'Mẫu cốt lõi S + V + C', minutes: 13,
     focus: ['sentence pattern', 'be'], standards: ['CCSS L.1.1j'],
-    objectiveVi: 'Hiểu bổ ngữ mô tả/gọi tên lại chủ ngữ sau be, khác với tân ngữ (nhận hành động).',
+    objectiveVi: 'Hiểu phần đứng sau be có thể mô tả hoặc gọi tên chủ ngữ, và phân biệt phần này với tân ngữ nhận hành động.',
     steps: [
-      content('discover', 'She is tired.', 'She = chủ ngữ. is = be. tired = bổ ngữ — mô tả lại She, không nhận hành động gì cả.'),
-      content('visualize', 'S và C nói về cùng một thứ', 'Trong “Tom is a teacher”, Tom và a teacher là cùng một người. Trong “The soup smells good”, good mô tả soup.', { tokenRoles: [{ text: 'Tom', role: 'S' }, { text: 'is', role: 'V' }, { text: 'a teacher', role: 'C' }] }),
-      choice('Complement trong “The room is quiet.” là gì?', ['The room', 'is', 'quiet', 'room'], 'quiet', 'quiet mô tả subject “The room”.'),
-      choice('Câu nào là S + V + C?', ['I read books.', 'Birds fly.', 'She is happy.', 'They play soccer.'], 'She is happy.', 'happy là bổ ngữ (complement) đứng sau be — nó mô tả lại “She”.'),
-      produce('Viết 3 câu S + be + C: danh tính, tính chất, vị trí.', 'I am a student.\nMy room is quiet.\nMy keys are on the desk.', ['Có 3 dòng', 'Có be + complement'], { minLines: 3, minWords: 9 }),
-      review([['C khác O thế nào?', 'C mô tả/gọi tên lại chủ ngữ; O nhận hành động.'], ['She is happy: C là gì?', 'happy'], ['Tom is a teacher: Tom và teacher có phải cùng một người/vật?', 'Có.']]),
+      content('discover', 'She is tired.', '“tired” không phải thứ nhận một hành động. Nó cho biết She đang như thế nào. Phần này được gọi là bổ ngữ (complement).'),
+      content('visualize', 'Bổ ngữ nói thêm về chủ ngữ', 'Trong “Tom is a teacher”, “a teacher” nói Tom là ai. Trong “The soup smells good”, “good” mô tả món súp. Cả hai đều bổ sung thông tin về chủ ngữ.', { tokenRoles: [{ text: 'Tom', role: 'S' }, { text: 'is', role: 'V' }, { text: 'a teacher', role: 'C' }] }),
+      choice('Bổ ngữ trong “The room is quiet.” là gì?', ['The room', 'is', 'quiet', 'room'], 'quiet', 'quiet mô tả chủ ngữ “The room”.'),
+      choice('Câu nào là S + V + C?', ['I read books.', 'Birds fly.', 'She is happy.', 'They play soccer.'], 'She is happy.', 'happy mô tả chủ ngữ sau “is”, nên đây là bổ ngữ.'),
+      produce('Viết 3 câu dùng be để nói: một câu về danh tính, một câu mô tả đặc điểm và một câu nói vị trí.', 'I am a student.\nMy room is quiet.\nMy keys are on the desk.', ['Có 3 dòng', 'Có be + complement'], { minLines: 3, minWords: 9 }),
+      review([['Bổ ngữ khác tân ngữ thế nào?', 'Bổ ngữ mô tả/gọi tên chủ ngữ; tân ngữ là phần nhận hành động.'], ['Trong “She is happy”, bổ ngữ là gì?', 'happy'], ['Trong “Tom is a teacher”, “a teacher” nói về ai?', 'Tom.']]),
     ],
   }),
   lesson({
     id: 'f26-negatives', unit: 16, order: 26, titleEn: 'Make a Sentence Negative', titleVi: 'Tạo câu phủ định', minutes: 14,
     focus: ['grammar', 'transformation'], standards: ['CCSS L.1.1j'],
-    objectiveVi: 'Chọn đúng hệ phủ định: be + not hoặc do/does + not + base verb.',
+    objectiveVi: 'Biết khi nào chỉ cần thêm not sau be và khi nào cần do/does + not với động từ thường.',
     steps: [
-      content('visualize', 'Hai đường phủ định', 'BE: She is tired → She is not tired. NORMAL VERB: She likes tea → She does not like tea.'),
-      content('understand', 'Sau does, verb trở về nguyên mẫu', 'does mang dấu hiệu ngôi thứ ba, nên main verb không còn -s: “She doesn’t likes” ✗ → “She doesn’t like” ✓.'),
+      content('visualize', 'Hai cách tạo câu phủ định', 'Với be: She is tired → She is not tired. Với động từ thường: She likes tea → She does not like tea.'),
+      content('understand', 'Sau does, động từ trở về dạng gốc', 'does đã mang dấu hiệu của he/she/it, nên động từ phía sau không thêm -s nữa: “She doesn’t likes” ✗ → “She doesn’t like” ✓.'),
       choice('Phủ định đúng: “They are busy.”', ['They do not busy.', 'They are not busy.', 'They does not busy.', 'They not are busy.'], 'They are not busy.', 'Có be → be + not.'),
-      choice('Phủ định đúng: “He works here.”', ['He not works here.', 'He does not works here.', 'He does not work here.', 'He is not work here.'], 'He does not work here.', 'Normal verb + he → does not + base verb.'),
-      fix('Sửa lỗi.', 'She does not likes coffee.', ['She does not like coffee.', "She doesn't like coffee."], 'Sau does/doesn’t dùng base verb “like”.', { flexible: true }),
-      produce('Viết 2 câu khẳng định rồi phủ định chúng: một câu với be, một câu với normal verb.', 'I am tired. → I am not tired.\nHe likes tea. → He does not like tea.', ['Có be-negative', 'Có do/does-negative'], { minLines: 2, minWords: 10, requirements: [{ id:'be_neg', type:'containsBeNegative', count:1, labelVi:'Có một câu phủ định với be' }, { id:'do_neg', type:'containsDoNegative', count:1, labelVi:'Có một câu phủ định với do/does' }] }),
-      review([['be negative?', 'be + not'], ['normal verb negative present?', 'do/does + not + base verb'], ['does not likes đúng không?', 'Không. does not like.']]),
+      choice('Phủ định đúng: “He works here.”', ['He not works here.', 'He does not works here.', 'He does not work here.', 'He is not work here.'], 'He does not work here.', 'Với he và động từ thường: does not + động từ dạng gốc.'),
+      fix('Sửa lỗi.', 'She does not likes coffee.', ['She does not like coffee.', "She doesn't like coffee."], 'Sau does/doesn’t, dùng động từ dạng gốc “like”.', { flexible: true }),
+      produce('Viết 2 câu khẳng định rồi đổi sang phủ định: một câu với be và một câu với động từ thường.', 'I am tired. → I am not tired.\nHe likes tea. → He does not like tea.', ['Có be-negative', 'Có do/does-negative'], { minLines: 2, minWords: 10, requirements: [{ id:'be_neg', type:'containsBeNegative', count:1, labelVi:'Có một câu phủ định với be' }, { id:'do_neg', type:'containsDoNegative', count:1, labelVi:'Có một câu phủ định với do/does' }] }),
+      review([['Phủ định với be?', 'be + not'], ['Phủ định hiện tại với động từ thường?', 'do/does + not + động từ dạng gốc'], ['“does not likes” có đúng không?', 'Không. Đúng là “does not like”.']]),
     ],
   }),
   lesson({
-    id: 'f27-questions', unit: 17, order: 27, titleEn: 'Ask Yes/No Questions', titleVi: 'Đặt câu hỏi Yes/No', minutes: 14,
+    id: 'f27-questions', unit: 17, order: 27, titleEn: 'Ask Yes/No Questions', titleVi: 'Đặt câu hỏi Có/Không', minutes: 14,
     focus: ['grammar', 'questions'], standards: ['CCSS L.K.1d', 'CCSS L.1.1j'],
-    objectiveVi: 'Biến statement thành câu hỏi bằng be hoặc do/does và giữ main verb ở base form sau does.',
+    objectiveVi: 'Đổi câu khẳng định thành câu hỏi Có/Không bằng be hoặc do/does, và nhớ dùng động từ dạng gốc sau does.',
     steps: [
-      content('visualize', 'BE moves · DO appears', 'She is ready. → Is she ready? | You like coffee. → Do you like coffee? | He likes coffee. → Does he like coffee?'),
-      content('understand', 'Question = thay đổi “khung”, không chỉ thêm dấu ?', 'Word order là một phần của grammar. Với normal verb, English cần do/does đứng trước subject.'),
-      order('Sắp xếp câu hỏi.', ['you', 'Do', 'English', 'study', '?'], 'Do you study English?', 'Do + subject + base verb + object + ?. ', { punctuationRequired: true }),
-      order('Sắp xếp câu hỏi.', ['she', 'Is', 'ready', '?'], 'Is she ready?', 'Với be, đưa be lên trước subject và giữ dấu ?.', { punctuationRequired: true }),
-      fix('Sửa lỗi.', 'Does he likes pizza?', ['Does he like pizza?'], 'Sau does dùng base verb “like”.'),
-      produce('Viết 3 Yes/No questions: 1 với be, 1 với do, 1 với does.', 'Are you ready?\nDo you work here?\nDoes she study English?', ['Có 3 câu hỏi', 'Có be/do/does'], { minLines: 3, minWords: 9, requirements: [{ id:'questions', type:'containsQuestion', count:3, labelVi:'Có ít nhất 3 câu hỏi' }, { id:'frames', type:'containsAll', values:['be-question','do-question','does-question'], labelVi:'Có câu hỏi với be, do và does' }] }),
-      review([['Question với be?', 'Be + subject + ...?'], ['Question với normal verb?', 'Do/Does + subject + base verb...?'], ['Does he likes?', 'Sai → Does he like?']]),
+      content('visualize', 'Nhìn vị trí của be và do/does', 'She is ready. → Is she ready? | You like coffee. → Do you like coffee? | He likes coffee. → Does he like coffee?'),
+      content('understand', 'Câu hỏi không chỉ thêm dấu ?', 'Tiếng Anh còn đổi thứ tự từ. Với động từ thường, do/does đứng trước chủ ngữ: “You like coffee.” → “Do you like coffee?”'),
+      order('Sắp xếp câu hỏi.', ['you', 'Do', 'English', 'study', '?'], 'Do you study English?', 'Do + chủ ngữ + động từ dạng gốc + phần còn lại + ?.', { punctuationRequired: true }),
+      order('Sắp xếp câu hỏi.', ['she', 'Is', 'ready', '?'], 'Is she ready?', 'Với be, đưa am/is/are lên trước chủ ngữ và giữ dấu ?.', { punctuationRequired: true }),
+      fix('Sửa lỗi.', 'Does he likes pizza?', ['Does he like pizza?'], 'Sau does dùng động từ dạng gốc “like”.'),
+      produce('Viết 3 câu hỏi Có/Không: một câu với be, một câu với do và một câu với does.', 'Are you ready?\nDo you work here?\nDoes she study English?', ['Có 3 câu hỏi', 'Có be/do/does'], { minLines: 3, minWords: 9, requirements: [{ id:'questions', type:'containsQuestion', count:3, labelVi:'Có ít nhất 3 câu hỏi' }, { id:'frames', type:'containsAll', values:['be-question','do-question','does-question'], labelVi:'Có câu hỏi với be, do và does' }] }),
+      review([['Câu hỏi với be bắt đầu thế nào?', 'Be + chủ ngữ + ...?'], ['Câu hỏi với động từ thường bắt đầu thế nào?', 'Do/Does + chủ ngữ + động từ dạng gốc + ...?'], ['“Does he likes?” có đúng không?', 'Không → “Does he like?”']]),
     ],
   }),
   lesson({
     id: 'f28-present-simple-meaning', unit: 18, order: 28, titleEn: 'Present Simple Means “Usually / Generally”', titleVi: 'Hiện tại đơn: thói quen và sự thật', minutes: 15,
     focus: ['tense', 'meaning'], standards: ['CCSS L.1.1e', 'CCSS L.3.1e'],
-    objectiveVi: 'Chọn Present Simple dựa trên ý nghĩa: thói quen, sự thật, trạng thái ổn định; không chỉ dựa vào công thức.',
+    objectiveVi: 'Biết khi nào dùng thì hiện tại đơn để nói thói quen, sự thật, lịch trình hoặc trạng thái ổn định.',
     steps: [
-      content('discover', 'What kind of time?', '“I study every day.” không có nghĩa là tôi đang học ngay giây này. Nó mô tả thói quen/lặp lại.'),
-      content('visualize', 'Timeline: ● · ● · ● · NOW · ●', 'Present Simple thường nhìn thời gian như pattern lặp lại hoặc điều đúng nói chung.', { chips: ['habit', 'fact', 'stable state', 'schedule'] }),
-      content('understand', '4 câu hỏi trước khi chọn tense', 'Việc này là thói quen? sự thật? trạng thái ổn định? lịch trình? Nếu có, Present Simple thường phù hợp.'),
-      choice('Câu nào mô tả thói quen?', ['I study every evening.', 'I am studying right now.', 'I studied yesterday.', 'I will study tomorrow.'], 'I study every evening.', 'every evening cho thấy pattern lặp lại.'),
-      fill('Điền dạng đúng.', 'I ___ coffee every morning. (drink)', 'drink', 'I + base verb. Ở bài tiếp theo bạn sẽ học vì sao he/she/it đổi dạng.'),
-      fix('Sửa lỗi.', 'I am study English every day.', ['I study English every day.'], 'Với routine dùng normal verb trực tiếp: I study. Không thêm be trước study.'),
-      produce('Viết 4 câu Present Simple về routine/sự thật của bạn.', 'I wake up at 7.\nI drink coffee.\nI study English every day.\nI live in Washington.', ['Có 4 câu', 'Nói thói quen/sự thật'], { minLines: 4, minWords: 16 }),
-      review([['Present Simple thường diễn tả?', 'Habit/fact/stable state/schedule'], ['every day là tín hiệu gì?', 'Thói quen/lặp lại'], ['Bài tiếp theo sẽ thêm cơ chế nào?', 'Cách he/she/it làm verb đổi dạng -s/-es.']]),
+      content('discover', 'Câu này đang nói về lúc nào?', '“I study every day.” không có nghĩa là tôi đang học ngay lúc này. Câu này nói về một việc lặp lại thường xuyên.'),
+      content('visualize', 'Nhìn thói quen trên dòng thời gian', 'Thì hiện tại đơn thường dùng cho việc lặp lại hoặc điều đúng nói chung.', { chips: ['thói quen', 'sự thật', 'trạng thái ổn định', 'lịch trình'] }),
+      content('understand', 'Hỏi ý nghĩa trước khi chọn thì', 'Việc này có phải thói quen, sự thật, lịch trình hoặc trạng thái ổn định không? Nếu có, thì hiện tại đơn thường là lựa chọn phù hợp.'),
+      choice('Câu nào mô tả thói quen?', ['I study every evening.', 'I am studying right now.', 'I studied yesterday.', 'I will study tomorrow.'], 'I study every evening.', 'every evening cho thấy đây là việc lặp lại.'),
+      fill('Điền dạng đúng.', 'I ___ coffee every morning. (drink)', 'drink', 'Với I, dùng động từ dạng gốc “drink”. Ở bài tiếp theo bạn sẽ học vì sao he/she/it làm động từ thay đổi.'),
+      fix('Sửa lỗi.', 'I am study English every day.', ['I study English every day.'], 'Khi nói thói quen, dùng động từ “study” trực tiếp: I study. Không thêm be trước study.'),
+      produce('Viết 4 câu hiện tại đơn về thói quen hoặc sự thật của bạn.', 'I wake up at 7.\nI drink coffee.\nI study English every day.\nI live in Washington.', ['Có 4 câu', 'Nói thói quen/sự thật'], { minLines: 4, minWords: 16 }),
+      review([['Thì hiện tại đơn thường nói về gì?', 'Thói quen, sự thật, lịch trình hoặc trạng thái ổn định.'], ['“every day” cho biết điều gì?', 'Việc lặp lại / thói quen.'], ['Với he/she/it, bài tiếp theo cần chú ý gì?', 'Động từ thường thêm -s/-es.']]),
     ],
   }),
   lesson({
     id: 'f29-sentence-expansion', unit: 19, order: 29, titleEn: 'Grow a Sentence', titleVi: 'Mở rộng câu từng lớp', minutes: 16,
     focus: ['sentence expansion', 'writing'], standards: ['CCSS L.K.1f', 'CCSS L.1.1j', 'CCSS L.2.1f'],
-    objectiveVi: 'Mở rộng câu bằng determiner, adjective, adverb, prepositional phrase và time phrase mà không phá cấu trúc lõi.',
+    objectiveVi: 'Biết bắt đầu từ một câu ngắn rồi thêm từ mô tả, cách thức, nơi chốn và thời gian mà vẫn giữ câu rõ ràng.',
     steps: [
       content('discover', 'Bắt đầu nhỏ rồi thêm lớp', 'Dogs run. → The dogs run. → The small dogs run. → The small dogs run quickly. → The small dogs run quickly in the park. → …every morning.'),
-      content('visualize', 'CORE trước, DETAILS sau', 'Giữ S + V rõ ràng. Sau đó thêm chi tiết vào noun hoặc vào toàn hành động.', { tokenRoles: [{ text: 'The small dogs', role: 'expanded S' }, { text: 'run', role: 'V' }, { text: 'quickly', role: 'how' }, { text: 'in the park', role: 'where' }, { text: 'every morning', role: 'when' }] }),
-      choice('Lõi của “The small dogs run quickly in the park.” là gì?', ['small dogs', 'dogs run', 'run quickly', 'in the park'], 'dogs run', 'Bỏ modifier, core S+V là dogs run.'),
-      order('Tạo câu tự nhiên.', ['every morning', 'The small dogs', 'run', 'in the park', 'quickly', '.'], 'The small dogs run quickly in the park every morning .', 'Một trật tự tự nhiên: S + V + manner + place + time.'),
+      content('visualize', 'Câu lõi trước, chi tiết sau', 'Giữ phần chính của câu thật rõ. Sau đó mới thêm từ mô tả, cách thức, nơi chốn hoặc thời gian.', { tokenRoles: [{ text: 'The small dogs', role: 'expanded S' }, { text: 'run', role: 'V' }, { text: 'quickly', role: 'how' }, { text: 'in the park', role: 'where' }, { text: 'every morning', role: 'when' }] }),
+      choice('Lõi của “The small dogs run quickly in the park.” là gì?', ['small dogs', 'dogs run', 'run quickly', 'in the park'], 'dogs run', 'Bỏ các chi tiết bổ sung, phần chính còn lại là “dogs run”.'),
+      order('Tạo câu tự nhiên.', ['every morning', 'The small dogs', 'run', 'in the park', 'quickly', '.'], 'The small dogs run quickly in the park every morning .', 'Một thứ tự tự nhiên là: ai/cái gì + hành động + cách thức + nơi chốn + thời gian.'),
       produce('Bắt đầu với “I study.” rồi mở rộng qua ít nhất 4 dòng. Mỗi dòng thêm một chi tiết.', 'I study.\nI study English.\nI study English carefully.\nI study English carefully at home.\nI study English carefully at home every night.', ['Có ít nhất 4 dòng', 'Mỗi dòng phát triển từ câu trước'], { minLines: 4, minWords: 14 }),
-      review([['Mở rộng câu nên bắt đầu từ đâu?', 'Core sentence'], ['Chi tiết có được làm mất subject/verb không?', 'Không'], ['Các câu hỏi mở rộng?', 'What kind? How? Where? When? Why?']]),
+      review([['Mở rộng câu nên bắt đầu từ đâu?', 'Từ câu lõi / phần chính.'], ['Thêm chi tiết có được làm mất chủ ngữ hoặc động từ không?', 'Không.'], ['Có thể hỏi gì để thêm chi tiết?', 'Loại nào? Như thế nào? Ở đâu? Khi nào? Vì sao?']]),
     ],
   }),
   lesson({
@@ -540,10 +540,10 @@ const rawFoundationLessons = [
     steps: [
       content('discover','Một từ nhỏ thay đổi ý nghĩa','“I swim.” nói hành động. “I can swim.” nói khả năng. “I can’t swim.” nói không có khả năng.',{examples:['I can swim.','She can drive.','He can’t cook.']}),
       content('understand','Sau can dùng động từ gốc','can + swim, can + drive. Không thêm to và không thêm -s sau can.',{callout:'She can swim. ✓ · She can swims. ✗ · She can to swim. ✗'}),
-      choice('Câu nào đúng?', ['He can drives.','He can drive.','He can to drive.','He cans drive.'], 'He can drive.', 'Sau can dùng verb gốc.'),
+      choice('Câu nào đúng?', ['He can drives.','He can drive.','He can to drive.','He cans drive.'], 'He can drive.', 'Sau can dùng động từ dạng gốc.'),
       choice('Câu nào nghĩa là “Tôi không thể bơi”?', ['I do not can swim.','I can’t swim.','I am not swim.','I no can swim.'], 'I can’t swim.', 'can’t = cannot.'),
       produce('Viết 3 câu: 2 điều bạn có thể làm và 1 điều bạn không thể làm.', 'I can cook.\nI can drive.\nI can’t sing.', ['Có 3 câu'], {minLines:3,minWords:8,requirements:[{id:'can',type:'containsPattern',pattern:'\\bcan\\b',count:2,labelVi:'Có ít nhất 2 câu can'},{id:'cant',type:'containsAny',values:["can't",'cannot'],count:1,labelVi:'Có một câu can’t/cannot'}]}),
-      review([['Sau can dùng dạng nào?','verb gốc'],['can’t nghĩa là?','cannot / không thể'],['Có thêm -s sau can không?','Không.']]),
+      review([['Sau can dùng dạng nào?','động từ dạng gốc'],['can’t nghĩa là?','cannot / không thể'],['Có thêm -s sau can không?','Không.']]),
     ],
   }),
   lesson({
@@ -555,7 +555,7 @@ const rawFoundationLessons = [
       choice('Câu nào là một yêu cầu lịch sự?', ['Please open the door.','You opening door.','Door please opens.','Please to open door.'], 'Please open the door.', 'Please + verb gốc.'),
       choice('Bạn nghe “Please wait here.” Bạn nên làm gì?', ['đi ngay','chờ ở đây','mở cửa','ngồi xuống'], 'chờ ở đây', 'wait here = chờ ở đây.'),
       produce('Viết 3 yêu cầu/chỉ dẫn đơn giản mà bạn có thể nghe ở lớp học hoặc nơi công cộng.', 'Please sit down.\nOpen the book.\nPlease wait here.', ['Có 3 dòng'], {minLines:3,minWords:7,requirements:[{id:'please',type:'containsAny',values:['please'],count:1,labelVi:'Có ít nhất một câu với please'}]}),
-      review([['Instruction cơ bản bắt đầu bằng gì?','verb gốc'],['Thêm gì để lịch sự?','please'],['Subject “you” có bắt buộc không?','Thường không trong imperative.']]),
+      review([['Câu chỉ dẫn đơn giản thường bắt đầu bằng gì?','Động từ dạng gốc.'],['Thêm gì để câu lịch sự hơn?','please'],['Có cần nói “you” ở đầu câu chỉ dẫn không?','Thường không cần.']]),
     ],
   }),
   lesson({
@@ -584,16 +584,16 @@ const rawFoundationLessons = [
   }),
   lesson({
     id: 'f42-a0-big-review', unit: 31, order: 42, titleEn: 'A0 Big Review', titleVi: 'Ôn lớn trước kiểm tra A0', minutes: 22,
-    focus: ['review','integration','mastery'], objectiveVi: 'Kết nối các cấu trúc A0 thành khả năng giao tiếp nhỏ: giới thiệu, hỏi/đáp, mô tả, nói routine và hiểu đoạn ngắn.', mastery:{minAccuracy:.7,requiresProduction:true},
+    focus: ['review','integration','mastery'], objectiveVi: 'Kết nối các cấu trúc A0 thành những việc bạn thật sự làm được: giới thiệu, hỏi/đáp, mô tả, nói về thói quen và hiểu đoạn ngắn.', mastery:{minAccuracy:.7,requiresProduction:true},
     steps: [
-      content('discover','A0 không phải 42 quy tắc rời rạc','Bunny muốn bạn nhìn thấy 5 khả năng: giới thiệu mình, mô tả người/vật, nói routine, hỏi thông tin, và hiểu một đoạn tiếng Anh ngắn.',{chips:['Introduce yourself','Describe','Routine','Ask','Understand']}),
+      content('discover','A0 không phải 42 quy tắc rời rạc','Bunny muốn bạn nhìn thấy 5 khả năng: giới thiệu bản thân, mô tả người/vật, nói về thói quen, hỏi thông tin và hiểu một đoạn tiếng Anh ngắn.',{chips:['Introduce yourself','Describe','Routine','Ask','Understand']}),
       content('understand','Ôn bằng việc sử dụng','Thay vì đọc lại toàn bộ lý thuyết, hãy trả lời các tình huống nhỏ. Nếu một phần còn yếu, Bunny sẽ đưa nó trở lại Practice.'),
-      choice('Chọn câu đúng.', ['She can swims.','She can swim.','She cans swim.','She can to swim.'], 'She can swim.', 'Sau can dùng verb gốc.'),
+      choice('Chọn câu đúng.', ['She can swims.','She can swim.','She cans swim.','She can to swim.'], 'She can swim.', 'Sau can dùng động từ dạng gốc.'),
       choice('Chọn câu đúng.', ['There is two chairs.','There are two chairs.','There two chairs.','There have two chairs.'], 'There are two chairs.', 'two chairs → are.'),
-      fix('Sửa câu.', 'Where you live?', ['Where do you live?'], 'Với normal verb live, câu hỏi cần do.'),
+      fix('Sửa câu.', 'Where you live?', ['Where do you live?'], 'Với động từ thường “live”, câu hỏi cần có “do”.'),
       choice('Chọn câu đúng.', ['This are my book.','These is my books.','This is my book.','This my book is.'], 'This is my book.', 'one + near → this; be với singular → is.'),
-      produce('Viết 6–8 câu như một mini profile: tên/tuổi (có thể giả), nơi ở, một thứ bạn có, một điều bạn có thể làm, routine và một câu phủ định.', 'I’m Minh.\nI am 30 years old.\nI live in Washington.\nI have a small car.\nI can cook.\nI study English every day.\nI do not work on Sunday.', ['Có ít nhất 6 câu'], {minLines:6,minWords:25,requirements:[{id:'be',type:'containsPattern',pattern:'be',count:1,labelVi:'Có am/is/are'},{id:'have',type:'containsAny',values:['have','has'],count:1,labelVi:'Có have/has'},{id:'can',type:'containsAny',values:['can'],count:1,labelVi:'Có can'},{id:'negative',type:'containsNegative',count:1,labelVi:'Có câu phủ định'}]}),
-      review([['A0 nên chứng minh điều gì?','Có thể hiểu và tự tạo tiếng Anh rất cơ bản.'],['Nếu sai một cấu trúc?','Đưa vào review và học lại đúng chỗ.'],['Sau bài này?','Dự án viết A0 rồi bài kiểm tra cuối A0.']]),
+      produce('Viết 6–8 câu giới thiệu ngắn về bạn: tên/tuổi (có thể dùng thông tin giả), nơi ở, một thứ bạn có, một điều bạn có thể làm, một thói quen và một câu phủ định.', 'I’m Minh.\nI am 30 years old.\nI live in Washington.\nI have a small car.\nI can cook.\nI study English every day.\nI do not work on Sunday.', ['Có ít nhất 6 câu'], {minLines:6,minWords:25,requirements:[{id:'be',type:'containsPattern',pattern:'be',count:1,labelVi:'Có am/is/are'},{id:'have',type:'containsAny',values:['have','has'],count:1,labelVi:'Có have/has'},{id:'can',type:'containsAny',values:['can'],count:1,labelVi:'Có can'},{id:'negative',type:'containsNegative',count:1,labelVi:'Có câu phủ định'}]}),
+      review([['A0 cần chứng minh điều gì?','Bạn có thể hiểu và tự tạo tiếng Anh rất cơ bản.'],['Nếu một cấu trúc còn yếu thì sao?','Bunny đưa phần đó trở lại để ôn đúng chỗ.'],['Sau bài này là gì?','Dự án viết A0 rồi bài kiểm tra cuối A0.']]),
     ],
   }),
 
@@ -603,24 +603,24 @@ const rawFoundationLessons = [
     objectiveVi: 'Chứng minh nền tảng bằng cách tự tạo 10 câu có cấu trúc đúng, thay vì chỉ nhận diện đáp án.', mastery: { minAccuracy: 0.7, requiresProduction: true },
     steps: [
       content('discover', 'Mastery = tự tạo được tiếng Anh', 'Bạn không “qua A0” chỉ vì chọn đúng nhiều câu trắc nghiệm. Dự án này yêu cầu bạn tự tạo tiếng Anh trước khi làm bài kiểm tra cuối A0.'),
-      content('understand', 'Yêu cầu 10 câu', 'Hãy viết: 2 câu với be, 3 câu Present Simple, ít nhất 1 câu với have/has, 1 câu với can/can’t, 1 câu phủ định, 1 câu hỏi, 1 câu có adjective, 1 câu có preposition, 1 câu nối bằng because/so. Một câu có thể đáp ứng nhiều yêu cầu.', { chips: ['be ×2', 'Present Simple ×3', 'have/has ×1', 'can/can’t ×1', 'negative ×1', 'question ×1', 'adjective ×1', 'preposition ×1', 'because/so ×1'] }),
+      content('understand', 'Yêu cầu cho 10 câu', 'Hãy cố gắng có: 2 câu với am/is/are, 3 câu hiện tại đơn, ít nhất 1 câu với have/has, 1 câu với can/can’t, 1 câu phủ định, 1 câu hỏi, 1 câu có tính từ, 1 câu có giới từ và 1 câu nối bằng because hoặc so. Một câu có thể đáp ứng nhiều yêu cầu.', { chips: ['be ×2', 'Present Simple ×3', 'have/has ×1', 'can/can’t ×1', 'negative ×1', 'question ×1', 'tính từ ×1', 'preposition ×1', 'because/so ×1'] }),
       choice('Câu nào có lỗi?', ['I am a student.', 'She is kind.', 'He work every day.', 'We live here.'], 'He work every day.', 'he → works.'),
       fix('Sửa lỗi.', 'Because I like English, so I study every day.', ['Because I like English, I study every day.', 'I like English, so I study every day.'], 'Chọn because hoặc so trong cấu trúc cơ bản này.', { flexible: true }),
-      produce('Viết 10 câu về bản thân. Mỗi câu trên một dòng. Sau khi viết, tự đọc lại subject, verb, article, -s/-es và dấu câu.', 'I am Minh.\nI am a student.\nI live in Washington.\nI study English every day.\nI like coffee.\nI can cook simple food.\nI do not work on Sunday.\nDo I need more practice?\nI have a small car.\nMy phone is on the desk.\nI study English because I want to write better.', ['Có đúng 10 dòng câu hoặc nhiều hơn', 'Có ít nhất 2 câu với be', 'Có một negative', 'Có một question', 'Có because hoặc so'], { minLines: 10, minWords: 35, masteryProject: true, requirements: [
+      produce('Viết 10 câu về bản thân. Sau khi viết, tự đọc lại xem câu đã có người/vật chính, động từ, a/an/the khi cần, đuôi -s/-es và dấu câu chưa.', 'I am Minh.\nI am a student.\nI live in Washington.\nI study English every day.\nI like coffee.\nI can cook simple food.\nI do not work on Sunday.\nDo I need more practice?\nI have a small car.\nMy phone is on the desk.\nI study English because I want to write better.', ['Có đúng 10 dòng câu hoặc nhiều hơn', 'Có ít nhất 2 câu với be', 'Có một negative', 'Có một question', 'Có because hoặc so'], { minLines: 10, minWords: 35, masteryProject: true, requirements: [
         { id:'min_lines', type:'minLines', value:10, labelVi:'Có ít nhất 10 câu/dòng' },
         { id:'min_words', type:'minWords', value:35, labelVi:'Có đủ nội dung để tạo 10 câu có ý nghĩa (ít nhất 35 từ)' },
         { id:'be_sentences', type:'containsPattern', pattern:'be', count:2, labelVi:'Có ít nhất 2 câu với am/is/are' },
-        { id:'present_simple', type:'selfCheck', labelVi:'Có ít nhất 3 câu Present Simple về thói quen/sự thật' },
+        { id:'present_simple', type:'selfCheck', labelVi:'Có ít nhất 3 câu hiện tại đơn về thói quen hoặc sự thật' },
         { id:'have_has', type:'containsAny', values:['have','has'], count:1, labelVi:'Có ít nhất một câu với have hoặc has' },
         { id:'can', type:'containsAny', values:['can',"can't",'cannot'], count:1, labelVi:'Có ít nhất một câu với can/can’t' },
         { id:'negative', type:'containsNegative', count:1, labelVi:'Có ít nhất một câu phủ định' },
         { id:'question', type:'containsQuestion', count:1, labelVi:'Có ít nhất một câu hỏi' },
-        { id:'adjective', type:'selfCheck', labelVi:'Có ít nhất một câu dùng adjective để mô tả noun' },
+        { id:'adjective', type:'selfCheck', labelVi:'Có ít nhất một câu dùng tính từ để mô tả danh từ' },
         { id:'preposition', type:'containsPreposition', count:1, labelVi:'Có ít nhất một preposition cơ bản' },
         { id:'connector', type:'containsAny', values:['because','so'], count:1, labelVi:'Có because hoặc so' },
-        { id:'self_review', type:'selfCheck', labelVi:'Tôi đã tự kiểm tra subject, verb, article, -s/-es và dấu câu' },
+        { id:'self_review', type:'selfCheck', labelVi:'Tôi đã tự kiểm tra chủ ngữ, động từ, a/an/the, -s/-es và dấu câu' },
       ] }),
-      review([['A0 không chỉ kiểm tra gì?', 'Không chỉ recognition/multiple choice'], ['Bước tự sửa quan trọng?', 'Kiểm tra subject, verb, article, agreement, punctuation'], ['Bước tiếp theo sau A0?', 'A1 Everyday English, rồi A2 và các level cao hơn.']]),
+      review([['A0 không chỉ kiểm tra điều gì?', 'Không chỉ chọn đáp án đúng.'], ['Khi tự sửa bài, nên kiểm tra gì?', 'Chủ ngữ, động từ, a/an/the, sự hòa hợp và dấu câu.'], ['Sau A0 là gì?', 'A1 Everyday English, rồi A2 và các cấp độ cao hơn.']]),
     ],
   }),
 ]
@@ -652,7 +652,7 @@ export const foundationChapters = [
   { id: 0, emoji: '🔤', titleEn: 'English Starter', titleVi: 'Khởi động tiếng Anh', optional: true, outcomeVi: 'Dành cho người cần ôn chữ, âm, từ và cách câu xuất hiện trên trang.', lessonIds: ['f01-alphabet-map','f02-sounds-and-letters','f03-what-is-a-word','f04-english-sentence-direction'] },
   { id: 1, emoji: '🐰', titleEn: 'My First English', titleVi: 'Tiếng Anh đầu tiên của tôi', outcomeVi: 'Tôi có thể hiểu một câu cơ bản, nói ai/cái gì và dùng am/is/are.', lessonIds: ['f05-complete-thought','f06-subject-who-what','f07-verb-what-happens','f08-first-sv-sentences','f11-personal-pronouns','f12-be-am-is-are','f13-be-negative-questions'] },
   { id: 2, emoji: '🍎', titleEn: 'Name & Describe Things', titleVi: 'Gọi tên và mô tả', outcomeVi: 'Tôi có thể gọi tên, nói số lượng cơ bản và mô tả đồ vật/người.', lessonIds: ['f09-nouns-name-the-world','f10-one-or-more-nouns','f16-a-an','f18-adjectives','f20-prepositions-place'] },
-  { id: 3, emoji: '🚶', titleEn: 'Everyday Life', titleVi: 'Nói về cuộc sống hằng ngày', outcomeVi: 'Tôi có thể nói routine, điều mình có, câu phủ định và câu hỏi Yes/No.', lessonIds: ['f14-action-verbs','f28-present-simple-meaning','f15-third-person-s','f19-adverbs','f31-have-has','f26-negatives','f27-questions'] },
+  { id: 3, emoji: '🚶', titleEn: 'Everyday Life', titleVi: 'Nói về cuộc sống hằng ngày', outcomeVi: 'Tôi có thể nói về thói quen, điều mình có, câu phủ định và câu hỏi Có/Không.', lessonIds: ['f14-action-verbs','f28-present-simple-meaning','f15-third-person-s','f19-adverbs','f31-have-has','f26-negatives','f27-questions'] },
   { id: 4, emoji: '🧩', titleEn: 'Build Better Sentences', titleVi: 'Xây câu tốt hơn', outcomeVi: 'Tôi có thể nhìn các hình dạng câu, nối ý và thêm chi tiết mà không phá cấu trúc.', lessonIds: ['f23-sv-pattern','f24-svo-pattern','f25-svc-pattern','f21-conjunctions','f29-sentence-expansion'] },
   { id: 5, emoji: '🗺️', titleEn: 'See the System', titleVi: 'Nhìn thấy cả hệ thống', outcomeVi: 'Tôi có thể nối các nhóm từ thành một bản đồ và hiểu the ở mức Foundation.', lessonIds: ['f22-parts-of-speech-map','f17-the-and-zero'] },
   { id: 6, emoji: '💬', titleEn: 'Starter Communication', titleVi: 'Giao tiếp A0 thực tế', outcomeVi: 'Tôi có thể chào hỏi, nói tuổi/sở hữu, hỏi thông tin, mô tả nơi chốn, khả năng và lịch đơn giản.', lessonIds: ['f32-hello-introduce-yourself','f33-numbers-age-info','f34-possessive-adjectives','f35-this-that-these-those','f36-wh-what-who-where','f37-there-is-are','f38-can-cant','f39-simple-requests-instructions','f40-days-basic-time'] },
@@ -679,11 +679,11 @@ const cycleConfigs = {
     target: 'She is kind.', build: { tokens:['She','is','kind','.'], answer:'She is kind .' },
   },
   'f12-be-am-is-are': {
-    notice: ['I am ready.', 'She is ready.', 'They are ready.'], noticeVi: 'Thông tin “ready” giữ nguyên; dạng be thay đổi theo subject.',
+    notice: ['I am ready.', 'She is ready.', 'They are ready.'], noticeVi: 'Từ “ready” giữ nguyên; am/is/are thay đổi theo người hoặc vật mà câu đang nói tới.',
     target: 'She is tired.', focusVi: 'Đừng bỏ “is”.', dictation: 'She is tired.', build: { tokens:['She','is','tired','.'], answer:'She is tired .' },
   },
   'f13-be-negative-questions': {
-    notice: ['She is tired.', 'She is not tired.', 'Is she tired?'], noticeVi: 'Với be, phủ định chỉ thêm not; câu hỏi đưa be lên trước subject.',
+    notice: ['She is tired.', 'She is not tired.', 'Is she tired?'], noticeVi: 'Với am/is/are, phủ định chỉ cần thêm not; câu hỏi đưa am/is/are lên trước chủ ngữ.',
     target: 'Are you ready?', build: { tokens:['Are','you','ready','?'], answer:'Are you ready ?', punctuationRequired:true },
   },
   'f09-nouns-name-the-world': {
@@ -691,7 +691,7 @@ const cycleConfigs = {
     target: 'book',
   },
   'f10-one-or-more-nouns': {
-    notice: ['one cat', 'two cats', 'one box', 'two boxes'], noticeVi: 'Khi nghĩa đổi từ một sang nhiều, hình dạng noun thường đổi theo.',
+    notice: ['one cat', 'two cats', 'one box', 'two boxes'], noticeVi: 'Khi ý nghĩa đổi từ một sang nhiều, danh từ thường cũng đổi hình dạng.',
     target: 'two cats', focusVi: 'Nghe âm cuối của cats.',
   },
   'f16-a-an': {
@@ -699,50 +699,50 @@ const cycleConfigs = {
     target: 'an apple', focusVi: 'Nối nhẹ an + apple như một cụm.', build: { tokens:['an','apple'], answer:'an apple' },
   },
   'f18-adjectives': {
-    notice: ['a red apple', 'a small house'], noticeVi: 'Trong các cụm này, từ mô tả đứng trước noun — khác trật tự quen thuộc trong tiếng Việt.',
+    notice: ['a red apple', 'a small house'], noticeVi: 'Trong các cụm này, từ mô tả đứng trước danh từ — khác với trật tự quen thuộc trong tiếng Việt.',
     target: 'a red apple', build: { tokens:['a','red','apple'], answer:'a red apple' },
   },
   'f20-prepositions-place': {
-    notice: ['in the box', 'on the table', 'under the chair'], noticeVi: 'Preposition đứng trước một noun phrase và giúp người nghe hình dung quan hệ vị trí.',
+    notice: ['in the box', 'on the table', 'under the chair'], noticeVi: 'Giới từ như in/on/under đứng trước cụm danh từ để giúp người nghe hình dung vị trí.',
     target: 'The book is on the table.', build: { tokens:['The book','is','on the table','.'], answer:'The book is on the table .' },
   },
   'f14-action-verbs': {
-    notice: ['I work.', 'I like coffee.'], noticeVi: 'work là action; like là state. Cả hai đều có thể là verb nên “verb” không chỉ có nghĩa là hành động nhìn thấy được.',
+    notice: ['I work.', 'I like coffee.'], noticeVi: 'work nói về một hành động; like nói về một trạng thái/cảm xúc. Cả hai đều là động từ.',
     target: 'I work every day.', build: { tokens:['I','work','every day','.'], answer:'I work every day .' },
   },
   'f28-present-simple-meaning': {
-    notice: ['I study every evening.', 'The sun rises in the east.'], noticeVi: 'Một câu nói pattern lặp lại; một câu nói sự thật chung. Cả hai dùng Present Simple vì cách ta nhìn thời gian.',
+    notice: ['I study every evening.', 'The sun rises in the east.'], noticeVi: 'Một câu nói về việc lặp lại; câu kia nói một sự thật chung. Cả hai đều dùng thì hiện tại đơn.',
     target: 'I study every evening.', dictation: 'I study every evening.', build: { tokens:['I','study','every evening','.'], answer:'I study every evening .' },
   },
   'f15-third-person-s': {
-    notice: ['I work every day.', 'She works every day.'], noticeVi: 'Thời gian và hành động không đổi. Chỉ subject đổi sang she và verb nhận -s.',
+    notice: ['I work every day.', 'She works every day.'], noticeVi: 'Ý nghĩa và thời gian không đổi. Chỉ khi đổi sang she, động từ thêm -s.',
     target: 'She works every day.', focusVi: 'Chú ý âm cuối của “works”.', dictation: 'She works every day.', build: { tokens:['She','works','every day','.'], answer:'She works every day .' },
   },
   'f19-adverbs': {
-    notice: ['I study.', 'I usually study.', 'I study carefully.'], noticeVi: 'Adverb có thể thêm tần suất hoặc cách hành động xảy ra mà không đổi lõi subject + verb.',
+    notice: ['I study.', 'I usually study.', 'I study carefully.'], noticeVi: 'Trạng từ có thể cho biết hành động xảy ra thường xuyên ra sao hoặc theo cách nào mà không làm đổi phần chính của câu.',
     target: 'I usually study at night.', build: { tokens:['I','usually','study','at night','.'], answer:'I usually study at night .' },
   },
   'f31-have-has': {
-    notice: ['I have a dog.', 'She has a dog.'], noticeVi: 'Nghĩa “có” giữ nguyên; he/she/it dùng has, các subject khác dùng have.',
+    notice: ['I have a dog.', 'She has a dog.'], noticeVi: 'Ý “có” vẫn giữ nguyên; he/she/it dùng has, còn I/you/we/they dùng have.',
     target: 'She has a dog.', dictation: 'She has a dog.', build: { tokens:['She','has','a dog','.'], answer:'She has a dog .' },
   },
   'f26-negatives': {
-    notice: ['She is tired. → She is not tired.', 'She likes tea. → She does not like tea.'], noticeVi: 'be tự thêm not; normal verb cần do/does + not và main verb trở về dạng gốc.',
+    notice: ['She is tired. → She is not tired.', 'She likes tea. → She does not like tea.'], noticeVi: 'Với be, chỉ cần thêm not. Với động từ thường, dùng do/does + not và đưa động từ chính về dạng gốc.',
     target: 'She does not like coffee.', build: { tokens:['She','does not','like','coffee','.'], answer:'She does not like coffee .' },
   },
   'f27-questions': {
-    notice: ['She is ready. → Is she ready?', 'She studies English. → Does she study English?'], noticeVi: 'Câu hỏi thay đổi khung câu. Với normal verb, do/does xuất hiện trước subject.',
+    notice: ['She is ready. → Is she ready?', 'She studies English. → Does she study English?'], noticeVi: 'Câu hỏi làm thay đổi thứ tự câu. Với động từ thường, do/does đứng trước chủ ngữ.',
     target: 'Does she study English?', dictation: 'Does she study English?', build: { tokens:['Does','she','study','English','?'], answer:'Does she study English ?', punctuationRequired:true },
   },
   'f23-sv-pattern': {
     target: 'I like coffee.', build: { tokens:['I','like','coffee','.'], answer:'I like coffee .' },
   },
   'f24-svo-pattern': {
-    notice: ['I read books.', 'She likes coffee.'], noticeVi: 'Sau action verb, object trả lời “ai/cái gì nhận hoặc hoàn tất hành động?”.',
+    notice: ['I read books.', 'She likes coffee.'], noticeVi: 'Sau một động từ hành động, tân ngữ thường trả lời câu hỏi “làm gì với ai/cái gì?”.',
     target: 'She likes coffee.', build: { tokens:['She','likes','coffee','.'], answer:'She likes coffee .' },
   },
   'f25-svc-pattern': {
-    notice: ['She is happy.', 'Tom is a teacher.'], noticeVi: 'Phần sau be không nhận hành động. Nó mô tả hoặc gọi tên lại subject.',
+    notice: ['She is happy.', 'Tom is a teacher.'], noticeVi: 'Phần sau be không nhận hành động; nó mô tả hoặc gọi tên lại chủ ngữ.',
     target: 'She is happy.', build: { tokens:['She','is','happy','.'], answer:'She is happy .' },
   },
   'f21-conjunctions': {
@@ -770,7 +770,7 @@ const cycleConfigs = {
     target:'I am twenty years old.', dictation:'I am twenty years old.', build:{tokens:['I','am','twenty years old','.'],answer:'I am twenty years old .'},
   },
   'f34-possessive-adjectives': {
-    notice:['my book','your phone','his car','her bag'], noticeVi:'Từ đầu tiên thay đổi để cho biết “của ai”, nhưng noun chính vẫn giữ nguyên.',
+    notice:['my book','your phone','his car','her bag'], noticeVi:'Từ đứng trước thay đổi để cho biết “của ai”, còn danh từ chính vẫn giữ nguyên.',
     target:'This is my book.', build:{tokens:['This','is','my book','.'],answer:'This is my book .'},
   },
   'f35-this-that-these-those': {
@@ -786,11 +786,11 @@ const cycleConfigs = {
     target:'There are two books on the table.', build:{tokens:['There are','two books','on the table','.'],answer:'There are two books on the table .'},
   },
   'f38-can-cant': {
-    notice:['I can swim.','She can drive.','He can’t cook.'], noticeVi:'can/can’t đứng trước verb gốc để nói khả năng.',
+    notice:['I can swim.','She can drive.','He can’t cook.'], noticeVi:'can/can’t đứng trước động từ dạng gốc để nói về khả năng.',
     target:'I can swim.', dictation:'I can swim.', build:{tokens:['I','can','swim','.'],answer:'I can swim .'},
   },
   'f39-simple-requests-instructions': {
-    notice:['Please sit down.','Open the book.','Please wait here.'], noticeVi:'Instruction thường bắt đầu thẳng bằng verb gốc; please làm câu lịch sự hơn.',
+    notice:['Please sit down.','Open the book.','Please wait here.'], noticeVi:'Câu chỉ dẫn đơn giản thường bắt đầu bằng động từ dạng gốc; thêm please để câu lịch sự hơn.',
     target:'Please open the book.', dictation:'Please open the book.', build:{tokens:['Please','open','the book','.'],answer:'Please open the book .'},
   },
   'f40-days-basic-time': {
@@ -838,14 +838,14 @@ function enrichWithLearningCycle(lesson) {
       type: 'listen',
       id: `${lesson.id}-listen`,
       targets: [config.target],
-      promptVi: 'Nghe câu mẫu. Trước tiên nghe tốc độ bình thường; dùng Chậm nếu cần.',
+      promptVi: 'Nghe một lần ở tốc độ thường. Nếu chưa rõ, bạn có thể nghe lại ở tốc độ Chậm.',
       focusVi: config.focusVi,
     })
     extra.push({
       type: 'speak',
       id: `${lesson.id}-speak`,
       target: config.target,
-      promptVi: 'Nói cả câu thành tiếng. Mục tiêu đầu tiên là để hệ thống nghe đúng từ; chấm từng âm sẽ là lớp pronunciation nâng cao sau.',
+      promptVi: 'Đến lượt bạn. Hãy nói cả câu theo mẫu. Nếu lúc này không tiện nói, chọn “Tôi không thể nói lúc này” để tiếp tục bài.',
       focusVi: config.focusVi,
     })
   }
@@ -853,17 +853,17 @@ function enrichWithLearningCycle(lesson) {
   if (config.dictation) {
     extra.push({
       type: 'exercise', exerciseType: 'dictation', id: `${lesson.id}-dictation`,
-      promptVi: 'Nghe rồi viết lại chính xác.', audioText: config.dictation, answer: config.dictation,
-      validationMode: 'normalizedExact', explainVi: 'Nghe lại từng từ, chú ý spelling và dấu câu nếu có.',
+      promptVi: 'Nghe rồi viết lại câu bạn nghe được.', audioText: config.dictation, answer: config.dictation,
+      validationMode: 'normalizedExact', explainVi: 'Nếu chưa chắc, nghe lại và để ý từng từ, cách viết và dấu câu.',
     })
   }
 
   const alreadyHasBuild = original.some(step => step.type === 'exercise' && step.exerciseType === 'wordOrder')
   if (config.build && !alreadyHasBuild) {
     extra.push({
-      type: 'exercise', exerciseType: 'wordOrder', id: `${lesson.id}-build`, promptVi: 'Xây lại câu từ các mảnh.',
+      type: 'exercise', exerciseType: 'wordOrder', id: `${lesson.id}-build`, promptVi: 'Ghép các mảnh thành một câu tự nhiên.',
       tokens: config.build.tokens, answer: config.build.answer, punctuationRequired: !!config.build.punctuationRequired,
-      explainVi: 'Giữ trật tự theo ý nghĩa: ai/cái gì trước, rồi điều xảy ra và phần còn lại.',
+      explainVi: 'Đọc ý nghĩa trước, rồi xếp các từ theo thứ tự tiếng Anh.',
     })
   }
 
@@ -874,6 +874,7 @@ const pathIndex = new Map(FOUNDATION_PATH_IDS.map((id, index) => [id, index]))
 
 export const foundationLessons = rawFoundationLessons
   .map(enrichWithLearningCycle)
+  .map(applyLessonTeachingCopy)
   .filter(lesson => pathIndex.has(lesson.id))
   .sort((a, b) => pathIndex.get(a.id) - pathIndex.get(b.id))
   .map((lesson, index) => ({ ...lesson, order: index + 1 }))
