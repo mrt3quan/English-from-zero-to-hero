@@ -1,14 +1,17 @@
 {
   "name": "bunny-english",
   "private": true,
-  "version": "1.9.0",
+  "version": "2.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test tests/*.test.js",
-    "validate:curriculum": "node scripts/validate-curriculum.mjs"
+    "validate:curriculum": "node scripts/validate-curriculum.mjs",
+    "pronunciation:setup": "node scripts/setup-pronounce-ai.mjs",
+    "pronunciation:check": "node scripts/check-pronunciation-backend.mjs",
+    "audit:copy": "node scripts/audit-vietnamese-copy.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",

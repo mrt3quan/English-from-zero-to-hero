@@ -1,10 +1,13 @@
-import React, { useMemo, useRef, useState } from 'react'
-import { BookOpen, Brain, CheckCircle2, Circle, Eye, Languages, Lightbulb, Network, Volume2, Gauge, ChevronDown, Headphones, Mic, RotateCcw, Sparkles } from 'lucide-react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { BookOpen, Brain, CheckCircle2, Circle, Eye, Languages, Lightbulb, Network, Volume2, Gauge, ChevronDown, Headphones, Mic, MicOff, RotateCcw, Sparkles } from 'lucide-react'
 import ExerciseRenderer from './ExerciseRenderer'
 import Mascot from '../Mascot'
 import TeacherGuide from './TeacherGuide'
 import { AudioService } from '../../lib/audioService'
 import { SpeechService, scoreTranscript } from '../../lib/speechService'
+import { AudioRecorderService } from '../../lib/audioRecorderService'
+import { PronunciationService, vietnamesePronunciationFeedback } from '../../lib/pronunciationService'
+import { formatSpeakingPauseRemaining, isSpeakingPaused, pauseSpeaking, resumeSpeaking } from '../../lib/speakingPreference'
 import { evaluateProduction, getRequirements, splitNonEmptyLines, wordCount } from '../../lib/productionValidator'
 
 const kindMeta={
@@ -112,41 +115,107 @@ function ListenStep({step,state,onStateChange}){
 
 function SpeakStep({step,state,onStateChange,onResult}){
   const [listening,setListening]=useState(false)
+  const [recording,setRecording]=useState(false)
+  const [assessing,setAssessing]=useState(false)
   const [transcript,setTranscript]=useState(state.transcript||'')
   const [analysis,setAnalysis]=useState(state.analysis||null)
+  const [pronunciation,setPronunciation]=useState(state.pronunciation||null)
   const [error,setError]=useState('')
+  const [paused,setPaused]=useState(()=>isSpeakingPaused())
   const controller=useRef(null)
-  const supported=SpeechService.supported()
   const target=step.target
+  const browserSupported=SpeechService.supported()
+  const pronunciationReady=PronunciationService.configured()&&AudioRecorderService.supported()
 
-  const start=()=>{
-    setError('');setListening(true)
+  useEffect(()=>{
+    if(!paused)return
+    const remaining=Math.max(1000,Number(formatSpeakingPauseRemaining()?60000:0))
+    const timer=setInterval(()=>{if(!isSpeakingPaused()){setPaused(false);clearInterval(timer)}},remaining)
+    return()=>clearInterval(timer)
+  },[paused])
+
+  const saveResult=(payload={})=>onStateChange?.({completed:true,attempted:true,skippedSpeaking:false,...payload})
+
+  const startBrowser=()=>{
+    if(!browserSupported){setError('Thiết bị này chưa hỗ trợ nhận dạng giọng nói. Bạn có thể tự luyện hoặc bỏ qua phần nói lúc này.');return}
+    setError('');setListening(true);setPronunciation(null)
     controller.current=SpeechService.listen({
       locale:step.locale||'en-US',
       onResult:({transcript:heard})=>{
         const scored=scoreTranscript(heard,target)
         setTranscript(heard);setAnalysis(scored);setListening(false)
-        onStateChange?.({completed:true,attempted:true,transcript:heard,analysis:scored})
+        saveResult({transcript:heard,analysis:scored,pronunciation:null,assessmentProvider:'browser-speech'})
         onResult?.({answer:heard,expected:target,correct:scored.exact||scored.score>=0.8,responseTimeMs:null})
       },
-      onError:message=>{setError(message==='not-allowed'?'Microphone đang bị chặn. Hãy cấp quyền microphone hoặc dùng chế độ tự luyện.':'Không nghe rõ. Bạn có thể thử lại hoặc dùng chế độ tự luyện.');setListening(false)},
+      onError:message=>{setError(message==='not-allowed'?'Microphone đang bị chặn. Hãy cấp quyền microphone, tự luyện hoặc chọn “Tôi không thể nói lúc này”.':'Bunny chưa nghe rõ. Bạn có thể thử lại, tự luyện hoặc bỏ qua phần nói lúc này.');setListening(false)},
       onEnd:()=>setListening(false),
     })
     if(!controller.current.started)setListening(false)
   }
-  const manual=()=>{onStateChange?.({completed:true,attempted:true,manualPractice:true,transcript:''});setError('')}
-  const retry=()=>{setTranscript('');setAnalysis(null);setError('');onStateChange?.({completed:false,attempted:state.attempted||false,transcript:'',analysis:null});start()}
+
+  const assessRecording=async blob=>{
+    setRecording(false);setAssessing(true);setError('')
+    try{
+      const result=await PronunciationService.assess({audio:blob,target,accent:step.accent||'GA',l1:step.l1||'vi'})
+      setPronunciation(result);setTranscript(result.transcript||'');setAnalysis(null)
+      saveResult({transcript:result.transcript||'',analysis:null,pronunciation:result,assessmentProvider:'pronounce-ai'})
+      const phraseOk=!result.phraseMatchStatus||['ok','match','matched'].includes(String(result.phraseMatchStatus).toLowerCase())
+      onResult?.({answer:result.transcript||'[voice recording]',expected:target,correct:phraseOk,responseTimeMs:null,pronunciation:result})
+    }catch(err){
+      setError('Bộ chấm phát âm đang tạm không kết nối được. Bunny sẽ dùng kiểm tra từ bằng trình duyệt nếu bạn muốn thử lại.')
+    }finally{setAssessing(false)}
+  }
+
+  const startPronunciation=async()=>{
+    setError('');setTranscript('');setAnalysis(null);setPronunciation(null)
+    PronunciationService.prewarm({phrase:target,accent:step.accent||'GA'})
+    const rec=await AudioRecorderService.start({
+      maxDurationMs:Math.min(14000,Math.max(5000,target.split(/\s+/).length*1300+2500)),
+      onStart:()=>setRecording(true),
+      onStop:({blob})=>assessRecording(blob),
+      onError:message=>{setRecording(false);setError(message==='not-allowed'?'Microphone đang bị chặn. Hãy cấp quyền hoặc chọn “Tôi không thể nói lúc này”.':'Không thể bắt đầu ghi âm. Bạn có thể thử lại hoặc dùng kiểm tra từ bằng trình duyệt.')},
+    })
+    controller.current=rec
+    if(!rec.started)setRecording(false)
+  }
+
+  const start=()=>{
+    if(paused)return
+    if(pronunciationReady)return startPronunciation()
+    return startBrowser()
+  }
+  const manual=()=>{saveResult({manualPractice:true,transcript:'',analysis:null,pronunciation:null,assessmentProvider:'self-confirmed'});setError('')}
+  const retry=()=>{controller.current?.stop?.();setTranscript('');setAnalysis(null);setPronunciation(null);setError('');onStateChange?.({completed:false,attempted:state.attempted||false,transcript:'',analysis:null,pronunciation:null,skippedSpeaking:false});start()}
+  const skipForNow=()=>{
+    controller.current?.stop?.()
+    const until=pauseSpeaking()
+    setPaused(true);setListening(false);setRecording(false);setAssessing(false);setError('')
+    onStateChange?.({completed:true,attempted:false,skippedSpeaking:true,skipReason:'cant-talk-right-now',speakingPausedUntil:until})
+  }
+  const skipPausedStep=()=>onStateChange?.({completed:true,attempted:false,skippedSpeaking:true,skipReason:'speaking-paused',speakingPausedUntil:Date.now()+1})
+  const resume=()=>{resumeSpeaking();setPaused(false);setError('')}
+  const busy=listening||recording||assessing
+  const feedback=pronunciation?vietnamesePronunciationFeedback(pronunciation,{focusVi:step.focusVi}):''
 
   return <div className="content-scene">
     <div className="inline-flex items-center gap-2 rounded-full border border-rose-100 bg-rose-50 px-3 py-1.5 text-[10px] font-bold tracking-[.12em] text-rose-700"><Mic className="h-3.5 w-3.5"/>NÓI</div>
     <h2 className="mt-4 text-[28px] font-extrabold tracking-tight text-slate-900 sm:text-3xl">Nói lại bằng giọng của bạn</h2>
-    <p className="mt-3 text-[15px] font-medium leading-7 text-slate-600">{step.promptVi||'Nghe mẫu nếu cần, sau đó nói cả câu. Bunny dùng nhận dạng giọng nói để kiểm tra từ nghe được — đây chưa phải là chấm phát âm theo từng âm.'}</p>
+    <p className="mt-3 text-[15px] font-medium leading-7 text-slate-600">{step.promptVi||'Nghe mẫu nếu cần, sau đó nói cả câu. Khi máy chấm phát âm được kết nối, Bunny sẽ tìm âm cần luyện; nếu không, Bunny vẫn kiểm tra những từ trình duyệt nghe được.'}</p>
     <div className="mt-5 rounded-[24px] border border-slate-200 bg-white p-5"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[.12em] text-slate-400">Mục tiêu</p><p className="english-example mt-1 text-xl font-extrabold text-slate-900">{target}</p>{step.focusVi&&<p className="mt-2 text-xs font-semibold text-violet-700">👄 {step.focusVi}</p>}</div><AudioButtons text={target}/></div></div>
-    <div className="mt-5 flex flex-wrap gap-3">{supported?<button onClick={listening?()=>controller.current?.stop():start} className={`pressable inline-flex min-h-[52px] items-center gap-2 rounded-2xl px-5 text-sm font-bold text-white ${listening?'bg-rose-600':'bg-blue-600'}`}><Mic className="h-5 w-5"/>{listening?'Đang nghe… chạm để dừng':'Bắt đầu nói'}</button>:<button onClick={manual} className="pressable inline-flex min-h-[52px] items-center gap-2 rounded-2xl bg-blue-600 px-5 text-sm font-bold text-white"><Mic className="h-5 w-5"/> Tôi đã nói thành tiếng</button>}{(transcript||state.completed)&&<button onClick={retry} className="pressable inline-flex min-h-[52px] items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700"><RotateCcw className="h-4 w-4"/> Thử lại</button>}</div>
-    {!supported&&<p className="mt-3 text-xs font-semibold leading-5 text-slate-500">Trình duyệt này chưa hỗ trợ SpeechRecognition. Bài học vẫn hoạt động: nghe mẫu, nói thành tiếng, rồi tự xác nhận. Không cần API để dùng chế độ cơ bản.</p>}
-    {error&&<p aria-live="polite" className="mt-4 rounded-2xl border border-amber-100 bg-amber-50 p-3 text-xs font-semibold text-amber-900">{error}</p>}
-    {transcript&&<div aria-live="polite" className={`mt-4 rounded-2xl border p-4 ${analysis?.exact?'border-emerald-200 bg-emerald-50':'border-blue-100 bg-blue-50'}`}><p className="text-[10px] font-bold uppercase tracking-[.12em] text-slate-500">Bunny nghe được</p><p className="mt-1 text-lg font-extrabold text-slate-900">“{transcript}”</p>{analysis?.exact?<p className="mt-2 text-sm font-bold text-emerald-700">✓ Các từ khớp với câu mục tiêu.</p>:<p className="mt-2 text-sm font-semibold leading-6 text-blue-900">Gần rồi. So sánh từ Bunny nghe được với câu mẫu và thử lại nếu muốn.{analysis?.missing?.length?` Có thể chú ý: ${analysis.missing.join(', ')}.`:''}</p>}<p className="mt-2 text-[11px] font-medium leading-5 text-slate-500">Lưu ý: speech-to-text chỉ cho biết từ hệ thống nghe được; nó không thể đánh giá chính xác từng âm /s/, /z/, /t/… như một dịch vụ pronunciation assessment chuyên dụng.</p></div>}
-    {state.completed&&!transcript&&<p className="mt-4 text-xs font-bold text-emerald-700">✓ Đã luyện nói thành tiếng.</p>}
+
+    {paused?<div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4"><div className="flex items-start gap-3"><MicOff className="mt-0.5 h-5 w-5 shrink-0 text-slate-500"/><div><p className="text-sm font-extrabold text-slate-800">Luyện nói đang tạm nghỉ</p><p className="mt-1 text-xs font-semibold leading-5 text-slate-600">Bạn đã chọn “Tôi không thể nói lúc này”. Bunny sẽ không ép bạn dùng microphone trong khoảng {formatSpeakingPauseRemaining()||'15 phút'}. Việc bỏ qua không bị tính là sai.</p></div></div><div className="mt-4 flex flex-wrap gap-2"><button onClick={skipPausedStep} className="pressable min-h-11 rounded-xl bg-blue-600 px-4 text-sm font-bold text-white">Bỏ qua bài nói này</button><button onClick={resume} className="pressable min-h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700">Tôi có thể nói lại</button></div></div>:
+    <><div className="mt-5 flex flex-wrap gap-3">{pronunciationReady?<button disabled={busy} onClick={recording?()=>controller.current?.stop?.():start} className={`pressable inline-flex min-h-[52px] items-center gap-2 rounded-2xl px-5 text-sm font-bold text-white disabled:opacity-60 ${recording?'bg-rose-600':'bg-blue-600'}`}><Mic className="h-5 w-5"/>{recording?'Đang ghi… chạm để chấm':assessing?'Bunny đang nghe lại…':'Nói để Bunny kiểm tra'}</button>:browserSupported?<button disabled={busy} onClick={listening?()=>controller.current?.stop():start} className={`pressable inline-flex min-h-[52px] items-center gap-2 rounded-2xl px-5 text-sm font-bold text-white ${listening?'bg-rose-600':'bg-blue-600'}`}><Mic className="h-5 w-5"/>{listening?'Đang nghe… chạm để dừng':'Bắt đầu nói'}</button>:<button onClick={manual} className="pressable inline-flex min-h-[52px] items-center gap-2 rounded-2xl bg-blue-600 px-5 text-sm font-bold text-white"><Mic className="h-5 w-5"/> Tôi đã nói thành tiếng</button>}{(transcript||pronunciation||state.completed)&&!state.skippedSpeaking&&<button disabled={busy} onClick={retry} className="pressable inline-flex min-h-[52px] items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 disabled:opacity-50"><RotateCcw className="h-4 w-4"/> Thử lại</button>}</div>
+    <button onClick={skipForNow} className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl px-2 text-xs font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-700"><MicOff className="h-4 w-4"/> Tôi không thể nói lúc này</button></>}
+
+    {pronunciationReady&&<p className="mt-3 text-[11px] font-semibold leading-5 text-slate-400">Bunny đang dùng bộ chấm phát âm để xem từ, âm và nhịp. Kết quả là hướng dẫn luyện tập, không phải chẩn đoán giọng nói.</p>}
+    {!pronunciationReady&&!browserSupported&&<p className="mt-3 text-xs font-semibold leading-5 text-slate-500">Thiết bị này chưa hỗ trợ tự kiểm tra giọng nói. Bạn vẫn có thể nghe mẫu, tự luyện hoặc bỏ qua phần nói.</p>}
+    {error&&<div aria-live="polite" className="mt-4 rounded-2xl border border-amber-100 bg-amber-50 p-3 text-xs font-semibold text-amber-900">{error}{PronunciationService.configured()&&browserSupported&&<button onClick={startBrowser} className="ml-2 underline underline-offset-2">Dùng kiểm tra từ bằng trình duyệt</button>}</div>}
+
+    {pronunciation&&<div aria-live="polite" className={`mt-4 rounded-2xl border p-4 ${pronunciation.needsWork?.length?'border-violet-100 bg-violet-50':'border-emerald-200 bg-emerald-50'}`}><p className="text-[10px] font-bold uppercase tracking-[.12em] text-slate-500">Bunny nghe và phân tích</p>{pronunciation.transcript&&<p className="mt-1 text-lg font-extrabold text-slate-900">“{pronunciation.transcript}”</p>}<p className={`mt-2 text-sm font-bold leading-6 ${pronunciation.needsWork?.length?'text-violet-900':'text-emerald-800'}`}>{feedback}</p>{pronunciation.needsWork?.length>0&&<div className="mt-3 flex flex-wrap gap-2">{pronunciation.needsWork.slice(0,4).map(phone=><span key={phone.id} className="rounded-full border border-violet-200 bg-white px-3 py-1.5 text-xs font-black text-violet-800">/{phone.expected||phone.phoneme}/ cần luyện</span>)}</div>}<details className="mt-3 text-xs text-slate-500"><summary className="cursor-pointer font-bold">Xem chi tiết kỹ thuật</summary><div className="mt-2 space-y-1">{pronunciation.overall!=null&&<p>Điểm tổng hợp: {Math.round(pronunciation.overall)}/100</p>}{pronunciation.scores?.phonemeAccuracy!=null&&<p>Độ chính xác âm: {Math.round(pronunciation.scores.phonemeAccuracy)}/100</p>}{pronunciation.scores?.intonation!=null&&<p>Ngữ điệu: {Math.round(pronunciation.scores.intonation)}/100</p>}</div></details></div>}
+
+    {transcript&&!pronunciation&&<div aria-live="polite" className={`mt-4 rounded-2xl border p-4 ${analysis?.exact?'border-emerald-200 bg-emerald-50':'border-blue-100 bg-blue-50'}`}><p className="text-[10px] font-bold uppercase tracking-[.12em] text-slate-500">Bunny nghe được</p><p className="mt-1 text-lg font-extrabold text-slate-900">“{transcript}”</p>{analysis?.exact?<p className="mt-2 text-sm font-bold text-emerald-700">✓ Các từ khớp với câu mục tiêu.</p>:<p className="mt-2 text-sm font-semibold leading-6 text-blue-900">Gần rồi. So sánh từ Bunny nghe được với câu mẫu và thử lại nếu muốn.{analysis?.missing?.length?` Có thể chú ý: ${analysis.missing.join(', ')}.`:''}</p>}<p className="mt-2 text-[11px] font-medium leading-5 text-slate-500">Đây là kiểm tra từ bằng speech-to-text, không phải chấm từng âm.</p></div>}
+    {state.completed&&!transcript&&!pronunciation&&!state.skippedSpeaking&&<p className="mt-4 text-xs font-bold text-emerald-700">✓ Đã luyện nói thành tiếng.</p>}
+    {state.skippedSpeaking&&<p className="mt-4 text-xs font-bold text-slate-500">Đã bỏ qua phần nói. Không bị tính là câu sai.</p>}
   </div>
 }
 
@@ -173,7 +242,7 @@ function ProductionStep({step,state,onStateChange}){
     <label htmlFor="production-draft" className="sr-only">Bài viết của bạn</label><textarea id="production-draft" value={value} onChange={e=>changeValue(e.target.value)} rows={step.masteryProject?12:6} placeholder={step.placeholder} className="mt-6 w-full resize-y rounded-3xl border border-slate-200 bg-white p-5 text-sm font-semibold leading-7 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"/>
     <div className="mt-4 grid gap-2 sm:grid-cols-2">{evaluation.requirements.map(req=>{const manual=req.type==='selfCheck';return <button key={req.id} type="button" disabled={!manual} onClick={()=>manual&&toggleManual(req.id)} className={`flex min-h-12 items-start gap-2 rounded-2xl border px-3 py-2.5 text-left text-xs font-bold ${req.passed?'border-emerald-100 bg-emerald-50 text-emerald-800':'border-slate-200 bg-slate-50 text-slate-600'} ${manual?'cursor-pointer hover:border-blue-200':'cursor-default'}`}><span className="mt-0.5">{req.passed?<CheckCircle2 className="h-4 w-4 text-emerald-600"/>:<Circle className="h-4 w-4 text-slate-400"/>}</span><span>{req.labelVi}{req.detail&&<span className="ml-1 text-[10px] text-slate-400">({req.detail})</span>}{manual&&<span className="mt-1 block text-[10px] font-semibold text-slate-400">Tự kiểm tra · chạm để xác nhận</span>}</span></button>})}</div>
     <div className="mt-5 flex flex-wrap items-center gap-3"><button disabled={!evaluation.passed} onClick={submit} className="pressable min-h-11 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-40">Tôi đã viết xong</button><span className="text-xs font-bold text-slate-400">{splitNonEmptyLines(value).length} dòng · {wordCount(value)} từ</span></div>
-    {!evaluation.passed&&<p className="mt-3 text-xs font-semibold text-amber-800">Hoàn thành từng mục phía trên trước khi tiếp tục. Bunny chỉ tự chấm những điều có thể kiểm tra đáng tin cậy.</p>}
+    {!evaluation.passed&&<p className="mt-3 text-xs font-semibold text-amber-800">Hoàn thành từng mục phía trên trước khi tiếp tục. Bunny chỉ tự kiểm tra những điều hệ thống có thể xác định rõ.</p>}
     {submitted&&<div aria-live="polite" className="success-pop mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm leading-6 text-emerald-800"><strong>Tốt lắm.</strong> Bản nháp đã được lưu. Nếu bạn sai ở phần luyện tập, Bunny sẽ đưa lỗi đó trở lại Practice sau.</div>}
   </div>
 }

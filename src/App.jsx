@@ -107,7 +107,7 @@ export default function App() {
             completed={completed}
             dataTick={dataTick}
             onReset={() => {
-              if (confirm('Reset all A0 progress, attempts, review, and motivation data?')) resetFoundationProgress()
+              if (confirm('Xóa toàn bộ tiến độ A0, lịch sử làm bài, phần ôn tập và dữ liệu động lực?')) resetFoundationProgress()
             }}
           />
         )}
@@ -323,7 +323,7 @@ function HomePage({ completed, progress, current, onContinue, onLearn, onPractic
             <span>Bunny nhận thấy {weak.length} điểm nên luyện thêm</span><ChevronRight className="h-4 w-4" />
           </summary>
           <div className="grid gap-2 border-t px-4 py-3 sm:grid-cols-2">
-            {weak.map(skill => <div key={skill.skillId} className="muted-row rounded-xl p-3"><p className="text-sm font-semibold text-strong">{skill.labelVi}</p><p className="mt-1 text-xs text-muted">{skill.incorrect} lỗi gần đây · {skill.masteryScore}% mastery</p></div>)}
+            {weak.map(skill => <div key={skill.skillId} className="muted-row rounded-xl p-3"><p className="text-sm font-semibold text-strong">{skill.labelVi}</p><p className="mt-1 text-xs text-muted">{skill.incorrect} lỗi gần đây · {skill.masteryScore}% nắm vững</p></div>)}
           </div>
         </details>
       )}
@@ -380,12 +380,12 @@ function VoiceSettings() {
   const chooseProvider=value=>{AudioService.stop();AudioService.setProvider(value);setSettings(AudioService.getSettings())}
   const chooseVoice=voice=>{AudioService.setTeacherVoice(voice);setSettings(AudioService.getSettings())}
   const preview=async voice=>{if(previewing)return;setPreviewing(voice);await AudioService.preview(voice);setPreviewing(null);setStatus(AudioService.getStatus())}
-  const statusText=status.state==='loading'?'Đang tải giọng chất lượng cao lần đầu…':status.state==='ready'?'Giọng Kokoro đã sẵn sàng trên thiết bị này.':status.state==='error'?'Không tải được Kokoro; Bunny sẽ tự dùng giọng trình duyệt cho những câu chưa thu sẵn.':'Bài học dùng bản thu sẵn. Kokoro chỉ tải khi gặp câu chưa có bản thu.'
+  const statusText=status.state==='loading'?'Đang tải giọng chất lượng cao lần đầu…':status.state==='ready'?'Giọng Kokoro đã sẵn sàng trên thiết bị này.':status.state==='error'?'Không tải được Kokoro; Bunny sẽ tự dùng giọng trình duyệt để bài học không bị chặn.':'Kokoro sẽ được tải khi bạn nghe lần đầu.'
   return <div className="surface-card rounded-[28px] p-5">
     <div className="flex items-center gap-2"><Volume2 className="h-5 w-5 text-primary"/><h2 className="text-xl font-bold text-strong">Giọng đọc bài học</h2></div>
-    <p className="mt-2 text-sm font-medium leading-6 text-muted">Giọng đọc trong bài học đã được thu sẵn bằng giọng tự nhiên Kokoro, nên phát ngay lập tức và không cần tải mô hình. Lựa chọn bên dưới chỉ dùng cho những câu chưa có bản thu sẵn.</p>
+    <p className="mt-2 text-sm font-medium leading-6 text-muted">Kokoro cho giọng tự nhiên hơn và chạy ngay trong trình duyệt. Lần đầu dùng cần tải mô hình khoảng 90–100 MB; sau đó trình duyệt có thể dùng lại từ bộ nhớ đệm.</p>
     <div className="mt-4 grid gap-2 sm:grid-cols-2">
-      <button onClick={()=>chooseProvider('kokoro')} className={`pressable min-h-12 rounded-2xl border px-4 text-left text-sm font-bold ${settings.provider==='kokoro'?'border-blue-400 bg-blue-50 text-blue-800':'border-slate-200 bg-white text-slate-700'}`}><span className="block">✨ Giọng tự nhiên · Kokoro</span><span className="mt-1 block text-[11px] font-medium opacity-70">Mặc định · dùng cho câu chưa thu sẵn</span></button>
+      <button onClick={()=>chooseProvider('kokoro')} className={`pressable min-h-12 rounded-2xl border px-4 text-left text-sm font-bold ${settings.provider==='kokoro'?'border-blue-400 bg-blue-50 text-blue-800':'border-slate-200 bg-white text-slate-700'}`}><span className="block">✨ Giọng tự nhiên · Kokoro</span><span className="mt-1 block text-[11px] font-medium opacity-70">Mặc định · chất lượng cao</span></button>
       <button onClick={()=>chooseProvider('browser')} className={`pressable min-h-12 rounded-2xl border px-4 text-left text-sm font-bold ${settings.provider==='browser'?'border-blue-400 bg-blue-50 text-blue-800':'border-slate-200 bg-white text-slate-700'}`}><span className="block">🔊 Giọng trình duyệt</span><span className="mt-1 block text-[11px] font-medium opacity-70">Nhanh hơn · dùng khi thiết bị yếu</span></button>
     </div>
     {settings.provider==='kokoro'&&<>
@@ -406,7 +406,7 @@ function Profile({ completed, onReset, dataTick }) {
       <div className="surface-card rounded-[30px] p-6 sm:p-7">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
           <div className="mascot-tile grid h-24 w-24 place-items-center rounded-[28px]"><Mascot size={88} mood="proud" /></div>
-          <div><p className="eyebrow primary-eyebrow">A0 Starter learner</p><h1 className="mt-1 text-3xl font-extrabold text-strong">Tiến độ của bạn</h1><p className="mt-2 text-sm text-muted">{completed}/{total} bài đã hoàn thành hoặc test out · {engagement.xp} XP · {engagement.streak} ngày streak.</p></div>
+          <div><p className="eyebrow primary-eyebrow">Người học A0 · Khởi đầu</p><h1 className="mt-1 text-3xl font-extrabold text-strong">Tiến độ của bạn</h1><p className="mt-2 text-sm text-muted">{completed}/{total} bài đã hoàn thành hoặc vượt qua kiểm tra nhanh · {engagement.xp} XP · chuỗi {engagement.streak} ngày.</p></div>
         </div>
       </div>
 
@@ -421,19 +421,19 @@ function Profile({ completed, onReset, dataTick }) {
       <VoiceSettings />
 
       <div className="surface-card rounded-[28px] p-5">
-        <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.13em] text-primary">Level test</p><h2 className="mt-1 text-xl font-bold text-strong">Kết quả A0 gần nhất</h2></div>{latestA0&&<span className={`rounded-full px-3 py-1.5 text-sm font-extrabold ${latestA0.passed?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700'}`}>{latestA0.overall}%</span>}</div>
-        {latestA0 ? <p className="mt-2 text-sm font-medium leading-6 text-muted">{latestA0.passed ? 'Đã đạt A0 · sẵn sàng cho A1 khi level tiếp theo mở.' : 'Chưa đạt A0. Kết quả bên dưới cho biết phần nào nên ôn trước.'}</p> : <p className="mt-2 text-sm font-medium leading-6 text-muted">Chưa có kết quả. Bạn có thể mở Học → Kiểm tra trình độ A0.</p>}
+        <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.13em] text-primary">Kiểm tra trình độ</p><h2 className="mt-1 text-xl font-bold text-strong">Kết quả A0 gần nhất</h2></div>{latestA0&&<span className={`rounded-full px-3 py-1.5 text-sm font-extrabold ${latestA0.passed?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700'}`}>{latestA0.overall}%</span>}</div>
+        {latestA0 ? <p className="mt-2 text-sm font-medium leading-6 text-muted">{latestA0.passed ? 'Đã đạt A0 · bạn sẵn sàng học A1 khi cấp tiếp theo mở.' : 'Chưa đạt A0. Kết quả bên dưới cho biết phần nào nên ôn trước.'}</p> : <p className="mt-2 text-sm font-medium leading-6 text-muted">Chưa có kết quả. Bạn có thể mở Học → Kiểm tra trình độ A0.</p>}
       </div>
 
       <div className="surface-card rounded-[28px] p-5">
         <h2 className="text-xl font-bold text-strong">Điểm cần luyện thêm</h2>
-        <p className="mt-2 text-xs font-medium leading-5 text-muted">Mastery dùng dữ liệu nhiều lượt học, không coi một câu đúng là đã thành thạo.</p>
+        <p className="mt-2 text-xs font-medium leading-5 text-muted">Mức độ nắm vững được tính từ nhiều lần luyện, không coi một câu đúng là đã thành thạo.</p>
         <div className="mt-4 space-y-2">
           {weak.length ? weak.map(skill => <div key={skill.skillId} className="muted-row flex items-center justify-between rounded-xl p-3"><span className="text-sm font-semibold text-strong">{skill.labelVi}</span><span className="text-xs font-bold text-muted">{skill.masteryScore}% · {skill.attempts} lượt</span></div>) : <p className="muted-row rounded-xl p-3 text-sm text-muted">Chưa đủ dữ liệu để hiển thị điểm yếu.</p>}
         </div>
       </div>
 
-      <button onClick={onReset} className="danger-outline-button pressable inline-flex min-h-11 items-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold"><RotateCcw className="h-4 w-4" /> Reset learning data</button>
+      <button onClick={onReset} className="danger-outline-button pressable inline-flex min-h-11 items-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold"><RotateCcw className="h-4 w-4" /> Xóa dữ liệu học tập</button>
     </div>
   )
 }

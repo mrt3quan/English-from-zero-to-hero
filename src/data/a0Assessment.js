@@ -1,9 +1,9 @@
 export const a0Assessment={
   id:'a0-final-v1',
   level:'A0',
-  label:'A0 · Starter / Pre-A1',
-  titleVi:'Kiểm tra cuối A0',
-  introVi:'Bài kiểm tra xem bạn có thực sự hiểu và tạo được tiếng Anh cơ bản hay chưa. Không chỉ chọn đáp án — bạn sẽ nghe, đọc, xây câu và tự viết.',
+  label:'A0 · Khởi đầu (Pre-A1)',
+  titleVi:'Bài kiểm tra cuối A0',
+  introVi:'Bài này giúp bạn biết mình đã dùng được tiếng Anh A0 đến đâu. Bạn sẽ nghe, đọc, sửa câu và tự viết — không chỉ chọn đáp án.',
   passing:{overall:75,requiredSections:{sentence:65,writing:60,reading:55,listening:55}},
   sections:[
     {
@@ -48,12 +48,12 @@ export const a0Assessment={
     {
       id:'speaking',labelVi:'Nói thử (không chặn kết quả)',weight:0,optional:true,
       items:[
-        {id:'sp1',type:'speaking',promptVi:'Nói câu này thành tiếng. Phần này dùng để luyện và ghi nhận transcript, chưa dùng để quyết định đậu/rớt A0.',target:'I study English every day.'},
+        {id:'sp1',type:'speaking',promptVi:'Nếu lúc này tiện nói, hãy đọc câu này thành tiếng. Phần nói chỉ để luyện và chưa ảnh hưởng đến kết quả A0.',target:'I study English every day.'},
       ],
     },
     {
       id:'writing',labelVi:'Tự viết',weight:25,layout:'guidedSteps',
-      introVi:'Bạn không cần viết một đoạn dài ngay. Bunny chia phần viết thành 4 nhiệm vụ ngắn, giống cách giáo viên hướng dẫn từng bước.',
+      introVi:'Bạn không cần viết một đoạn dài ngay. Bunny chia phần viết thành 4 nhiệm vụ ngắn để bạn làm từng bước.',
       items:[
         {
           id:'w1',type:'guidedWriting',titleVi:'Giới thiệu bản thân',
@@ -70,7 +70,7 @@ export const a0Assessment={
           promptVi:'Viết 2 câu về những việc bạn thường làm trong ngày hoặc trong tuần.',
           minSentences:2,minWords:7,
           requirements:[
-            {type:'presentSimple',labelVi:'Dùng động từ Present Simple'},
+            {type:'presentSimple',labelVi:'Dùng động từ ở hiện tại đơn'},
           ],
           hintVi:'Bạn có thể viết về work, study, eat, read, watch, play, go…',
         },
