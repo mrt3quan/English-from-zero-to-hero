@@ -3,7 +3,24 @@
 ## Goal
 Replace the old OS/browser TTS as the default English teaching voice while keeping a zero-blocking fallback for weak devices and restricted networks.
 
-## Primary voice engine
+## Primary voice: pre-rendered clips
+
+The A0 course speaks a fixed set of phrases — 143 distinct strings, about 2,000
+characters in total. All of them are synthesised once with Kokoro at build time
+(`scripts/generate-speech.mjs`, run by the *Generate lesson voice clips*
+workflow) and committed as MP3s under `public/voice/`.
+
+Lessons therefore play audio immediately, from our own origin. No model
+download, no first-press wait, and audio keeps working on networks that block
+jsDelivr or Hugging Face.
+
+`scripts/speechManifest.mjs` is the single source of truth for which clips exist.
+Both the generator and `AudioService` key clips the same way
+(`voice|speed|sanitized text`), so a phrase can never be requested under a key
+the build did not produce. Change curriculum text and the workflow re-renders
+only what moved.
+
+## Fallback voice engine
 - Kokoro 82M v1.0 ONNX
 - Runtime: `kokoro-js` 1.2.1, loaded lazily from a pinned jsDelivr ESM URL
 - Model: `onnx-community/Kokoro-82M-v1.0-ONNX`
@@ -20,8 +37,11 @@ A0 teaching examples use the stable Bunny teacher voice. Formal listening-test i
 
 ## Playback behavior
 - Normal: 1.0x Kokoro generation speed
-- Slow: 0.82x Kokoro generation speed
-- First Kokoro use shows `Đang chuẩn bị…` while the model initializes.
+- Slow: 0.5x Kokoro generation speed. Rendering slow clips separately keeps the
+  pitch natural; replaying a normal clip at a lower rate would not.
+- Playback order is: pre-rendered clip → Kokoro in the browser → browser
+  SpeechSynthesis. Lesson audio takes the first path.
+- `Đang chuẩn bị…` only appears on the rare fallback path, not for lesson audio.
 - If Kokoro cannot load or generate, `AudioService` automatically falls back to the browser's English SpeechSynthesis voice.
 - Learners can choose Kokoro or Browser voice in Profile → Giọng đọc bài học.
 

@@ -380,12 +380,12 @@ function VoiceSettings() {
   const chooseProvider=value=>{AudioService.stop();AudioService.setProvider(value);setSettings(AudioService.getSettings())}
   const chooseVoice=voice=>{AudioService.setTeacherVoice(voice);setSettings(AudioService.getSettings())}
   const preview=async voice=>{if(previewing)return;setPreviewing(voice);await AudioService.preview(voice);setPreviewing(null);setStatus(AudioService.getStatus())}
-  const statusText=status.state==='loading'?'Đang tải giọng chất lượng cao lần đầu…':status.state==='ready'?'Giọng Kokoro đã sẵn sàng trên thiết bị này.':status.state==='error'?'Không tải được Kokoro; Bunny sẽ tự dùng giọng trình duyệt để bài học không bị chặn.':'Kokoro sẽ được tải khi bạn nghe lần đầu.'
+  const statusText=status.state==='loading'?'Đang tải giọng chất lượng cao lần đầu…':status.state==='ready'?'Giọng Kokoro đã sẵn sàng trên thiết bị này.':status.state==='error'?'Không tải được Kokoro; Bunny sẽ tự dùng giọng trình duyệt cho những câu chưa thu sẵn.':'Bài học dùng bản thu sẵn. Kokoro chỉ tải khi gặp câu chưa có bản thu.'
   return <div className="surface-card rounded-[28px] p-5">
     <div className="flex items-center gap-2"><Volume2 className="h-5 w-5 text-primary"/><h2 className="text-xl font-bold text-strong">Giọng đọc bài học</h2></div>
-    <p className="mt-2 text-sm font-medium leading-6 text-muted">Kokoro cho giọng tự nhiên hơn và chạy ngay trong trình duyệt. Lần đầu dùng cần tải mô hình khoảng 90–100 MB; sau đó trình duyệt có thể dùng lại từ bộ nhớ đệm.</p>
+    <p className="mt-2 text-sm font-medium leading-6 text-muted">Giọng đọc trong bài học đã được thu sẵn bằng giọng tự nhiên Kokoro, nên phát ngay lập tức và không cần tải mô hình. Lựa chọn bên dưới chỉ dùng cho những câu chưa có bản thu sẵn.</p>
     <div className="mt-4 grid gap-2 sm:grid-cols-2">
-      <button onClick={()=>chooseProvider('kokoro')} className={`pressable min-h-12 rounded-2xl border px-4 text-left text-sm font-bold ${settings.provider==='kokoro'?'border-blue-400 bg-blue-50 text-blue-800':'border-slate-200 bg-white text-slate-700'}`}><span className="block">✨ Giọng tự nhiên · Kokoro</span><span className="mt-1 block text-[11px] font-medium opacity-70">Mặc định · chất lượng cao</span></button>
+      <button onClick={()=>chooseProvider('kokoro')} className={`pressable min-h-12 rounded-2xl border px-4 text-left text-sm font-bold ${settings.provider==='kokoro'?'border-blue-400 bg-blue-50 text-blue-800':'border-slate-200 bg-white text-slate-700'}`}><span className="block">✨ Giọng tự nhiên · Kokoro</span><span className="mt-1 block text-[11px] font-medium opacity-70">Mặc định · dùng cho câu chưa thu sẵn</span></button>
       <button onClick={()=>chooseProvider('browser')} className={`pressable min-h-12 rounded-2xl border px-4 text-left text-sm font-bold ${settings.provider==='browser'?'border-blue-400 bg-blue-50 text-blue-800':'border-slate-200 bg-white text-slate-700'}`}><span className="block">🔊 Giọng trình duyệt</span><span className="mt-1 block text-[11px] font-medium opacity-70">Nhanh hơn · dùng khi thiết bị yếu</span></button>
     </div>
     {settings.provider==='kokoro'&&<>
