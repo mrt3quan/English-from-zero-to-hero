@@ -31,9 +31,16 @@ export default function StepRenderer({lesson,step,stepIndex=0,stepState={},onSte
   return <div className="teacher-led-step"><TeacherGuide lesson={lesson} step={step} stepIndex={stepIndex}/>{body}</div>
 }
 
-function AudioButtons({text,onPlayed}){
-  const play=speed=>{const ok=AudioService.speak(text,{speed}); if(ok) onPlayed?.(speed)}
-  return <div className="flex shrink-0 items-center gap-1.5"><button onClick={()=>play('normal')} className="pressable inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-blue-50 px-2.5 text-[11px] font-black text-blue-700" aria-label={`Nghe tốc độ bình thường: ${text}`}><Volume2 className="h-4 w-4"/> Nghe</button><button onClick={()=>play('slow')} className="pressable inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-slate-50 px-2.5 text-[11px] font-black text-slate-600" aria-label={`Nghe chậm: ${text}`}><Gauge className="h-4 w-4"/> Chậm</button></div>
+function AudioButtons({text,onPlayed,voiceRole='teacher'}){
+  const [loading,setLoading]=useState(null)
+  const play=async speed=>{
+    if(loading)return
+    setLoading(speed)
+    const ok=await AudioService.speak(text,{speed,voiceRole})
+    setLoading(null)
+    if(ok) onPlayed?.(speed)
+  }
+  return <div className="flex shrink-0 items-center gap-1.5"><button disabled={!!loading} onClick={()=>play('normal')} className="pressable inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-blue-50 px-2.5 text-[11px] font-black text-blue-700 disabled:opacity-60" aria-label={`Nghe tốc độ bình thường: ${text}`}><Volume2 className="h-4 w-4"/> {loading==='normal'?'Đang chuẩn bị…':'Nghe'}</button><button disabled={!!loading} onClick={()=>play('slow')} className="pressable inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-slate-50 px-2.5 text-[11px] font-black text-slate-600 disabled:opacity-60" aria-label={`Nghe chậm: ${text}`}><Gauge className="h-4 w-4"/> {loading==='slow'?'Đang chuẩn bị…':'Chậm'}</button></div>
 }
 
 function ContentStep({step,state,onStateChange}){
@@ -81,8 +88,12 @@ function ExampleList({examples,speak}){
 function ListenStep({step,state,onStateChange}){
   const targets=step.targets?.length?step.targets:[step.target].filter(Boolean)
   const [played,setPlayed]=useState(state.played||{})
-  const play=(text,index,speed)=>{
-    const ok=AudioService.speak(text,{speed})
+  const [loading,setLoading]=useState(null)
+  const play=async(text,index,speed)=>{
+    if(loading)return
+    setLoading(`${index}:${speed}`)
+    const ok=await AudioService.speak(text,{speed,voiceRole:step.voiceRole||'teacher',voice:step.voice})
+    setLoading(null)
     if(!ok)return
     const next={...played,[index]:true};setPlayed(next)
     onStateChange?.({played:next,completed:Object.keys(next).length>=Math.min(targets.length,step.requiredPlays||1)})
@@ -93,7 +104,7 @@ function ListenStep({step,state,onStateChange}){
     <h2 className="mt-4 text-[28px] font-extrabold tracking-tight text-slate-900 sm:text-3xl">Nghe trước khi nói</h2>
     <p className="mt-3 max-w-2xl text-[15px] font-medium leading-7 text-slate-600">{step.promptVi||'Nghe câu ở tốc độ bình thường. Nếu cần, nghe chậm rồi quay lại tốc độ bình thường.'}</p>
     {step.focusVi&&<div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm font-semibold leading-6 text-blue-950">🎧 {step.focusVi}</div>}
-    <div className="mt-5 space-y-3">{targets.map((text,index)=><div key={`${text}-${index}`} className={`rounded-2xl border p-4 ${played[index]?'border-emerald-200 bg-emerald-50':'border-slate-200 bg-white'}`}><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div className="english-example text-lg font-extrabold text-slate-900">{text}</div><div className="flex gap-2"><button onClick={()=>play(text,index,'normal')} className="pressable inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-bold text-white"><Volume2 className="h-4 w-4"/> Normal</button><button onClick={()=>play(text,index,'slow')} className="pressable inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700"><Gauge className="h-4 w-4"/> Chậm</button></div></div>{played[index]&&<p className="mt-2 text-xs font-bold text-emerald-700">✓ Đã nghe</p>}</div>)}</div>
+    <div className="mt-5 space-y-3">{targets.map((text,index)=><div key={`${text}-${index}`} className={`rounded-2xl border p-4 ${played[index]?'border-emerald-200 bg-emerald-50':'border-slate-200 bg-white'}`}><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div className="english-example text-lg font-extrabold text-slate-900">{text}</div><div className="flex gap-2"><button disabled={!!loading} onClick={()=>play(text,index,'normal')} className="pressable inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-bold text-white disabled:opacity-60"><Volume2 className="h-4 w-4"/> {loading===`${index}:normal`?'Đang chuẩn bị…':'Normal'}</button><button disabled={!!loading} onClick={()=>play(text,index,'slow')} className="pressable inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 disabled:opacity-60"><Gauge className="h-4 w-4"/> {loading===`${index}:slow`?'Đang chuẩn bị…':'Chậm'}</button></div></div>{played[index]&&<p className="mt-2 text-xs font-bold text-emerald-700">✓ Đã nghe</p>}</div>)}</div>
     {!AudioService.supported()&&<p className="mt-4 rounded-xl bg-amber-50 p-3 text-xs font-semibold text-amber-900">Thiết bị này không hỗ trợ phát giọng nói trong trình duyệt. Bạn vẫn có thể đọc ví dụ thành tiếng.</p>}
     {complete&&<p className="mt-4 text-xs font-bold text-emerald-700">Đã nghe. Tiếp theo: thử nói lại bằng giọng của bạn.</p>}
   </div>

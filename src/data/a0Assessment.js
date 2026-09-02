@@ -52,9 +52,48 @@ export const a0Assessment={
       ],
     },
     {
-      id:'writing',labelVi:'Tự viết',weight:25,
+      id:'writing',labelVi:'Tự viết',weight:25,layout:'guidedSteps',
+      introVi:'Bạn không cần viết một đoạn dài ngay. Bunny chia phần viết thành 4 nhiệm vụ ngắn, giống cách giáo viên hướng dẫn từng bước.',
       items:[
-        {id:'w1',type:'writing',promptVi:'Viết 8–10 câu về bản thân. Cố gắng dùng: am/is/are, Present Simple, have/has, một câu phủ định, một từ mô tả và một từ chỉ vị trí/thời gian.',minLines:8,minWords:28},
+        {
+          id:'w1',type:'guidedWriting',titleVi:'Giới thiệu bản thân',
+          promptVi:'Viết 2 câu: một câu giới thiệu bạn là ai và một câu nói nơi bạn sống.',
+          minSentences:2,minWords:6,
+          requirements:[
+            {type:'be',labelVi:'Dùng am / is / are'},
+            {type:'location',labelVi:'Nói nơi bạn sống bằng in / at / near'},
+          ],
+          hintVi:'Ví dụ dạng câu: I am ___. I live in ___. Hãy dùng thông tin thật của bạn.',
+        },
+        {
+          id:'w2',type:'guidedWriting',titleVi:'Nói về thói quen',
+          promptVi:'Viết 2 câu về những việc bạn thường làm trong ngày hoặc trong tuần.',
+          minSentences:2,minWords:7,
+          requirements:[
+            {type:'presentSimple',labelVi:'Dùng động từ Present Simple'},
+          ],
+          hintVi:'Bạn có thể viết về work, study, eat, read, watch, play, go…',
+        },
+        {
+          id:'w3',type:'guidedWriting',titleVi:'Điều bạn có và có thể làm',
+          promptVi:'Viết 2 câu: một câu dùng have/has và một câu dùng can/can’t.',
+          minSentences:2,minWords:7,
+          requirements:[
+            {type:'haveHas',labelVi:'Có một câu dùng have / has'},
+            {type:'canCant',labelVi:'Có một câu dùng can / can’t'},
+          ],
+          hintVi:'Ví dụ dạng câu: I have ___. I can ___. Hãy tự chọn nội dung của bạn.',
+        },
+        {
+          id:'w4',type:'guidedWriting',titleVi:'Thêm một ý phủ định và chi tiết',
+          promptVi:'Viết 2 câu: một câu phủ định và một câu có thông tin về nơi chốn hoặc thời gian.',
+          minSentences:2,minWords:7,
+          requirements:[
+            {type:'negative',labelVi:'Có một câu phủ định'},
+            {type:'placeTime',labelVi:'Có chi tiết nơi chốn hoặc thời gian'},
+          ],
+          hintVi:'Bạn có thể dùng don’t / doesn’t / isn’t / aren’t / can’t và các từ như at home, in the morning, every day…',
+        },
       ],
     },
   ],
