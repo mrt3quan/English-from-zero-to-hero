@@ -7,6 +7,7 @@ import { ReviewQueueService } from '../lib/reviewQueueService'
 import { ERROR_TAGS } from '../lib/skillTaxonomy'
 import { foundationLessonById } from '../data/foundationCurriculum'
 import { EngagementService } from '../lib/engagementService'
+import ExerciseRenderer from './lesson/ExerciseRenderer'
 
 export default function PracticePage({ onOpenLesson, onOpenWriting }) {
   const [tick, setTick] = useState(0)
@@ -40,8 +41,8 @@ export default function PracticePage({ onOpenLesson, onOpenWriting }) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-[.14em] text-primary">Hôm nay</p>
-            <h2 className="mt-2 text-3xl font-extrabold text-strong">{due.length ? `${due.length} mục cần nhớ lại` : 'Bạn đã ôn xong hôm nay'}</h2>
-            <p className="mt-2 max-w-xl text-sm font-medium leading-6 text-muted">{due.length ? `Khoảng ${Math.max(1, Math.ceil(due.length * .65))} phút. Tự nhớ trước, rồi mới xem đáp án.` : 'Bạn vẫn có thể luyện câu hoặc viết thêm nếu muốn.'}</p>
+            <h2 className="mt-2 text-3xl font-extrabold text-strong">{due.length ? `${due.length} bài ôn đang chờ` : 'Bạn đã ôn xong hôm nay'}</h2>
+            <p className="mt-2 max-w-xl text-sm font-medium leading-6 text-muted">{due.length ? `Khoảng ${Math.max(1, Math.ceil(due.length * .65))} phút. Làm câu trước; Bunny chỉ hiện gợi ý sau khi bạn đã thử.` : 'Bạn vẫn có thể luyện câu hoặc viết thêm nếu muốn.'}</p>
           </div>
           <div className="review-clock hidden h-14 w-14 shrink-0 place-items-center rounded-2xl sm:grid"><Clock3 className="h-6 w-6" /></div>
         </div>
@@ -114,30 +115,31 @@ function EmptySmall({ text }) {
 function ReviewSession({ items, onClose }) {
   const [index, setIndex] = useState(0)
   const [open, setOpen] = useState(false)
+  const [taskState,setTaskState]=useState({})
+  const [attempted,setAttempted]=useState(false)
   const item = items[index]
   if (!item) return <div />
   const rate = rating => {
     ReviewQueueService.recordRating(item, rating)
     EngagementService.recordReview(item.key)
     if (index >= items.length - 1) onClose()
-    else { setIndex(i => i + 1); setOpen(false) }
+    else { setIndex(i => i + 1); setOpen(false); setTaskState({}); setAttempted(false) }
   }
+  const task=item.task
   return (
     <div className="fixed inset-0 z-[95] grid place-items-center p-4 backdrop-blur-sm" style={{ background: 'var(--overlay)' }}>
       <div className="review-session surface-card w-full max-w-xl rounded-[30px] p-5 sm:p-6" style={{ boxShadow: 'var(--shadow-floating)' }}>
-        <div className="flex items-center justify-between"><p className="text-xs font-bold uppercase tracking-[.14em] text-primary">Review {index + 1}/{items.length}</p><button onClick={onClose} className="icon-button" aria-label="Đóng review"><X className="h-5 w-5" /></button></div>
-        <div className="mt-6 text-center"><Mascot size={84} mood={open ? 'encouraging' : 'thinking'} withBook={false} className="mx-auto" /><h2 className="mt-3 text-2xl font-extrabold text-strong">{item.prompt}</h2><p className="mt-2 text-sm text-muted">{open ? 'So với câu bạn vừa nhớ trong đầu.' : 'Đừng mở đáp án ngay — thử nhớ trước.'}</p></div>
-        {!open ? (
-          <button onClick={() => setOpen(true)} className="primary-button pressable mt-6 min-h-[52px] w-full rounded-2xl px-4 text-sm font-bold">Tôi đã nghĩ xong — xem đáp án</button>
+        <div className="flex items-center justify-between"><p className="text-xs font-bold uppercase tracking-[.14em] text-primary">Ôn {index + 1}/{items.length}</p><button onClick={onClose} className="icon-button" aria-label="Đóng phần ôn"><X className="h-5 w-5" /></button></div>
+        <div className="mt-5 flex items-center gap-3"><Mascot size={72} mood={attempted||open ? 'encouraging' : 'thinking'} withBook={false}/><div><h2 className="text-xl font-extrabold text-strong">Dùng lại tiếng Anh, không học thuộc định nghĩa.</h2><p className="mt-1 text-sm text-muted">Làm câu trước. Sau đó mới tự đánh giá xem mình nhớ đến đâu.</p></div></div>
+        {task ? (
+          <>
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4"><ExerciseRenderer step={task} initialState={{...taskState,stepKey:`practice-${item.key}`}} onStateChange={setTaskState} onResult={()=>setAttempted(true)}/></div>
+            {attempted&&<><p className="mt-5 text-center text-xs font-semibold text-muted">Sau khi tự làm, phần này đang ở mức nào?</p><div className="mt-2 grid grid-cols-3 gap-2"><button onClick={() => rate(0)} className="rating-danger min-h-12 rounded-xl px-2 text-xs font-bold">Cần ôn lại</button><button onClick={() => rate(.5)} className="rating-warning min-h-12 rounded-xl px-2 text-xs font-bold">Nhớ một phần</button><button onClick={() => rate(1)} className="rating-success min-h-12 rounded-xl px-2 text-xs font-bold">Nhớ rồi</button></div></>}
+          </>
         ) : (
           <>
-            <div className="review-answer mt-6 rounded-2xl p-4"><p className="text-xs font-bold uppercase tracking-wider text-success">Đáp án</p><p className="mt-2 text-base font-bold text-strong">{item.expected}</p></div>
-            <p className="mt-5 text-center text-xs font-semibold text-muted">Bạn nhớ được đến đâu?</p>
-            <div className="mt-2 grid grid-cols-3 gap-2">
-              <button onClick={() => rate(0)} className="rating-danger min-h-12 rounded-xl px-2 text-xs font-bold">Chưa nhớ</button>
-              <button onClick={() => rate(.5)} className="rating-warning min-h-12 rounded-xl px-2 text-xs font-bold">Gần đúng</button>
-              <button onClick={() => rate(1)} className="rating-success min-h-12 rounded-xl px-2 text-xs font-bold">Nhớ rồi</button>
-            </div>
+            <div className="mt-6 text-center"><h2 className="text-2xl font-extrabold text-strong">{item.prompt}</h2><p className="mt-2 text-sm text-muted">{open ? 'So với câu bạn vừa nhớ trong đầu.' : 'Thử trả lời trước khi xem gợi ý.'}</p></div>
+            {!open ? <button onClick={() => setOpen(true)} className="primary-button pressable mt-6 min-h-[52px] w-full rounded-2xl px-4 text-sm font-bold">Tôi đã nghĩ xong — xem gợi ý</button> : <><div className="review-answer mt-6 rounded-2xl p-4"><p className="text-xs font-bold uppercase tracking-wider text-success">Gợi ý/đáp án</p><p className="mt-2 text-base font-bold text-strong">{item.expected}</p></div><p className="mt-5 text-center text-xs font-semibold text-muted">Bạn nhớ được đến đâu?</p><div className="mt-2 grid grid-cols-3 gap-2"><button onClick={() => rate(0)} className="rating-danger min-h-12 rounded-xl px-2 text-xs font-bold">Cần ôn lại</button><button onClick={() => rate(.5)} className="rating-warning min-h-12 rounded-xl px-2 text-xs font-bold">Nhớ một phần</button><button onClick={() => rate(1)} className="rating-success min-h-12 rounded-xl px-2 text-xs font-bold">Nhớ rồi</button></div></>}
           </>
         )}
       </div>

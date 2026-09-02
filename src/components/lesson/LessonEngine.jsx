@@ -9,6 +9,7 @@ import { inferErrorTags, inferSkillIds } from '../../lib/skillTaxonomy'
 import { EngagementService } from '../../lib/engagementService'
 import { getTeacherGuide } from '../../data/teacherGuides'
 import { SoundEffectsService } from '../../lib/soundEffectsService'
+import { toReviewTask } from '../../lib/reviewTaskFactory'
 
 export default function LessonEngine({ lesson, onClose, onComplete }) {
   const saved = useMemo(() => getLessonProgress(lesson.id), [lesson.id])
@@ -111,6 +112,7 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
         answer: String(result.answer ?? ''),
         expected,
         errorTags,
+        task: toReviewTask(step),
       })
     } else {
       ReviewQueueService.upsert({
@@ -123,11 +125,12 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
         expected,
         dueAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
         lastRating: 1,
+        task: toReviewTask(step),
       })
     }
   }
 
-  const handleReviewRating = ({ itemIndex, question, answer, rating }) => {
+  const handleReviewRating = ({ itemIndex, question, answer, rating, task }) => {
     const item = ReviewQueueService.upsert({
       key: `lesson-review:${lesson.id}:${index}:${itemIndex}`,
       type: 'lesson_review',
@@ -137,6 +140,7 @@ export default function LessonEngine({ lesson, onClose, onComplete }) {
       skillIds: inferSkillIds(lesson.id, step.skillIds),
       prompt: question,
       expected: answer,
+      task,
       dueAt: new Date().toISOString(),
     })
     ReviewQueueService.recordRating(item, rating)

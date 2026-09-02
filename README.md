@@ -1,41 +1,52 @@
-# Bunny English v2.3 — Static Lesson Quality Pass
+# Bunny English v2.4 — Learning Engine 2.0
 
-Bunny English is a Vietnamese-first English learning app designed to grow from first sentences toward advanced speaking and academic/college writing.
+Bunny English is a Vietnamese-first English learning app that grows from first English sentences toward fluent speaking and academic/college writing.
 
-## Current release focus
+## What v2.4 changes
 
-v2.3 improves the **actual A0 lesson teaching quality** without requiring an AI API.
+v2.4 is a learning-system upgrade, not a visual redesign.
 
-- 42 A0 lessons
-- teacher-led Bunny guidance in every lesson
-- natural Vietnamese explanations written for Vietnamese learners
-- meaning before grammar terminology
-- Listen → optional Say → Build → Write → Review learning loop
-- Kokoro natural TTS with browser fallback
-- optional pronunciation assessment backend + browser speech fallback
-- “Tôi không thể nói lúc này” speaking skip/pause
-- personalized review and skill mastery
-- A0 multi-skill final assessment
-- correct/wrong learning sound feedback
-- clean Level → Chapter → Lesson navigation
+- keeps all 42 A0 lessons and their IDs
+- replaces definition-style lesson review with active English retrieval
+- adds explicit exercise intents: recognize / choose / repair / build / produce / listen & write
+- adds open-answer sentence validation so learner-created English is not forced into one hidden sample answer
+- fixes the `My brother...` task so many valid completions can pass
+- adds a static `Bunny, mình chưa hiểu` help drawer to every lesson step
+- adds a structured A1→C2 knowledge backbone and the 7 kernel sentence patterns for future curriculum work
+- expands A0 sub-skill tracking for communication lessons 32–42
+- migrates the review queue away from old definition-style lesson-review cards
+- keeps Kokoro TTS, optional pronunciation assessment, optional speaking, sound feedback, A0 assessment, mastery and progress systems
+- requires no OpenAI/API key
 
-## No OpenAI dependency in v2.3
+## Learning rule
 
-OpenAI/API tutoring is intentionally postponed. The app does not need an OpenAI key for this release.
+> Never test Bunny's explanation when we can test the learner's English directly.
+
+And:
+
+> If Bunny asks the learner to create their own English, Bunny must not secretly require one predetermined sentence.
 
 ## Development
 
 ```bash
 npm ci
 npm test
+npm run validate:curriculum
+npm run validate:learning-engine
 npm run audit:copy
 npm run dev
 ```
 
-Build:
+Production build:
 
 ```bash
 npm run build
 ```
 
-See `LESSON_QUALITY_GUIDE_VI.md` for the teaching/copy standard and `MERGE_GUIDE_V2.3.md` for merge instructions.
+See:
+
+- `LEARNING_ENGINE_V2.4.md`
+- `MERGE_GUIDE_V2.4.md`
+- `UPGRADE_NOTES_V2.4.md`
+- `VALIDATION_V2.4.md`
+- `references/English_Knowledge_Map_A1_to_C2.txt`

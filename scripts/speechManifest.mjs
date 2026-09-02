@@ -35,10 +35,16 @@ function collectLessonText(){
   const add = value => { const t = cleanText(value); if(t) out.add(t) }
   for(const lesson of foundationLessons){
     for(const step of lesson.steps || []){
-      // step.speak is the curated spoken form of a notation-heavy example
-      // ("map → /m/ /æ/ /p/" is displayed, "map" is spoken).
-      if(step.speak?.length) step.speak.forEach(add)
-      else (step.examples || []).forEach(add)
+      // Only content steps render audio buttons for their examples. Exercise
+      // steps may carry examples too (openSentence shows sample answers as a
+      // text hint), and rendering a clip for those would ship audio nothing
+      // can play.
+      if(step.type === 'content'){
+        // step.speak is the curated spoken form of a notation-heavy example
+        // ("map → /m/ /æ/ /p/" is displayed, "map" is spoken).
+        if(step.speak?.length) step.speak.forEach(add)
+        else (step.examples || []).forEach(add)
+      }
       ;(step.targets || []).forEach(add)
       add(step.target)
       add(step.audioText)

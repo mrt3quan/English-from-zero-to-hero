@@ -54,7 +54,7 @@ export function legacyCheckToRequirement(label, step, index) {
 export function getRequirements(step) {
   if (Array.isArray(step.requirements) && step.requirements.length) return step.requirements
   const fromChecks = (step.checks || []).map((label, i) => legacyCheckToRequirement(label, step, i))
-  if (step.minLines && !fromChecks.some(r => r.type === 'minLines')) fromChecks.push({ id:'minimum_lines', type:'minLines', value:step.minLines, labelVi:`Có ít nhất ${step.minLines} dòng/câu` })
+  if (step.minLines && !fromChecks.some(r => r.type === 'minLines')) fromChecks.push({ id:'minimum_lines', type:'minLines', value:step.minLines, labelVi:`Có ít nhất ${step.minLines} câu` })
   if (step.minWords && !fromChecks.some(r => ['minWords','minItems','minChars'].includes(r.type))) fromChecks.push({ id:'minimum_words', type:'minWords', value:step.minWords, labelVi:`Có ít nhất ${step.minWords} từ` })
   if (!fromChecks.length) fromChecks.push({ id:'minimum_words', type:'minWords', value:1, labelVi:'Có nội dung để kiểm tra' })
   return fromChecks
