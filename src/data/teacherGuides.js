@@ -21,7 +21,7 @@ export function getTeacherStepTalk({lessonId, step, stepIndex=0}){
   if(step.type==='listen') return 'Nghe trọn câu một lần trước. Nếu chưa rõ, nghe lại chậm hơn và chú ý đúng từ hoặc âm đang học.'
   if(step.type==='speak') return 'Nói thử cả câu theo mẫu. Không cần hoàn hảo ngay; nếu lúc này không tiện nói, bạn có thể bỏ qua phần nói.'
   if(step.type==='production') return 'Bây giờ đến lượt bạn tự tạo câu. Dùng mẫu vừa học để nói hoặc viết điều có thật với bạn.'
-  if(step.type==='review') return 'Thử nhớ câu trả lời trước khi mở đáp án. Việc tự nhớ lại sẽ giúp bạn ghi nhớ lâu hơn.'
+  if(step.type==='review') return 'Mình không ôn bằng cách học thuộc lời giải thích. Hãy dùng lại tiếng Anh qua vài câu ngắn: nhận ra, sửa, ghép hoặc tự tạo câu.'
   if(step.type==='exercise'){
     if(step.exerciseType==='wordOrder') return 'Đọc ý nghĩa trước, rồi xếp các mảnh theo thứ tự tiếng Anh. Nếu sai, mình sẽ nhìn lại chỗ bị đảo.'
     if(step.exerciseType==='errorFix') return 'Đọc chậm cả câu và tìm chỗ chưa đúng. Sau đó sửa lại câu hoàn chỉnh.'

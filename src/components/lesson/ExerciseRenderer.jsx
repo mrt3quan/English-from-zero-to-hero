@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Check, RotateCcw, X, Volume2, Gauge } from 'lucide-react'
 import { normalizeCase, validateTextAnswer, validateWordOrder } from '../../lib/textValidation'
+import { analyzeOpenSentence } from '../../lib/openAnswerValidator'
 import { AudioService } from '../../lib/audioService'
 import Mascot from '../Mascot'
 import { SoundEffectsService } from '../../lib/soundEffectsService'
@@ -27,6 +28,7 @@ export default function ExerciseRenderer({ step, onResult, initialState = {}, on
   if (step.exerciseType === 'errorFix') return <TextExercise {...common} mode="fix"/>
   if (step.exerciseType === 'identify') return <IdentifyExercise {...common}/>
   if (step.exerciseType === 'dictation') return <DictationExercise {...common}/>
+  if (step.exerciseType === 'openSentence') return <OpenSentenceExercise {...common}/>
   return <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-800">Exercise type not supported yet.</div>
 }
 
@@ -80,6 +82,33 @@ function TextExercise({ step,onResult,mode,initialState,onStateChange }){
   </ExerciseFrame>
 }
 
+function OpenSentenceExercise({step,onResult,initialState,onStateChange}){
+  const [value,setValue]=useState(initialState.answer||step.starter||'')
+  const [checked,setChecked]=useState(!!initialState.checked)
+  const [correct,setCorrect]=useState(initialState.correct??null)
+  const [feedback,setFeedback]=useState(initialState.feedback||step.explainVi||'')
+  const elapsed=useAttemptClock()
+  useEffect(()=>{setValue(initialState.answer||step.starter||'');setChecked(!!initialState.checked);setCorrect(initialState.correct??null);setFeedback(initialState.feedback||step.explainVi||'')},[step,initialState.stepKey])
+  const check=()=>{
+    if(!value.trim())return
+    const result=analyzeOpenSentence(value,step)
+    const ok=result.correct
+    setChecked(true);setCorrect(ok);setFeedback(result.feedbackVi);SoundEffectsService.feedback(ok)
+    const state={attempted:true,checked:true,correct:ok,bestCorrect:initialState.bestCorrect||ok,answer:value,feedback:result.feedbackVi}
+    pushState(onStateChange,state)
+    onResult?.({...state,expected:'Bất kỳ câu A0 hoàn chỉnh và hợp lệ theo yêu cầu',responseTimeMs:elapsed(),validation:'openSentence'})
+  }
+  const reset=()=>{setChecked(false);setCorrect(null);setFeedback(step.explainVi||'');pushState(onStateChange,{attempted:initialState.attempted||checked,checked:false,correct:null,answer:value,feedback:''})}
+  return <ExerciseFrame step={step} label="TỰ TẠO CÂU">
+    {step.starter&&<div className="mb-4 rounded-2xl border border-blue-100 bg-blue-50 p-4"><p className="text-xs font-black uppercase tracking-wider text-blue-700">Bắt đầu từ đây</p><p className="mt-1 text-lg font-black text-slate-900">{step.starter} ...</p></div>}
+    <label className="sr-only" htmlFor={`open-${step.id||step.promptVi}`}>{step.promptVi}</label>
+    <input id={`open-${step.id||step.promptVi}`} value={value} disabled={checked} onChange={e=>{setValue(e.target.value);pushState(onStateChange,{answer:e.target.value,checked:false,correct:null,attempted:initialState.attempted||false})}} onKeyDown={e=>{if(e.key==='Enter')check()}} placeholder={step.placeholder||`${step.starter||'Viết câu của bạn'}...`} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"/>
+    {step.examples?.length>0&&<details className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3"><summary className="cursor-pointer text-xs font-bold text-slate-600">Cần gợi ý? Xem vài cách hợp lệ</summary><div className="mt-2 space-y-1">{step.examples.slice(0,4).map(ex=><p key={ex} className="text-sm font-semibold text-slate-700">• {ex}</p>)}</div></details>}
+    <ActionRow checked={checked} canCheck={!!value.trim()} onCheck={check} onReset={reset}/>
+    <Feedback correct={correct} text={feedback}/>
+  </ExerciseFrame>
+}
+
 function DictationExercise({step,onResult,initialState,onStateChange}){
   const [value,setValue]=useState(initialState.answer||'');const [checked,setChecked]=useState(!!initialState.checked);const [correct,setCorrect]=useState(initialState.correct??null);const [played,setPlayed]=useState(!!initialState.played);const [audioLoading,setAudioLoading]=useState(null);const elapsed=useAttemptClock()
   useEffect(()=>{setValue(initialState.answer||'');setChecked(!!initialState.checked);setCorrect(initialState.correct??null);setPlayed(!!initialState.played)},[step,initialState.stepKey])
@@ -99,5 +128,6 @@ function IdentifyExercise({step,onResult,initialState,onStateChange}){
   return <ExerciseFrame step={step}><div className="flex flex-wrap gap-2" role={step.multi?'group':'radiogroup'}>{step.tokens.map((token,i)=><button key={`${token}-${i}`} disabled={checked} onClick={()=>toggle(i)} aria-pressed={selected.includes(i)} className={`pressable rounded-xl border px-3 py-2.5 text-sm font-extrabold ${selected.includes(i)?'border-violet-400 bg-violet-50 text-violet-800':'border-slate-200 bg-white text-slate-700'}`}>{token}</button>)}</div><ActionRow checked={checked} canCheck={selected.length>0} onCheck={check} onReset={reset}/><Feedback correct={correct} text={step.explainVi}/></ExerciseFrame>
 }
 
-function ExerciseFrame({step,children,label='LUYỆN THỬ'}){return <div><p className="text-xs font-black uppercase tracking-[.16em] text-violet-600">{label}</p><h2 className="mt-2 text-2xl font-black tracking-tight text-slate-900">{step.promptVi}</h2><div className="mt-6">{children}</div></div>}
+const intentLabels={recognize:'NHẬN RA',choose:'CHỌN ĐÚNG',repair:'SỬA CÂU',build:'XÂY CÂU',produce:'TỰ DÙNG',listen_write:'NGHE & VIẾT'}
+function ExerciseFrame({step,children,label}){const resolved=label||intentLabels[step.intent]||'LUYỆN THỬ';return <div><p className="text-xs font-black uppercase tracking-[.16em] text-violet-600">{resolved}</p><h2 className="mt-2 text-2xl font-black tracking-tight text-slate-900">{step.promptVi}</h2><div className="mt-6">{children}</div></div>}
 function ActionRow({checked,canCheck,onCheck,onReset}){return <div className="mt-5 flex items-center gap-3">{!checked?<button disabled={!canCheck} onClick={onCheck} className="pressable min-h-11 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-40">Kiểm tra</button>:<button onClick={onReset} className="pressable inline-flex min-h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700"><RotateCcw className="h-4 w-4"/> Thử lại</button>}</div>}

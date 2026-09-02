@@ -1,3 +1,3 @@
 # Merge Guide
 
-See `MERGE_GUIDE_V2.3.md` for the current merge instructions.
+See `MERGE_GUIDE_V2.4.md` for the current merge instructions.

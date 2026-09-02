@@ -1,12 +1,14 @@
 import { applyLessonTeachingCopy } from './teachingCopyOverlay.js'
+import { buildSkillReviewTasks } from '../lib/reviewTaskFactory.js'
 const content = (kind, title, bodyVi, extra = {}) => ({ type: 'content', kind, title, bodyVi, ...extra })
-const choice = (promptVi, options, answer, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'choice', promptVi, options, answer, explainVi, ...extra })
-const order = (promptVi, tokens, answer, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'wordOrder', punctuationRequired: false, promptVi, tokens, answer, explainVi, ...extra })
-const fill = (promptVi, sentence, answer, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'fillBlank', validationMode: 'normalizedExact', promptVi, sentence, answer, explainVi, ...extra })
-const identify = (promptVi, tokens, answerIndexes, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'identify', promptVi, tokens, answerIndexes, explainVi, ...extra })
-const fix = (promptVi, incorrect, accepted, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'errorFix', validationMode: 'acceptedVariants', promptVi, incorrect, accepted, explainVi, ...extra })
-const produce = (promptVi, placeholder, checks, extra = {}) => ({ type: 'production', promptVi, placeholder, checks, ...extra })
+const choice = (promptVi, options, answer, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'choice', intent: 'recognize', promptVi, options, answer, explainVi, ...extra })
+const order = (promptVi, tokens, answer, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'wordOrder', intent: 'build', punctuationRequired: false, promptVi, tokens, answer, explainVi, ...extra })
+const fill = (promptVi, sentence, answer, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'fillBlank', intent: 'choose', validationMode: 'normalizedExact', promptVi, sentence, answer, explainVi, ...extra })
+const identify = (promptVi, tokens, answerIndexes, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'identify', intent: 'recognize', promptVi, tokens, answerIndexes, explainVi, ...extra })
+const fix = (promptVi, incorrect, accepted, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'errorFix', intent: 'repair', validationMode: 'acceptedVariants', promptVi, incorrect, accepted, explainVi, ...extra })
+const produce = (promptVi, placeholder, checks, extra = {}) => ({ type: 'production', intent: 'produce', promptVi, placeholder, checks, ...extra })
 const review = (items) => ({ type: 'review', items })
+const openSentence = (promptVi, starter, explainVi, extra = {}) => ({ type: 'exercise', exerciseType: 'openSentence', intent: 'produce', promptVi, starter, explainVi, ...extra })
 
 const lesson = ({ id, unit, order: lessonOrder, titleEn, titleVi, minutes = 10, focus = [], standards = [], objectiveVi, steps, mastery = {} }) => ({
   id, unit, order: lessonOrder, titleEn, titleVi, minutes, focus, standards, objectiveVi, steps,
@@ -110,9 +112,9 @@ const rawFoundationLessons = [
       content('discover', 'Một câu nói điều gì đó hoàn chỉnh', '“Dogs run.” cho ta biết ai/cái gì và điều xảy ra. “The dogs” chỉ gọi tên đối tượng nhưng chưa nói điều gì xảy ra.', { examples: ['Dogs run. ✓', 'The dogs ✗', 'Runs fast ✗'] }),
       content('understand', 'Hai câu hỏi kiểm tra', '1) Câu nói về ai/cái gì? 2) Người/vật đó làm gì, là gì, hoặc như thế nào? Nếu thiếu một phần quan trọng, câu có thể chưa hoàn chỉnh.'),
       choice('Nhóm nào là câu hoàn chỉnh?', ['My friend', 'Runs every day', 'My friend runs.', 'Very happy'], 'My friend runs.', '“My friend” cho biết chủ thể và “runs” cho biết điều xảy ra.'),
-      fix('Biến nhóm từ này thành câu hoàn chỉnh.', 'My brother', ['My brother works.', 'My brother studies.', 'My brother is kind.'], 'Cần thêm điều gì đó về “my brother”, thường là một động từ.', { flexible: true }),
+      openSentence('Hoàn thành ý theo cách của bạn.', 'My brother', '“My brother” mới chỉ cho biết mình đang nói về ai. Hãy thêm điều bạn muốn nói về người đó. Nhiều đáp án khác nhau đều có thể đúng.', { requiredStart: 'My brother', minWords: 3, punctuationRequired: true, successVi: 'Đúng rồi. Câu của bạn đã có ý trọn vẹn. Đây là một đáp án hợp lệ; không cần giống câu mẫu của Bunny.', examples: ['My brother works.', 'My brother is tired.', 'My brother studies English.', 'My brother has a dog.'] }),
       produce('Viết một câu cực ngắn có người/vật + điều xảy ra.', 'Birds fly.', ['Có ít nhất 2 từ', 'Có dấu câu cuối'], { minWords: 2 }),
-      review([['Câu hoàn chỉnh cần truyền đạt gì?', 'Một ý hoàn chỉnh'], ['“The red car” đã là câu chưa?', 'Chưa'], ['Câu cơ bản thường cần gì?', 'Chủ thể + động từ/ý nói về chủ thể.']]),
+      review([['“The red car.” đã nói trọn một ý chưa?', 'Chưa. Người nghe vẫn chờ biết điều gì về chiếc xe.'], ['“The red car is new.” đã nói trọn một ý chưa?', 'Rồi. Câu cho biết chiếc xe thế nào.'], ['Hoàn thành: “My brother …”', 'Có nhiều đáp án đúng, ví dụ: My brother works. / My brother is tired.']]),
     ],
   }),
   lesson({
@@ -852,7 +854,7 @@ function enrichWithLearningCycle(lesson) {
 
   if (config.dictation) {
     extra.push({
-      type: 'exercise', exerciseType: 'dictation', id: `${lesson.id}-dictation`,
+      type: 'exercise', exerciseType: 'dictation', intent: 'listen_write', id: `${lesson.id}-dictation`,
       promptVi: 'Nghe rồi viết lại câu bạn nghe được.', audioText: config.dictation, answer: config.dictation,
       validationMode: 'normalizedExact', explainVi: 'Nếu chưa chắc, nghe lại và để ý từng từ, cách viết và dấu câu.',
     })
@@ -861,7 +863,7 @@ function enrichWithLearningCycle(lesson) {
   const alreadyHasBuild = original.some(step => step.type === 'exercise' && step.exerciseType === 'wordOrder')
   if (config.build && !alreadyHasBuild) {
     extra.push({
-      type: 'exercise', exerciseType: 'wordOrder', id: `${lesson.id}-build`, promptVi: 'Ghép các mảnh thành một câu tự nhiên.',
+      type: 'exercise', exerciseType: 'wordOrder', intent: 'build', id: `${lesson.id}-build`, promptVi: 'Ghép các mảnh thành một câu tự nhiên.',
       tokens: config.build.tokens, answer: config.build.answer, punctuationRequired: !!config.build.punctuationRequired,
       explainVi: 'Đọc ý nghĩa trước, rồi xếp các từ theo thứ tự tiếng Anh.',
     })
@@ -870,11 +872,40 @@ function enrichWithLearningCycle(lesson) {
   return { ...lesson, steps: [...before, ...extra, ...after] }
 }
 
+
+function upgradeLessonLearningEngine(lesson) {
+  const reviewTasks = buildSkillReviewTasks(lesson, 3)
+  const steps = (lesson.steps || []).map(step => {
+    if (step.type !== 'review') return step
+    return {
+      ...step,
+      mode: 'skillRetrieval',
+      tasks: reviewTasks,
+      titleVi: 'Dùng lại điều vừa học',
+      introVi: 'Không cần nhớ lời giải thích của Bunny. Hãy làm vài câu ngắn để xem bạn có dùng được tiếng Anh hay chưa.',
+    }
+  })
+  const skills = [...new Set((lesson.focus || []).map(x => String(x).toLowerCase().replace(/[^a-z0-9]+/g,'_')).filter(Boolean))]
+  return {
+    ...lesson,
+    canDoVi: lesson.canDoVi || lesson.objectiveVi,
+    learningDesign: {
+      cycle: ['discover','notice','understand','listen','speak_optional','recognize','build','repair','produce','review'],
+      inputBeforeOutput: true,
+      meaningBeforeTerminology: true,
+      reviewTestsEnglish: true,
+    },
+    skillTags: skills,
+    steps,
+  }
+}
+
 const pathIndex = new Map(FOUNDATION_PATH_IDS.map((id, index) => [id, index]))
 
 export const foundationLessons = rawFoundationLessons
   .map(enrichWithLearningCycle)
   .map(applyLessonTeachingCopy)
+  .map(upgradeLessonLearningEngine)
   .filter(lesson => pathIndex.has(lesson.id))
   .sort((a, b) => pathIndex.get(a.id) - pathIndex.get(b.id))
   .map((lesson, index) => ({ ...lesson, order: index + 1 }))

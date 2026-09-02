@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, Brain, CheckCircle2, Circle, Eye, Languages, Lightbulb, Network, Volume2, Gauge, ChevronDown, Headphones, Mic, MicOff, RotateCcw, Sparkles } from 'lucide-react'
+import { BookOpen, Brain, CheckCircle2, Circle, Eye, Languages, Lightbulb, Network, Volume2, Gauge, ChevronDown, Headphones, Mic, MicOff, RotateCcw, Sparkles, HelpCircle, X } from 'lucide-react'
 import ExerciseRenderer from './ExerciseRenderer'
 import Mascot from '../Mascot'
 import TeacherGuide from './TeacherGuide'
@@ -8,7 +8,8 @@ import { SpeechService, scoreTranscript } from '../../lib/speechService'
 import { AudioRecorderService } from '../../lib/audioRecorderService'
 import { PronunciationService, vietnamesePronunciationFeedback } from '../../lib/pronunciationService'
 import { formatSpeakingPauseRemaining, isSpeakingPaused, pauseSpeaking, resumeSpeaking } from '../../lib/speakingPreference'
-import { evaluateProduction, getRequirements, splitNonEmptyLines, wordCount } from '../../lib/productionValidator'
+import { evaluateProduction, splitSentences, wordCount } from '../../lib/productionValidator'
+import { getStaticLessonHelp } from '../../data/staticLessonHelp'
 
 const kindMeta={
   discover:{label:'KHÁM PHÁ',icon:Eye,cls:'text-blue-700 bg-blue-50 border-blue-100'},
@@ -19,7 +20,10 @@ const kindMeta={
 }
 
 export default function StepRenderer({lesson,step,stepIndex=0,stepState={},onStepStateChange,onExerciseResult,onReviewRating}){
+  const [helpOpen,setHelpOpen]=useState(false)
+  const [helpTab,setHelpTab]=useState('simpler')
   const state={...stepState,stepKey:stepState.stepKey||step.id||step.promptVi||step.title}
+  const help=useMemo(()=>getStaticLessonHelp({lesson,step}),[lesson,step])
   const body=step.type==='exercise'
     ? <ExerciseRenderer step={step} initialState={state} onStateChange={onStepStateChange} onResult={onExerciseResult}/>
     : step.type==='listen'
@@ -31,7 +35,27 @@ export default function StepRenderer({lesson,step,stepIndex=0,stepState={},onSte
           : step.type==='review'
             ? <ReviewStep step={step} state={state} onStateChange={onStepStateChange} onReviewRating={onReviewRating}/>
             : <ContentStep step={step} state={state} onStateChange={onStepStateChange}/>
-  return <div className="teacher-led-step"><TeacherGuide lesson={lesson} step={step} stepIndex={stepIndex}/>{body}</div>
+  return <div className="teacher-led-step">
+    <TeacherGuide lesson={lesson} step={step} stepIndex={stepIndex}/>
+    {body}
+    <div className="mt-7 border-t border-slate-200 pt-5">
+      <button onClick={()=>setHelpOpen(true)} className="pressable inline-flex min-h-11 items-center gap-2 rounded-2xl border border-blue-100 bg-blue-50 px-4 text-sm font-bold text-blue-800"><HelpCircle className="h-4 w-4"/> Bunny, mình chưa hiểu</button>
+    </div>
+    {helpOpen&&<StaticHelpDrawer help={help} active={helpTab} onChange={setHelpTab} onClose={()=>setHelpOpen(false)}/>} 
+  </div>
+}
+
+function StaticHelpDrawer({help,active,onChange,onClose}){
+  const keys=['simpler','examples','compare','practice']
+  const current=help[active]||help.simpler
+  return <div className="fixed inset-0 z-[110] flex items-end justify-center bg-slate-950/45 p-0 backdrop-blur-sm sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label="Bunny giải thích thêm">
+    <div className="surface-card w-full max-w-2xl rounded-t-[30px] p-5 shadow-2xl sm:rounded-[30px] sm:p-6">
+      <div className="flex items-start gap-3"><Mascot size={64} mood="explaining" withBook/><div className="min-w-0 flex-1"><p className="text-xs font-black uppercase tracking-[.14em] text-blue-700">Bunny · trợ giúp bài học</p><h3 className="mt-1 text-xl font-extrabold text-strong">Mình thử một cách khác nhé.</h3></div><button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200" aria-label="Đóng trợ giúp"><X className="h-4 w-4"/></button></div>
+      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">{keys.map(key=><button key={key} onClick={()=>onChange(key)} className={`min-h-11 rounded-xl border px-3 text-xs font-bold ${active===key?'border-blue-400 bg-blue-50 text-blue-800':'border-slate-200 bg-white text-slate-600'}`}>{help[key].title}</button>)}</div>
+      <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4"><p className="text-sm font-semibold leading-6 text-slate-700">{current.text}</p>{current.examples?.length>0&&<div className="mt-3 space-y-2">{current.examples.map(example=><div key={example} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-extrabold text-slate-900">{example}</div>)}</div>}</div>
+      <p className="mt-3 text-xs font-medium leading-5 text-muted">Phần trợ giúp này đã được viết sẵn trong bài học. Không cần AI hay kết nối API.</p>
+    </div>
+  </div>
 }
 
 function AudioButtons({text,onPlayed,voiceRole='teacher'}){
@@ -241,16 +265,61 @@ function ProductionStep({step,state,onStateChange}){
   return <div><div className="inline-flex items-center gap-2 rounded-full border border-amber-100 bg-amber-50 px-3 py-1.5 text-[11px] font-black tracking-[.14em] text-amber-800"><Lightbulb className="h-3.5 w-3.5"/>TỰ VIẾT</div><h2 className="mt-4 text-[28px] font-extrabold tracking-tight">Tạo câu của chính bạn</h2><p className="mt-3 text-[15px] font-medium leading-7 text-slate-600">{step.promptVi}</p>
     <label htmlFor="production-draft" className="sr-only">Bài viết của bạn</label><textarea id="production-draft" value={value} onChange={e=>changeValue(e.target.value)} rows={step.masteryProject?12:6} placeholder={step.placeholder} className="mt-6 w-full resize-y rounded-3xl border border-slate-200 bg-white p-5 text-sm font-semibold leading-7 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"/>
     <div className="mt-4 grid gap-2 sm:grid-cols-2">{evaluation.requirements.map(req=>{const manual=req.type==='selfCheck';return <button key={req.id} type="button" disabled={!manual} onClick={()=>manual&&toggleManual(req.id)} className={`flex min-h-12 items-start gap-2 rounded-2xl border px-3 py-2.5 text-left text-xs font-bold ${req.passed?'border-emerald-100 bg-emerald-50 text-emerald-800':'border-slate-200 bg-slate-50 text-slate-600'} ${manual?'cursor-pointer hover:border-blue-200':'cursor-default'}`}><span className="mt-0.5">{req.passed?<CheckCircle2 className="h-4 w-4 text-emerald-600"/>:<Circle className="h-4 w-4 text-slate-400"/>}</span><span>{req.labelVi}{req.detail&&<span className="ml-1 text-[10px] text-slate-400">({req.detail})</span>}{manual&&<span className="mt-1 block text-[10px] font-semibold text-slate-400">Tự kiểm tra · chạm để xác nhận</span>}</span></button>})}</div>
-    <div className="mt-5 flex flex-wrap items-center gap-3"><button disabled={!evaluation.passed} onClick={submit} className="pressable min-h-11 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-40">Tôi đã viết xong</button><span className="text-xs font-bold text-slate-400">{splitNonEmptyLines(value).length} dòng · {wordCount(value)} từ</span></div>
+    <div className="mt-5 flex flex-wrap items-center gap-3"><button disabled={!evaluation.passed} onClick={submit} className="pressable min-h-11 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-40">Tôi đã viết xong</button><span className="text-xs font-bold text-slate-400">{splitSentences(value).length} câu · {wordCount(value)} từ</span></div>
     {!evaluation.passed&&<p className="mt-3 text-xs font-semibold text-amber-800">Hoàn thành từng mục phía trên trước khi tiếp tục. Bunny chỉ tự kiểm tra những điều hệ thống có thể xác định rõ.</p>}
     {submitted&&<div aria-live="polite" className="success-pop mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm leading-6 text-emerald-800"><strong>Tốt lắm.</strong> Bản nháp đã được lưu. Nếu bạn sai ở phần luyện tập, Bunny sẽ đưa lỗi đó trở lại Practice sau.</div>}
   </div>
 }
 
 function ReviewStep({step,state,onStateChange,onReviewRating}){
+  const tasks=step.tasks||[]
+  const [index,setIndex]=useState(Math.min(state.reviewIndex||0,Math.max(0,tasks.length-1)))
+  const [taskStates,setTaskStates]=useState(state.taskStates||{})
+  const [ratings,setRatings]=useState(state.ratings||{})
+  const current=tasks[index]
+
+  if(!tasks.length) return <LegacyReviewStep step={step} state={state} onStateChange={onStateChange} onReviewRating={onReviewRating}/>
+
+  const updateTaskState=patch=>{
+    const next={...taskStates,[index]:{...(taskStates[index]||{}),...patch}}
+    setTaskStates(next)
+    onStateChange?.({taskStates:next,ratings,reviewIndex:index,completed:Object.keys(ratings).length===tasks.length})
+  }
+  const resultForTask=result=>updateTaskState({...result,lastResult:true})
+  const rate=rating=>{
+    const nextRatings={...ratings,[index]:rating}
+    setRatings(nextRatings)
+    onReviewRating?.({itemIndex:index,question:current.promptVi,answer:expectedForReviewTask(current),rating,task:current})
+    const completed=Object.keys(nextRatings).length===tasks.length
+    const nextIndex=Math.min(tasks.length-1,index+1)
+    setIndex(nextIndex)
+    onStateChange?.({taskStates,ratings:nextRatings,reviewIndex:nextIndex,completed})
+  }
+  const attempted=!!taskStates[index]?.attempted
+
+  return <div>
+    <div className="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[11px] font-black tracking-[.14em] text-emerald-700"><BookOpen className="h-3.5 w-3.5"/>ÔN BẰNG CÁCH DÙNG</div>
+    <h2 className="mt-4 text-[28px] font-extrabold">{step.titleVi||'Dùng lại điều vừa học'}</h2>
+    <p className="mt-2 text-sm leading-6 text-slate-500">{step.introVi||'Không cần nhớ định nghĩa. Hãy làm vài câu ngắn để xem bạn có thật sự dùng được tiếng Anh hay chưa.'}</p>
+    <div className="mt-4 flex items-center gap-2">{tasks.map((_,i)=><span key={i} className={`h-2 flex-1 rounded-full ${i<index||ratings[i]!=null?'bg-emerald-400':i===index?'bg-blue-500':'bg-slate-200'}`}/>)}</div>
+    <div className="mt-6 rounded-[24px] border border-slate-200 bg-white p-4 sm:p-5"><p className="mb-4 text-xs font-black uppercase tracking-[.14em] text-slate-400">Câu ôn {index+1}/{tasks.length}</p><ExerciseRenderer step={current} initialState={{...(taskStates[index]||{}),stepKey:`review-${current.id||index}`}} onStateChange={updateTaskState} onResult={resultForTask}/></div>
+    {attempted&&ratings[index]==null&&<div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 p-4"><p className="text-sm font-bold text-blue-950">Sau khi tự làm, bạn thấy phần này thế nào?</p><div className="mt-3 grid grid-cols-3 gap-2"><RatingButton active={false} onClick={()=>rate(0)}>Cần ôn lại</RatingButton><RatingButton active={false} onClick={()=>rate(.5)}>Nhớ một phần</RatingButton><RatingButton active={false} onClick={()=>rate(1)}>Nhớ rồi</RatingButton></div></div>}
+    <p className="mt-4 text-xs font-bold text-slate-400">Đã làm {Object.keys(ratings).length}/{tasks.length} câu ôn.</p>
+  </div>
+}
+
+function expectedForReviewTask(task){
+  if(Array.isArray(task.accepted)) return task.accepted.join(' / ')
+  if(task.answer!=null) return String(task.answer)
+  if(Array.isArray(task.answerIndexes)) return task.answerIndexes.map(i=>task.tokens?.[i]).filter(Boolean).join(' ')
+  if(task.exerciseType==='openSentence') return 'Nhiều câu hoàn chỉnh khác nhau đều có thể đúng.'
+  return ''
+}
+
+function LegacyReviewStep({step,state,onStateChange,onReviewRating}){
   const [open,setOpen]=useState(state.open||{});const [ratings,setRatings]=useState(state.ratings||{})
   const reveal=i=>{const next={...open,[i]:true};setOpen(next);onStateChange?.({open:next,ratings,completed:Object.keys(ratings).length===step.items.length})}
   const rate=(i,rating)=>{const next={...ratings,[i]:rating};setRatings(next);const completed=Object.keys(next).length===step.items.length;onStateChange?.({open,ratings:next,completed});onReviewRating?.({itemIndex:i,question:step.items[i][0],answer:step.items[i][1],rating})}
-  return <div><div className="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[11px] font-black tracking-[.14em] text-emerald-700"><BookOpen className="h-3.5 w-3.5"/>ÔN LẠI</div><h2 className="mt-4 text-[28px] font-extrabold">Nhớ lại — không nhìn đáp án trước</h2><p className="mt-2 text-sm leading-6 text-slate-500">Tự trả lời trong đầu trước. Sau khi mở đáp án, đánh giá trí nhớ. Câu bạn quên hoặc làm sai sẽ quay lại trong Practice theo lịch ôn.</p><div className="mt-6 space-y-3">{step.items.map(([q,a],i)=><div key={i} className="rounded-2xl border border-slate-200 bg-white p-4"><div className="flex items-start justify-between gap-4"><span className="font-extrabold text-slate-900">{q}</span>{!open[i]&&<button onClick={()=>reveal(i)} className="pressable min-h-10 rounded-xl bg-blue-50 px-3 text-xs font-black text-blue-700">Tôi đã nghĩ xong</button>}</div>{open[i]&&<><p className="mt-3 border-t border-slate-100 pt-3 text-sm font-semibold text-emerald-800">{a}</p><div className="mt-3 grid grid-cols-3 gap-2" role="group" aria-label={`Đánh giá trí nhớ cho ${q}`}><RatingButton active={ratings[i]===0} onClick={()=>rate(i,0)}>Chưa nhớ</RatingButton><RatingButton active={ratings[i]===0.5} onClick={()=>rate(i,0.5)}>Gần đúng</RatingButton><RatingButton active={ratings[i]===1} onClick={()=>rate(i,1)}>Nhớ rồi</RatingButton></div></>}</div>)}</div><p className="mt-4 text-xs font-bold text-slate-400">Đã đánh giá {Object.keys(ratings).length}/{step.items.length} thẻ.</p></div>
+  return <div><div className="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[11px] font-black tracking-[.14em] text-emerald-700"><BookOpen className="h-3.5 w-3.5"/>ÔN LẠI</div><h2 className="mt-4 text-[28px] font-extrabold">Tự nhớ trước, rồi kiểm tra</h2><p className="mt-2 text-sm leading-6 text-slate-500">Thử trả lời trong đầu trước. Chỉ mở gợi ý sau khi bạn đã nghĩ.</p><div className="mt-6 space-y-3">{(step.items||[]).map(([q,a],i)=><div key={i} className="rounded-2xl border border-slate-200 bg-white p-4"><div className="flex items-start justify-between gap-4"><span className="font-extrabold text-slate-900">{q}</span>{!open[i]&&<button onClick={()=>reveal(i)} className="pressable min-h-10 rounded-xl bg-blue-50 px-3 text-xs font-black text-blue-700">Xem gợi ý</button>}</div>{open[i]&&<><p className="mt-3 border-t border-slate-100 pt-3 text-sm font-semibold text-emerald-800">{a}</p><div className="mt-3 grid grid-cols-3 gap-2"><RatingButton active={ratings[i]===0} onClick={()=>rate(i,0)}>Cần ôn lại</RatingButton><RatingButton active={ratings[i]===0.5} onClick={()=>rate(i,0.5)}>Nhớ một phần</RatingButton><RatingButton active={ratings[i]===1} onClick={()=>rate(i,1)}>Nhớ rồi</RatingButton></div></>}</div>)}</div></div>
 }
 function RatingButton({active,onClick,children}){return <button onClick={onClick} className={`pressable min-h-11 rounded-xl border px-2 text-[11px] font-black ${active?'border-blue-500 bg-blue-50 text-blue-700':'border-slate-200 bg-white text-slate-600'}`}>{children}</button>}
